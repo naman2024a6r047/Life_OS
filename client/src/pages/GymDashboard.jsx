@@ -7,7 +7,8 @@ import {
   FiFilter, FiSearch, FiMoreVertical, FiPlay, FiBookmark, FiEdit3,
   FiSliders, FiUser, FiInfo, FiArrowUpRight, FiArrowDownRight, FiX,
   FiLock, FiMail, FiTrash2, FiBell, FiGlobe, FiShield, FiDownload,
-  FiRefreshCw, FiHelpCircle, FiCopy, FiCheckSquare, FiAlertCircle
+  FiRefreshCw, FiHelpCircle, FiCopy, FiCheckSquare, FiAlertCircle,
+  FiCamera, FiShare2, FiStar, FiRotateCcw
 } from 'react-icons/fi';
 import MuscleDiagram from '../components/fitness/MuscleDiagram';
 
@@ -22,7 +23,6 @@ export default function GymDashboard() {
   const streak = user?.current_streak || 28;
   const [selectedMuscleCategory, setSelectedMuscleCategory] = useState('all');
   const [selectedExercise, setSelectedExercise] = useState('Barbell Bench Press');
-  const [muscleDiagramSide, setMuscleDiagramSide] = useState('front');
   const [searchExercise, setSearchExercise] = useState('');
 
   // Active Workout Mode State (Timer & Set Logger)
@@ -30,7 +30,6 @@ export default function GymDashboard() {
   const [workoutTimer, setWorkoutTimer] = useState(0);
   const [restTimer, setRestTimer] = useState(0);
   const [isResting, setIsResting] = useState(false);
-  const [activeSetIndex, setActiveSetIndex] = useState(1);
   const [loggedSets, setLoggedSets] = useState([
     { setNum: 1, weight: '80', reps: '10', done: true },
     { setNum: 2, weight: '80', reps: '10', done: false },
@@ -114,7 +113,6 @@ export default function GymDashboard() {
 
   const finishLiveWorkout = () => {
     setIsWorkoutActive(false);
-    // Check if new PR
     const maxWeight = Math.max(...loggedSets.map(s => Number(s.weight)));
     if (maxWeight >= 85) {
       setPrNotification(`🎉 New Personal Record! Bench Press ${maxWeight} kg achieved!`);
@@ -126,7 +124,7 @@ export default function GymDashboard() {
     const updated = [...loggedSets];
     updated[index].done = true;
     setLoggedSets(updated);
-    setRestTimer(60); // 60s rest
+    setRestTimer(60);
     setIsResting(true);
   };
 
@@ -317,10 +315,10 @@ export default function GymDashboard() {
         )}
       </AnimatePresence>
 
-      {/* Top Header */}
+      {/* Top Header Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center">
             <FiActivity size={22} />
           </div>
           <div>
@@ -329,7 +327,7 @@ export default function GymDashboard() {
           </div>
         </div>
 
-        {/* Top 4 Metrics Summary Bar */}
+        {/* Top 4 Metrics Summary Bar (Matching Header Spec) */}
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
             <span className="text-base">🔥</span>
@@ -450,7 +448,7 @@ export default function GymDashboard() {
             <div className="col-span-4 card p-4 space-y-3 flex flex-col justify-between">
               <div className="flex items-center justify-between">
                 <h3 className="section-title">Weekly Activity</h3>
-                <span onClick={() => setActiveTab('calendar')} className="section-link">View Calendar</span>
+                <span onClick={() => setActiveTab('workouts')} className="section-link">View Calendar</span>
               </div>
 
               <div className="flex justify-between items-center px-1">
@@ -661,6 +659,847 @@ export default function GymDashboard() {
                 </div>
               </div>
             </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SUB TAB 2: WORKOUTS (Matching Image 4 Pixel Perfect) */}
+      {activeTab === 'workouts' && (
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          {/* Top Bar Controls */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-text-primary">Workouts</h2>
+              <p className="text-xs text-text-muted">Track and manage all your workouts.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <select className="px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary font-medium">
+                <option>All Workouts</option>
+                <option>Push</option>
+                <option>Pull</option>
+                <option>Legs</option>
+              </select>
+              <div className="px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-muted font-mono flex items-center gap-2">
+                <FiCalendar size={14} /> May 12 – May 18, 2026
+              </div>
+              <button onClick={() => setShowNewWorkoutModal(true)} className="btn-primary text-xs px-4 py-2 bg-purple hover:bg-purple/80 flex items-center gap-1.5 shadow-glow-primary">
+                <FiPlus size={16} /> New Workout
+              </button>
+            </div>
+          </div>
+
+          {/* Top 4 Cards Row */}
+          <div className="grid grid-cols-4 gap-4">
+            <div className="card p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-xl">🏋️</div>
+              <div>
+                <p className="text-[10px] text-text-muted">Workouts This Week</p>
+                <h3 className="text-2xl font-bold font-mono text-text-primary">6</h3>
+              </div>
+            </div>
+            <div className="card p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-info/10 text-info flex items-center justify-center text-xl">⏱️</div>
+              <div>
+                <p className="text-[10px] text-text-muted">Total Duration This Week</p>
+                <h3 className="text-2xl font-bold font-mono text-text-primary">6h 40m</h3>
+              </div>
+            </div>
+            <div className="card p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-success/10 text-success flex items-center justify-center text-xl">🏆</div>
+              <div>
+                <p className="text-[10px] text-text-muted">Total Volume This Week</p>
+                <h3 className="text-2xl font-bold font-mono text-text-primary">22,450 kg</h3>
+              </div>
+            </div>
+            <div className="card p-4 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-warning/10 text-warning flex items-center justify-center text-xl">🔥</div>
+              <div>
+                <p className="text-[10px] text-text-muted">Calories Burned This Week</p>
+                <h3 className="text-2xl font-bold font-mono text-text-primary">4,250 kcal</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Content Layout (Table on Left, Widgets on Right) */}
+          <div className="grid grid-cols-12 gap-4">
+            {/* Left Column Workouts Table & Recent PRs (8 Cols) */}
+            <div className="col-span-8 space-y-4">
+              <div className="card p-4 space-y-3">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-border-subtle text-[10px] text-text-muted uppercase tracking-wider">
+                        <th className="pb-3 font-semibold">WORKOUT</th>
+                        <th className="pb-3 font-semibold">FOCUS AREA</th>
+                        <th className="pb-3 font-semibold">DURATION</th>
+                        <th className="pb-3 font-semibold">VOLUME</th>
+                        <th className="pb-3 font-semibold">CALORIES</th>
+                        <th className="pb-3 font-semibold">NOTES</th>
+                        <th className="pb-3 font-semibold">STATUS</th>
+                        <th className="pb-3 font-semibold text-right">ACTIONS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-subtle/50">
+                      {workoutsList.map(w => (
+                        <tr key={w.id} className="hover:bg-surface-elevated/40 transition-colors">
+                          <td className="py-3 pr-2">
+                            <div className="flex items-center gap-2.5">
+                              <div className="w-8 h-8 rounded-lg bg-purple/10 text-purple flex items-center justify-center font-bold">🏋️</div>
+                              <div>
+                                <p className="font-bold text-text-primary">{w.title}</p>
+                                <p className="text-[9px] text-text-muted">{w.time}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3 px-2 text-text-muted">{w.focus}</td>
+                          <td className="py-3 px-2 font-mono text-text-primary">{w.duration}</td>
+                          <td className="py-3 px-2 font-mono font-bold text-text-primary">{w.volume}</td>
+                          <td className="py-3 px-2 font-mono text-text-primary">{w.calories}</td>
+                          <td className="py-3 px-2 text-text-muted">{w.notes}</td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                              w.status === 'Completed' ? 'bg-success/10 text-success' : 'bg-info/10 text-info'
+                            }`}>
+                              {w.status}
+                            </span>
+                          </td>
+                          <td className="py-3 pl-2 text-right">
+                            <button className="text-text-muted hover:text-text-primary p-1"><FiMoreVertical size={14} /></button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="text-center pt-2">
+                  <button className="text-xs font-bold text-purple hover:underline flex items-center justify-center gap-1 mx-auto">
+                    Load More ▾
+                  </button>
+                </div>
+              </div>
+
+              {/* Recent PRs Row at Bottom */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h3 className="section-title text-xs">Recent PRs</h3>
+                  <span onClick={() => setActiveTab('progress')} className="section-link">View All</span>
+                </div>
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="card p-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-success/20 text-success flex items-center justify-center font-bold">🏆</div>
+                    <div>
+                      <p className="text-[10px] text-text-muted">Squat</p>
+                      <p className="text-sm font-bold font-mono text-text-primary">120 kg <span className="text-[9px] text-success font-bold">+5 kg</span></p>
+                    </div>
+                  </div>
+                  <div className="card p-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-info/20 text-info flex items-center justify-center font-bold">🏆</div>
+                    <div>
+                      <p className="text-[10px] text-text-muted">Bench Press</p>
+                      <p className="text-sm font-bold font-mono text-text-primary">100 kg <span className="text-[9px] text-info font-bold">+2.5 kg</span></p>
+                    </div>
+                  </div>
+                  <div className="card p-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-purple/20 text-purple flex items-center justify-center font-bold">🏆</div>
+                    <div>
+                      <p className="text-[10px] text-text-muted">Deadlift</p>
+                      <p className="text-sm font-bold font-mono text-text-primary">150 kg <span className="text-[9px] text-purple font-bold">+5 kg</span></p>
+                    </div>
+                  </div>
+                  <div className="card p-3 flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-warning/20 text-warning flex items-center justify-center font-bold">🏆</div>
+                    <div>
+                      <p className="text-[10px] text-text-muted">Pull Ups (BW)</p>
+                      <p className="text-sm font-bold font-mono text-text-primary">15 reps <span className="text-[9px] text-warning font-bold">+2 reps</span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column Widgets (4 Cols) */}
+            <div className="col-span-4 space-y-4">
+              {/* Muscle Focus Dual Anatomical Graphic */}
+              <div className="card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="section-title text-xs">Muscle Focus</h3>
+                  <span className="text-[10px] text-text-muted">Front & Back View</span>
+                </div>
+                <div className="w-full h-48 flex items-center justify-center">
+                  <MuscleDiagram selectedExercise="bench press" />
+                </div>
+              </div>
+
+              {/* Workout History 4-Week Matrix */}
+              <div className="card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="section-title text-xs">Workout History</h3>
+                  <span className="section-link">View All</span>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[9px] text-text-muted font-mono px-6">
+                    <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+                  </div>
+                  {['18–24 May', '11–17 May', '4–10 May', '27 Apr–3 May'].map((wk, idx) => (
+                    <div key={wk} className="flex items-center justify-between text-[9px] font-mono">
+                      <span className="text-text-muted w-14">{wk}</span>
+                      <div className="flex items-center gap-1.5">
+                        {Array.from({ length: 7 }, (_, i) => (
+                          <div key={i} className={`w-3.5 h-3.5 rounded-full ${
+                            i === 6 ? 'border border-border-subtle bg-transparent' : (i + idx) % 2 === 0 ? 'bg-success' : 'bg-purple'
+                          }`} />
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between text-[9px] text-text-muted pt-2 border-t border-border-subtle">
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success inline-block" /> Workout</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-purple inline-block" /> Rest Day</span>
+                  <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full border border-border-subtle inline-block" /> No Workout</span>
+                </div>
+              </div>
+
+              {/* Top Exercises Widget */}
+              <div className="card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="section-title text-xs">Top Exercises</h3>
+                  <span className="text-xs text-text-muted">This Month ▾</span>
+                </div>
+                <div className="space-y-2 text-xs">
+                  {[
+                    { name: 'Bench Press', sets: 24, vol: '5,200 kg' },
+                    { name: 'Squat', sets: 20, vol: '4,800 kg' },
+                    { name: 'Deadlift', sets: 18, vol: '4,500 kg' },
+                    { name: 'Overhead Press', sets: 16, vol: '2,800 kg' },
+                    { name: 'Pull Ups', sets: 15, vol: '1,600 kg' },
+                  ].map((ex, i) => (
+                    <div key={i} className="flex items-center justify-between p-1.5 rounded-lg hover:bg-surface-elevated">
+                      <span className="font-bold text-text-primary flex items-center gap-2"><span>🏋️</span> {ex.name}</span>
+                      <div className="font-mono text-[10px] space-x-3">
+                        <span className="text-text-muted">{ex.sets} Sets</span>
+                        <span className="font-bold text-text-primary">{ex.vol}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-2 border-t border-border-subtle text-center">
+                  <button onClick={() => setActiveTab('exercises')} className="text-xs font-bold text-purple hover:underline">
+                    View All Exercises →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SUB TAB 3: PROGRESS (Matching Image 3 Pixel Perfect) */}
+      {activeTab === 'progress' && (
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-text-primary">Progress Overview</h2>
+              <p className="text-xs text-text-muted">Track your fitness journey and see how far you've come.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-muted font-mono flex items-center gap-2">
+                <FiCalendar size={14} /> May 12 – May 18, 2026
+              </div>
+              <select className="px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary font-medium">
+                <option>All Time</option>
+                <option>This Month</option>
+                <option>This Year</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Top 5 Metric Cards */}
+          <div className="grid grid-cols-5 gap-3">
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-text-muted">Total Workouts</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 18% vs last 30 days</span>
+              </div>
+              <h3 className="text-2xl font-bold font-mono text-text-primary">128</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-text-muted">Total Volume</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 24% vs last 30 days</span>
+              </div>
+              <h3 className="text-2xl font-bold font-mono text-text-primary">2,450 kg</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-text-muted">Total Calories Burned</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 16% vs last 30 days</span>
+              </div>
+              <h3 className="text-2xl font-bold font-mono text-text-primary">18,450 kcal</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-text-muted">Total Duration</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 14% vs last 30 days</span>
+              </div>
+              <h3 className="text-2xl font-bold font-mono text-text-primary">68h 35m</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-text-muted">Avg. Workout / Week</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 12% vs last 30 days</span>
+              </div>
+              <h3 className="text-2xl font-bold font-mono text-text-primary">5.1</h3>
+            </div>
+          </div>
+
+          {/* Middle Layout (Charts Left, Summary Right) */}
+          <div className="grid grid-cols-12 gap-4">
+            {/* Left 8 Cols Charts */}
+            <div className="col-span-8 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="card p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="section-title text-xs">Workout Frequency</h4>
+                    <span className="text-[10px] text-text-muted">Weekly ▾</span>
+                  </div>
+                  <div className="h-28 flex items-end justify-between px-2 pt-2 border-b border-border-subtle">
+                    {[30, 45, 60, 85, 70].map((v, i) => (
+                      <div key={i} className="flex flex-col items-center gap-1 flex-1">
+                        <div className="w-2 rounded-full bg-purple" style={{ height: `${v}%` }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="card p-4 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="section-title text-xs">Training Volume</h4>
+                    <span className="text-[10px] text-text-muted">Weekly ▾</span>
+                  </div>
+                  <div className="h-28 flex items-end justify-between px-2 pt-2 border-b border-border-subtle">
+                    {[40, 55, 75, 90, 85].map((v, i) => (
+                      <div key={i} className="flex flex-col items-center gap-1 flex-1">
+                        <div className="w-full rounded-t bg-success/40" style={{ height: `${v}%` }} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bottom Tables */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="card p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="section-title text-xs">Muscle Group Progress</h4>
+                    <span className="text-[10px] text-text-muted">This Month ▾</span>
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    {[
+                      { name: 'Chest', vol: '520 kg', pct: '+18%', color: 'bg-purple' },
+                      { name: 'Back', vol: '680 kg', pct: '+24%', color: 'bg-info' },
+                      { name: 'Legs', vol: '750 kg', pct: '+22%', color: 'bg-success' },
+                      { name: 'Shoulders', vol: '320 kg', pct: '+15%', color: 'bg-warning' },
+                      { name: 'Arms', vol: '180 kg', pct: '+10%', color: 'bg-danger' },
+                      { name: 'Core', vol: '120 kg', pct: '+8%', color: 'bg-purple' },
+                    ].map(m => (
+                      <div key={m.name} className="space-y-1">
+                        <div className="flex justify-between text-[10px]">
+                          <span className="text-text-primary font-bold">{m.name}</span>
+                          <span className="font-mono text-text-muted">{m.vol} <strong className="text-success">{m.pct}</strong></span>
+                        </div>
+                        <div className="progress-bar h-1.5"><div className={`progress-fill ${m.color}`} style={{ width: m.pct.replace('+', '') }} /></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="card p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="section-title text-xs">Strength Progress (Top Lifts)</h4>
+                    <span className="text-[10px] text-text-muted">All Time ▾</span>
+                  </div>
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-border-subtle text-[9px] text-text-muted">
+                        <th className="pb-2">EXERCISE</th>
+                        <th className="pb-2">START</th>
+                        <th className="pb-2">CURRENT</th>
+                        <th className="pb-2 text-right">PROGRESS</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-border-subtle/50 text-[11px] font-mono">
+                      <tr><td className="py-2 text-text-primary font-sans font-bold">Bench Press</td><td>60 kg</td><td className="font-bold">100 kg</td><td className="text-right text-success font-bold">↑ 66.7%</td></tr>
+                      <tr><td className="py-2 text-text-primary font-sans font-bold">Squat</td><td>80 kg</td><td className="font-bold">140 kg</td><td className="text-right text-success font-bold">↑ 75%</td></tr>
+                      <tr><td className="py-2 text-text-primary font-sans font-bold">Deadlift</td><td>100 kg</td><td className="font-bold">150 kg</td><td className="text-right text-success font-bold">↑ 50%</td></tr>
+                      <tr><td className="py-2 text-text-primary font-sans font-bold">Overhead Press</td><td>40 kg</td><td className="font-bold">70 kg</td><td className="text-right text-success font-bold">↑ 75%</td></tr>
+                      <tr><td className="py-2 text-text-primary font-sans font-bold">Pull Ups (BW)</td><td>5 reps</td><td className="font-bold">15 reps</td><td className="text-right text-success font-bold">↑ 100%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            {/* Right 4 Cols Progress Summary */}
+            <div className="col-span-4 space-y-4">
+              <div className="card p-4 space-y-3 text-center">
+                <h4 className="section-title text-xs">Progress Summary</h4>
+                <div className="relative w-32 h-32 mx-auto my-2">
+                  <svg className="w-32 h-32 -rotate-90" viewBox="0 0 128 128">
+                    <circle cx="64" cy="64" r="50" stroke="#161A2E" strokeWidth="12" fill="none" />
+                    <circle cx="64" cy="64" r="50" stroke="#A855F7" strokeWidth="12" strokeDasharray="245 314" fill="none" />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <span className="text-2xl font-bold font-mono text-text-primary">78%</span>
+                    <span className="text-[9px] text-text-muted">Overall Progress</span>
+                  </div>
+                </div>
+                <div className="space-y-1 text-xs text-left">
+                  <div className="flex justify-between"><span className="text-text-muted">• Strength</span><span className="font-bold text-text-primary">82%</span></div>
+                  <div className="flex justify-between"><span className="text-text-muted">• Endurance</span><span className="font-bold text-text-primary">74%</span></div>
+                  <div className="flex justify-between"><span className="text-text-muted">• Consistency</span><span className="font-bold text-text-primary">80%</span></div>
+                  <div className="flex justify-between"><span className="text-text-muted">• Recovery</span><span className="font-bold text-text-primary">76%</span></div>
+                </div>
+              </div>
+
+              <div className="card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="section-title text-xs">Achievements</h4>
+                  <span className="section-link">View All</span>
+                </div>
+                <div className="space-y-2 text-xs">
+                  {[
+                    { title: 'First 10 Workouts', desc: 'Completed 10 workouts', date: 'Apr 15, 2026', icon: '🏆' },
+                    { title: 'Volume Beast', desc: 'Lifted 1000 kg total', date: 'May 2, 2026', icon: '⚡' },
+                    { title: 'Consistency King', desc: '7 day workout streak', date: 'May 10, 2026', icon: '👑' },
+                    { title: 'Strength Milestone', desc: 'Increased bench press by 20 kg', date: 'May 14, 2026', icon: '🏅' },
+                  ].map(a => (
+                    <div key={a.title} className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated/40">
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-lg">{a.icon}</span>
+                        <div><p className="font-bold text-text-primary">{a.title}</p><p className="text-[9px] text-text-muted">{a.desc}</p></div>
+                      </div>
+                      <span className="text-[9px] font-mono text-text-muted">{a.date}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SUB TAB 4: EXERCISES (Matching Image 2 Pixel Perfect) */}
+      {activeTab === 'exercises' && (
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          {/* Top Bar Controls */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-text-primary">Exercises</h2>
+              <p className="text-xs text-text-muted">Browse and manage your exercise library. Learn proper form and track your performance.</p>
+            </div>
+            <button onClick={() => setShowAddExerciseModal(true)} className="btn-primary text-xs px-4 py-2 bg-purple hover:bg-purple/80 flex items-center gap-1.5 shadow-glow-primary">
+              <FiPlus size={16} /> Add Exercise
+            </button>
+          </div>
+
+          {/* Filters Bar */}
+          <div className="flex items-center gap-4">
+            <div className="relative flex-1">
+              <FiSearch className="absolute left-3 top-3 text-text-muted" size={16} />
+              <input
+                type="text"
+                placeholder="Search exercises..."
+                value={searchExercise}
+                onChange={e => setSearchExercise(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary focus:outline-none focus:border-purple"
+              />
+            </div>
+            <select
+              value={selectedMuscleCategory}
+              onChange={e => setSelectedMuscleCategory(e.target.value)}
+              className="px-4 py-2 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary"
+            >
+              <option value="all">All Muscle Groups</option>
+              <option value="chest">Chest</option>
+              <option value="back">Back</option>
+              <option value="legs">Legs</option>
+              <option value="shoulders">Shoulders</option>
+              <option value="arms">Arms</option>
+              <option value="core">Core</option>
+            </select>
+            <select className="px-4 py-2 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary">
+              <option>Equipment</option>
+              <option>Barbell</option>
+              <option>Dumbbell</option>
+              <option>Bodyweight</option>
+              <option>Cable</option>
+            </select>
+          </div>
+
+          {/* Main Layout (Categories Left, Table Center, Detail Right) */}
+          <div className="grid grid-cols-12 gap-4">
+            {/* Left Sidebar Categories (3 Cols) */}
+            <div className="col-span-3 card p-2 space-y-1">
+              {exerciseCategories.map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setSelectedMuscleCategory(cat.id)}
+                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition-all ${
+                    selectedMuscleCategory === cat.id ? 'bg-purple text-white font-bold shadow-glow-primary' : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
+                  }`}
+                >
+                  <span>{cat.label}</span>
+                  <span className="font-mono text-[10px] opacity-80">{cat.count}</span>
+                </button>
+              ))}
+            </div>
+
+            {/* Center Table (5 Cols) */}
+            <div className="col-span-5 card p-4 space-y-3 flex flex-col justify-between">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-border-subtle text-[10px] text-text-muted uppercase">
+                      <th className="pb-3">EXERCISE</th>
+                      <th className="pb-3">MUSCLE GROUP</th>
+                      <th className="pb-3">EQUIPMENT</th>
+                      <th className="pb-3">DIFFICULTY</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border-subtle/50">
+                    {exercisesData
+                      .filter(ex => selectedMuscleCategory === 'all' || ex.group.toLowerCase().includes(selectedMuscleCategory))
+                      .filter(ex => ex.name.toLowerCase().includes(searchExercise.toLowerCase()))
+                      .map(ex => (
+                        <tr
+                          key={ex.name}
+                          onClick={() => setSelectedExercise(ex.name)}
+                          className={`cursor-pointer hover:bg-surface-elevated/40 transition-colors ${
+                            selectedExercise === ex.name ? 'bg-purple/10 border-l-2 border-purple font-bold' : ''
+                          }`}
+                        >
+                          <td className="py-3 pr-2 flex items-center gap-2">
+                            <span className="text-base">🏋️</span>
+                            <span className="text-text-primary">{ex.name}</span>
+                          </td>
+                          <td className="py-3 px-2 text-text-muted">{ex.group}</td>
+                          <td className="py-3 px-2 text-text-muted">{ex.equipment}</td>
+                          <td className="py-3 px-2">
+                            <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                              ex.difficulty === 'Beginner' ? 'bg-success/10 text-success' : ex.difficulty === 'Intermediate' ? 'bg-warning/10 text-warning' : 'bg-danger/10 text-danger'
+                            }`}>
+                              {ex.difficulty}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination */}
+              <div className="flex items-center justify-center gap-2 pt-2 border-t border-border-subtle text-xs font-mono">
+                <button className="px-2 py-1 rounded bg-surface-elevated text-text-muted">‹</button>
+                <button className="px-2 py-1 rounded bg-purple text-white font-bold">1</button>
+                <button className="px-2 py-1 rounded bg-surface-elevated text-text-muted">2</button>
+                <button className="px-2 py-1 rounded bg-surface-elevated text-text-muted">3</button>
+                <span className="text-text-muted">...</span>
+                <button className="px-2 py-1 rounded bg-surface-elevated text-text-muted">20</button>
+                <button className="px-2 py-1 rounded bg-surface-elevated text-text-muted">›</button>
+              </div>
+            </div>
+
+            {/* Right Exercise Detail Panel (4 Cols) */}
+            <div className="col-span-4 card p-4 space-y-4">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+                <h3 className="text-sm font-bold text-text-primary">{activeExerciseObj.name}</h3>
+                <button className="btn-outline text-[10px] py-1 px-2 flex items-center gap-1"><FiEdit3 /> Edit Exercise</button>
+              </div>
+
+              {/* Video / Photo Frame with Play Button */}
+              <div className="relative w-full h-36 rounded-xl overflow-hidden bg-slate-900 border border-border-subtle flex items-center justify-center group cursor-pointer">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
+                <div className="w-10 h-10 rounded-full bg-purple/90 text-white flex items-center justify-center shadow-glow-primary group-hover:scale-110 transition-transform">
+                  <FiPlay size={20} className="ml-0.5" />
+                </div>
+                <div className="absolute bottom-2 left-2 text-[9px] font-mono text-white/80">
+                  Primary Target: <strong className="text-purple">{activeExerciseObj.primary}</strong>
+                </div>
+              </div>
+
+              {/* Instructions */}
+              <div className="space-y-1.5 text-xs">
+                <h4 className="font-bold text-text-primary text-[11px]">Instructions</h4>
+                <ol className="space-y-1 text-text-muted text-[10px] list-decimal pl-3">
+                  {activeExerciseObj.instructions.map((step, idx) => (
+                    <li key={idx}>{step}</li>
+                  ))}
+                </ol>
+              </div>
+
+              {/* Tips Checklist */}
+              <div className="space-y-1.5 text-xs">
+                <h4 className="font-bold text-text-primary text-[11px]">Tips</h4>
+                <div className="space-y-1 text-[10px] text-text-muted">
+                  {activeExerciseObj.tips.map((tip, idx) => (
+                    <div key={idx} className="flex items-center gap-1.5 text-success">
+                      <FiCheckCircle size={12} /> <span className="text-text-muted">{tip}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* History Stats */}
+              <div className="p-2.5 rounded-xl bg-surface-elevated/40 space-y-1 text-xs border border-border-subtle">
+                <h4 className="font-bold text-text-primary text-[10px]">History (This Month)</h4>
+                <div className="grid grid-cols-3 gap-2 text-center font-mono text-[10px]">
+                  <div><p className="text-text-muted text-[8px]">Total Sets</p><p className="font-bold text-text-primary">{activeExerciseObj.sets}</p></div>
+                  <div><p className="text-text-muted text-[8px]">Total Reps</p><p className="font-bold text-text-primary">{activeExerciseObj.reps}</p></div>
+                  <div><p className="text-text-muted text-[8px]">Best 1RM</p><p className="font-bold text-purple">{activeExerciseObj.best1rm}</p></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SUB TAB 6: BODY STATS (Matching Image 1 Pixel Perfect) */}
+      {activeTab === 'body-stats' && (
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          {/* Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-text-primary">Body Status</h2>
+              <p className="text-xs text-text-muted">Track your body composition, measurements and overall fitness status.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-muted font-mono flex items-center gap-2">
+                <FiCalendar size={14} /> May 12 – May 18, 2026
+              </div>
+              <select className="px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary font-medium">
+                <option>This Week</option>
+                <option>This Month</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Top 6 Metrics Row */}
+          <div className="grid grid-cols-6 gap-3">
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-text-muted">Weight</span>
+                <span className="text-success text-[9px] font-mono font-bold">↓ 0.8 kg vs last week</span>
+              </div>
+              <h3 className="text-xl font-bold font-mono text-text-primary">68.5 kg</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-text-muted">Body Fat</span>
+                <span className="text-success text-[9px] font-mono font-bold">↓ 0.4% vs last week</span>
+              </div>
+              <h3 className="text-xl font-bold font-mono text-text-primary">16.2 %</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-text-muted">Muscle Mass</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 0.6 kg vs last week</span>
+              </div>
+              <h3 className="text-xl font-bold font-mono text-text-primary">55.4 kg</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-text-muted">BMI</span>
+                <span className="badge-success text-[8px]">Normal</span>
+              </div>
+              <h3 className="text-xl font-bold font-mono text-text-primary">22.1</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-text-muted">Body Water</span>
+                <span className="text-success text-[9px] font-mono font-bold">↑ 1.2% vs last week</span>
+              </div>
+              <h3 className="text-xl font-bold font-mono text-text-primary">57.3 %</h3>
+            </div>
+            <div className="card p-3 space-y-1">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] text-text-muted">Visceral Fat</span>
+                <span className="badge-success text-[8px]">Healthy</span>
+              </div>
+              <h3 className="text-xl font-bold font-mono text-text-primary">6</h3>
+            </div>
+          </div>
+
+          {/* Middle Layout (Composition Trend, Composition Donut, Segmental Analysis) */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-5 card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="section-title text-xs">Body Composition Trend</h4>
+                <span className="text-[10px] text-text-muted">6 Weeks ▾</span>
+              </div>
+              <div className="h-36 flex items-end justify-between px-2 pt-2 border-b border-border-subtle relative">
+                {[68, 68.2, 68.1, 68.5, 68.3, 68.5].map((w, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-1 flex-1">
+                    <div className="w-2 h-2 rounded-full bg-purple" />
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-[8px] text-text-muted font-mono">
+                <span>Apr 13</span><span>Apr 20</span><span>Apr 27</span><span>May 4</span><span>May 11</span><span>May 18</span>
+              </div>
+            </div>
+
+            <div className="col-span-3 card p-4 space-y-3 text-center">
+              <h4 className="section-title text-xs">Body Composition</h4>
+              <div className="relative w-28 h-28 mx-auto my-2">
+                <svg className="w-28 h-28 -rotate-90" viewBox="0 0 112 112">
+                  <circle cx="56" cy="56" r="44" stroke="#22C55E" strokeWidth="12" strokeDasharray="220 56" fill="none" />
+                  <circle cx="56" cy="56" r="44" stroke="#F97316" strokeWidth="12" strokeDasharray="45 231" strokeDashoffset="-220" fill="none" />
+                  <circle cx="56" cy="56" r="44" stroke="#38BDF8" strokeWidth="12" strokeDasharray="11 265" strokeDashoffset="-265" fill="none" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-sm font-bold font-mono text-text-primary">68.5 kg</span>
+                  <span className="text-[8px] text-text-muted">Total Weight</span>
+                </div>
+              </div>
+              <div className="space-y-1 text-[9px] text-left">
+                <div className="flex justify-between"><span className="text-success">• Muscle Mass</span><span className="font-mono text-text-primary">55.4 kg (80.9%)</span></div>
+                <div className="flex justify-between"><span className="text-warning">• Fat Mass</span><span className="font-mono text-text-primary">11.1 kg (16.2%)</span></div>
+                <div className="flex justify-between"><span className="text-info">• Bone Mass</span><span className="font-mono text-text-primary">2.7 kg (3.9%)</span></div>
+              </div>
+            </div>
+
+            <div className="col-span-4 card p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="section-title text-xs">Segmental Analysis</h4>
+                <div className="flex gap-1 text-[9px]">
+                  <button className="px-2 py-0.5 rounded bg-purple text-white font-bold">Muscle Mass</button>
+                  <button className="px-2 py-0.5 rounded bg-surface-elevated text-text-muted">Fat %</button>
+                </div>
+              </div>
+              <div className="w-full h-36 flex items-center justify-center">
+                <MuscleDiagram selectedExercise="bench press" />
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Layout (Measurements Left, Photos Center, Indicators & Summary Right) */}
+          <div className="grid grid-cols-12 gap-4">
+            <div className="col-span-4 card p-4 space-y-3">
+              <h4 className="section-title text-xs">Body Measurements</h4>
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border-subtle text-[9px] text-text-muted">
+                    <th className="pb-2">MEASUREMENT</th>
+                    <th className="pb-2">CURRENT</th>
+                    <th className="pb-2">LAST WEEK</th>
+                    <th className="pb-2 text-right">CHANGE</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle/50 text-[10px] font-mono">
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Neck</td><td>37.5 cm</td><td>37.8 cm</td><td className="text-right text-success font-bold">↓ 0.3 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Chest</td><td>98.2 cm</td><td>98.0 cm</td><td className="text-right text-success font-bold">↑ 0.2 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Waist</td><td>78.6 cm</td><td>79.4 cm</td><td className="text-right text-success font-bold">↓ 0.8 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Hips</td><td>95.0 cm</td><td>95.1 cm</td><td className="text-right text-success font-bold">↓ 0.1 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Right Arm</td><td>32.1 cm</td><td>31.8 cm</td><td className="text-right text-success font-bold">↑ 0.3 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Left Arm</td><td>31.9 cm</td><td>31.6 cm</td><td className="text-right text-success font-bold">↑ 0.3 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Right Thigh</td><td>56.2 cm</td><td>55.8 cm</td><td className="text-right text-success font-bold">↑ 0.4 cm</td></tr>
+                  <tr><td className="py-1.5 text-text-primary font-sans font-bold">Left Thigh</td><td>55.9 cm</td><td>55.4 cm</td><td className="text-right text-success font-bold">↑ 0.5 cm</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div className="col-span-4 card p-4 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="section-title text-xs">Progress Photos</h4>
+                  <span className="section-link">View All</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="space-y-1">
+                    <div className="w-full h-28 rounded-xl bg-slate-900 border border-border-subtle flex items-center justify-center text-text-muted text-xs">
+                      <FiUser size={24} />
+                    </div>
+                    <p className="text-[9px] font-bold text-text-primary">Front</p>
+                    <p className="text-[8px] text-text-muted">May 4, 2026</p>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="w-full h-28 rounded-xl bg-slate-900 border border-border-subtle flex items-center justify-center text-text-muted text-xs">
+                      <FiUser size={24} />
+                    </div>
+                    <p className="text-[9px] font-bold text-text-primary">Side</p>
+                    <p className="text-[8px] text-text-muted">May 4, 2026</p>
+                  </div>
+                  <div className="space-y-1">
+                    <div className="w-full h-28 rounded-xl bg-slate-900 border border-border-subtle flex items-center justify-center text-text-muted text-xs">
+                      <FiUser size={24} />
+                    </div>
+                    <p className="text-[9px] font-bold text-text-primary">Back</p>
+                    <p className="text-[8px] text-text-muted">May 4, 2026</p>
+                  </div>
+                </div>
+              </div>
+
+              <button onClick={() => setShowAddPhotoModal(true)} className="btn-primary text-xs w-full py-2 bg-purple hover:bg-purple/80 flex items-center justify-center gap-1.5 shadow-glow-primary">
+                <FiCamera size={14} /> Add New Photos
+              </button>
+            </div>
+
+            <div className="col-span-4 space-y-4">
+              <div className="card p-4 space-y-2 text-xs">
+                <h4 className="section-title text-xs">Health Indicators</h4>
+                <div className="space-y-1.5 text-[10px]">
+                  <div className="flex justify-between items-center"><span className="text-text-muted">Resting Heart Rate</span><span className="font-bold font-mono text-text-primary">62 bpm <span className="badge-success text-[8px]">Good</span></span></div>
+                  <div className="flex justify-between items-center"><span className="text-text-muted">Blood Pressure</span><span className="font-bold font-mono text-text-primary">118 / 76 mmHg <span className="badge-success text-[8px]">Normal</span></span></div>
+                  <div className="flex justify-between items-center"><span className="text-text-muted">Sleep (Avg)</span><span className="font-bold font-mono text-text-primary">7h 15m <span className="badge-success text-[8px]">Good</span></span></div>
+                  <div className="flex justify-between items-center"><span className="text-text-muted">Stress Level (Avg)</span><span className="font-bold font-mono text-text-primary">Low <span className="badge-success text-[8px]">Good</span></span></div>
+                  <div className="flex justify-between items-center"><span className="text-text-muted">Recovery Score (Avg)</span><span className="font-bold font-mono text-text-primary">78 / 100 <span className="badge-success text-[8px]">Good</span></span></div>
+                </div>
+              </div>
+
+              <div className="card p-4 space-y-3 bg-gradient-to-br from-purple/10 to-surface border-purple/30">
+                <h4 className="section-title text-xs">Body Status Summary</h4>
+                <p className="text-[10px] text-text-muted">You are in good shape! Your muscle mass is improving and body fat is decreasing. Keep maintaining your workout consistency and focus on nutrition for better results.</p>
+                <div className="flex items-center justify-between pt-1">
+                  <div className="relative w-16 h-16">
+                    <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+                      <circle cx="32" cy="32" r="26" stroke="#161A2E" strokeWidth="6" fill="none" />
+                      <circle cx="32" cy="32" r="26" stroke="#22C55E" strokeWidth="6" strokeDasharray="136 163" fill="none" />
+                    </svg>
+                    <span className="absolute inset-0 flex items-center justify-center text-xs font-bold font-mono text-text-primary">84</span>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-text-muted">Overall Body Status</p>
+                    <p className="text-sm font-bold text-success">Good</p>
+                  </div>
+                </div>
+                <button className="btn-primary text-xs w-full py-1.5 bg-purple hover:bg-purple/80">View Recommendations</button>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* SUB TAB 5: NUTRITION */}
+      {activeTab === 'nutrition' && (
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-bold text-text-primary">Nutrition Tracker</h2>
+              <p className="text-xs text-text-muted">Track your daily calories, macros, fiber, and hydration.</p>
+            </div>
+            <button className="btn-primary text-xs px-4 py-2 bg-purple hover:bg-purple/80 flex items-center gap-1.5 shadow-glow-primary">
+              <FiPlus size={16} /> Log Meal
+            </button>
+          </div>
+
+          <div className="grid grid-cols-4 gap-4">
+            <div className="card p-4 space-y-1"><span className="text-[10px] text-text-muted">Calories Goal</span><h3 className="text-2xl font-bold font-mono text-text-primary">2,350 / 2,400 kcal</h3><div className="progress-bar h-1.5 mt-2"><div className="progress-fill bg-purple" style={{ width: '97%' }} /></div></div>
+            <div className="card p-4 space-y-1"><span className="text-[10px] text-text-muted">Protein Target</span><h3 className="text-2xl font-bold font-mono text-text-primary">120 / 120 g</h3><div className="progress-bar h-1.5 mt-2"><div className="progress-fill bg-success" style={{ width: '100%' }} /></div></div>
+            <div className="card p-4 space-y-1"><span className="text-[10px] text-text-muted">Carbs Target</span><h3 className="text-2xl font-bold font-mono text-text-primary">280 / 300 g</h3><div className="progress-bar h-1.5 mt-2"><div className="progress-fill bg-info" style={{ width: '93%' }} /></div></div>
+            <div className="card p-4 space-y-1"><span className="text-[10px] text-text-muted">Fats Target</span><h3 className="text-2xl font-bold font-mono text-text-primary">70 / 75 g</h3><div className="progress-bar h-1.5 mt-2"><div className="progress-fill bg-warning" style={{ width: '93%' }} /></div></div>
           </div>
         </motion.div>
       )}

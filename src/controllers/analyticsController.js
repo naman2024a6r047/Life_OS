@@ -1,11 +1,10 @@
-const { ActivityLog, User, Badge, Challenge, Milestone, MilestoneTask } = require('../models');
+const { ActivityLog, User, Badge, Challenge, Milestone, MilestoneTask, WorkoutPlan, Exercise, CodingProfile } = require('../models');
 const { Op } = require('sequelize');
 
 exports.getSummary = async (req, res) => {
     try {
         const userId = req.user.id;
         
-        // Execute ALL 8 database queries in parallel for ultra-fast performance
         const [
             user,
             totalGoals,
@@ -30,22 +29,28 @@ exports.getSummary = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Compute Dynamic Subscores (0-100)
-        const taskRatio = totalTasks > 0 ? (completedTasks / totalTasks) : 0.6;
-        const goalRatio = totalGoals > 0 ? (completedGoals / totalGoals) : 0.5;
-        const streakBonus = Math.min((user.current_streak || 0) * 2, 20);
+        const streak = user.current_streak || 0;
+        const totalItems = totalTasks;
+        const completedItems = completedTasks;
 
-        const disciplineScore = Math.min(100, Math.max(30, Math.round((taskRatio * 80) + streakBonus)));
-        const growthScore = Math.min(100, Math.max(30, Math.round((goalRatio * 80) + (completedMilestones * 5))));
-        const healthScore = Math.min(100, Math.max(30, Math.round(70 + ((user.current_streak || 0) > 0 ? 15 : 0))));
-        const focusScore = Math.min(100, Math.max(30, Math.round(65 + (completedTasks * 4))));
+        let disciplineScore = 0;
+        let growthScore = 0;
+        let healthScore = 0;
+        let focusScore = 0;
+        let overallLifeScore = 0;
 
-        const overallLifeScore = Math.round(
-            (disciplineScore * 0.3) + 
-            (growthScore * 0.3) + 
-            (healthScore * 0.2) + 
-            (focusScore * 0.2)
-        );
+        if (totalItems > 0 || totalGoals > 0 || streak > 0) {
+            const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+            const streakBonus = Math.min(streak * 10, 30);
+            const goalsBonus = Math.min(completedGoals * 15, 20);
+
+            disciplineScore = Math.min(100, Math.round((totalItems > 0 ? (completedItems / totalItems) * 70 : 0) + streakBonus));
+            growthScore = Math.min(100, Math.round((totalGoals > 0 ? (completedGoals / totalGoals) * 70 : 0) + goalsBonus));
+            healthScore = Math.min(100, Math.round(streak > 0 ? 50 : 0));
+            focusScore = Math.min(100, Math.round(totalItems > 0 ? (completedItems / totalItems) * 100 : 0));
+
+            overallLifeScore = Math.min(100, Math.round((completionRate * 0.5) + streakBonus + goalsBonus));
+        }
 
         res.status(200).json({
             lifeScore: overallLifeScore,
@@ -62,7 +67,8 @@ exports.getSummary = async (req, res) => {
             completedTasks,
             level: user.level || 1,
             xp: user.xp || 0,
-            streak: user.current_streak || 0
+            streak: streak,
+            graceTokens: user.grace_tokens || 0
         });
     } catch (error) {
         console.error('Analytics summary error:', error);

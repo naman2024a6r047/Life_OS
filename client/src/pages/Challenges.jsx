@@ -8,13 +8,40 @@ import {
 } from 'react-icons/fi';
 import axios from 'axios';
 
-function MilestoneTimeline({ milestones, activeMilestoneIndex }) {
+// --- Safe Date Helpers ---
+const safeDate = (dStr) => {
+  if (!dStr) return null;
+  const d = new Date(dStr);
+  return isNaN(d.getTime()) ? null : d;
+};
+
+const formatDate = (dStr) => {
+  const d = safeDate(dStr);
+  if (!d) return 'N/A';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+const calcTotalDays = (startDate, endDate) => {
+  const s = safeDate(startDate);
+  const e = safeDate(endDate);
+  if (!s || !e) return 30;
+  return Math.max(1, Math.ceil((e.getTime() - s.getTime()) / 86400000));
+};
+
+const calcCurrentDay = (startDate, endDate) => {
+  const s = safeDate(startDate);
+  if (!s) return 1;
+  const total = calcTotalDays(startDate, endDate);
+  const diff = Math.ceil((Date.now() - s.getTime()) / 86400000);
+  return Math.max(1, Math.min(total, diff));
+};
+
+function MilestoneTimeline({ milestones = [], activeMilestoneIndex = 0 }) {
   return (
     <div className="flex items-center gap-2 overflow-x-auto pb-2">
       {milestones.map((m, i) => {
         const isCompleted = m.status === 'completed';
         const isActive = i === activeMilestoneIndex;
-        const isLocked = m.status === 'locked';
         return (
           <div key={m.id || i} className="flex flex-col items-center gap-1 min-w-[60px]">
             <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all
@@ -38,7 +65,6 @@ function TaskRow({ task, index, onToggle, dayOffset = 0 }) {
   const dayNum = dayOffset + index + 1;
   const isCompleted = task.is_completed;
   
-  // Determine tag from title
   const getTag = (title) => {
     const lower = (title || '').toLowerCase();
     if (lower.includes('react') || lower.includes('frontend') || lower.includes('css') || lower.includes('html')) return { label: 'Frontend', color: 'info' };
@@ -71,7 +97,7 @@ function TaskRow({ task, index, onToggle, dayOffset = 0 }) {
         )}
       </div>
       <span className="text-[10px] text-text-muted w-20 text-center">
-        {isCompleted ? new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—'}
+        {isCompleted ? formatDate(task.updatedAt || new Date()) : '—'}
       </span>
       <button className="text-text-muted hover:text-text-primary transition-colors">
         <FiMoreVertical size={14} />
@@ -92,98 +118,15 @@ export default function Challenges() {
   useEffect(() => {
     const fetchChallenges = async () => {
       try {
+        setLoading(true);
         const res = await axios.get('/api/challenges');
-        let data = res.data || [];
-        
-        if (data.length === 0) {
-          const todayStr = new Date().toISOString().split('T')[0];
-          const start90 = new Date(Date.now() - 31 * 86400000).toISOString().split('T')[0];
-          const end90 = new Date(Date.now() + 59 * 86400000).toISOString().split('T')[0];
-
-          data = [
-            {
-              id: 'g1',
-              title: 'Master Full Stack Development',
-              description: 'Become a full stack developer by learning and building real world projects.',
-              category: 'Development',
-              start_date: start90,
-              end_date: end90,
-              status: 'active',
-              milestones: Array.from({ length: 9 }, (_, i) => ({
-                id: `m_${i+1}`,
-                title: `Milestone ${i+1}: Days ${i*10+1}-${(i+1)*10}`,
-                status: i < 3 ? 'completed' : i === 3 ? 'unlocked' : 'locked',
-                tasks: i === 3 ? [
-                  { id: 't31', title: 'Learn React 19 – Components, Props, State', is_completed: true, priority: 'P1' },
-                  { id: 't32', title: 'React – useEffect, Events and Forms', is_completed: false, priority: 'P1' },
-                  { id: 't33', title: 'React Router DOM – Navigation & Routing', is_completed: false, priority: 'P2' },
-                  { id: 't34', title: 'Node.js – Express.js Basics', is_completed: false, priority: 'P1' },
-                  { id: 't35', title: 'REST API – CRUD Operations', is_completed: false, priority: 'P1' },
-                  { id: 't36', title: 'Connect React Frontend with Express API', is_completed: false, priority: 'P1' },
-                  { id: 't37', title: 'Authentication – JWT Basics', is_completed: false, priority: 'P2' },
-                  { id: 't38', title: 'Deploy Full Stack App on Render', is_completed: false, priority: 'P3' },
-                  { id: 't39', title: 'Add Protected Routes & Logout', is_completed: false, priority: 'P2' },
-                  { id: 't40', title: 'Build a Mini Project – Task Manager', is_completed: false, priority: 'P1' },
-                ] : [
-                  { id: `t_${i}_1`, title: `Sprint task for milestone ${i+1}`, is_completed: i < 3 }
-                ]
-              }))
-            },
-            {
-              id: 'g2',
-              title: 'Crack Semester Exams',
-              description: 'Prepare thoroughly for all university end-semester examinations.',
-              category: 'Academics',
-              start_date: new Date(Date.now() - 17 * 86400000).toISOString().split('T')[0],
-              end_date: new Date(Date.now() + 43 * 86400000).toISOString().split('T')[0],
-              status: 'active',
-              milestones: [
-                { id: 'm2_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't2_1', title: 'Cover Unit 1 & 2', is_completed: true }] }
-              ]
-            },
-            {
-              id: 'g3',
-              title: 'Fitness Transformation',
-              description: 'Consistently hit the gym and achieve peak physical condition.',
-              category: 'Fitness',
-              start_date: new Date(Date.now() - 44 * 86400000).toISOString().split('T')[0],
-              end_date: new Date(Date.now() + 76 * 86400000).toISOString().split('T')[0],
-              status: 'active',
-              milestones: [
-                { id: 'm3_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't3_1', title: 'Bench press baseline', is_completed: true }] }
-              ]
-            },
-            {
-              id: 'g4',
-              title: 'Build 5 Projects',
-              description: 'Construct 5 production-ready full stack portfolio applications.',
-              category: 'Projects',
-              start_date: new Date(Date.now() - 24 * 86400000).toISOString().split('T')[0],
-              end_date: new Date(Date.now() + 76 * 86400000).toISOString().split('T')[0],
-              status: 'active',
-              milestones: [
-                { id: 'm4_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't4_1', title: 'Build Project 1', is_completed: true }] }
-              ]
-            },
-            {
-              id: 'g5',
-              title: 'Daily Learning Habit',
-              description: 'Read and learn for at least 1 hour every single day without fail.',
-              category: 'Habit',
-              start_date: new Date(Date.now() - 40 * 86400000).toISOString().split('T')[0],
-              end_date: new Date(Date.now() + 113 * 86400000).toISOString().split('T')[0],
-              status: 'active',
-              milestones: [
-                { id: 'm5_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't5_1', title: 'Read 10 pages', is_completed: true }] }
-              ]
-            }
-          ];
-        }
-
+        const data = Array.isArray(res.data) ? res.data : [];
         setChallenges(data);
-        if (data.length > 0) setSelectedId(data[0].id);
+        if (data.length > 0) {
+          setSelectedId(data[0].id);
+        }
       } catch (err) {
-        console.error(err);
+        console.error('Failed to load challenges:', err);
       } finally {
         setLoading(false);
       }
@@ -191,7 +134,7 @@ export default function Challenges() {
     fetchChallenges();
   }, []);
 
-  const selectedChallenge = challenges.find(c => c.id === selectedId) || challenges[0];
+  const selectedChallenge = challenges.find(c => c.id === selectedId) || (challenges.length > 0 ? challenges[0] : null);
   const milestones = selectedChallenge?.milestones || selectedChallenge?.Milestones || [];
   const activeMilestoneIndex = milestones.findIndex(m => m.status === 'unlocked' || m.status === 'active');
   const activeMilestone = milestones[activeMilestoneIndex >= 0 ? activeMilestoneIndex : 0];
@@ -199,9 +142,9 @@ export default function Challenges() {
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const totalTasks = tasks.length;
 
-  const totalDays = selectedChallenge ? Math.max(1, Math.ceil((new Date(selectedChallenge.end_date) - new Date(selectedChallenge.start_date)) / 86400000)) : 100;
-  const currentDay = selectedChallenge ? Math.max(1, Math.ceil((Date.now() - new Date(selectedChallenge.start_date)) / 86400000)) : 1;
-  const overallProgress = Math.min(100, Math.round((currentDay / totalDays) * 100));
+  const totalDays = selectedChallenge ? calcTotalDays(selectedChallenge.start_date, selectedChallenge.end_date) : 30;
+  const currentDay = selectedChallenge ? calcCurrentDay(selectedChallenge.start_date, selectedChallenge.end_date) : 1;
+  const overallProgress = Math.min(100, Math.round((currentDay / totalDays) * 100)) || 0;
 
   const streak = user?.current_streak || 0;
   const totalXP = (user?.xp || 0) + ((user?.level || 1) - 1) * 100;
@@ -210,9 +153,10 @@ export default function Challenges() {
     try {
       await axios.put(`/api/tasks/${task.id}/toggle`);
       const res = await axios.get('/api/challenges');
-      setChallenges(res.data || []);
+      const updated = Array.isArray(res.data) ? res.data : [];
+      setChallenges(updated);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to toggle task:', err);
     }
   };
 
@@ -220,10 +164,11 @@ export default function Challenges() {
     if (!window.confirm('Are you sure you want to delete this goal?')) return;
     try {
       await axios.delete(`/api/challenges/${id}`);
-      setChallenges(prev => prev.filter(c => c.id !== id));
-      if (selectedId === id) setSelectedId(challenges[0]?.id);
+      const updated = challenges.filter(c => c.id !== id);
+      setChallenges(updated);
+      if (selectedId === id) setSelectedId(updated[0]?.id || null);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to delete challenge:', err);
     }
   };
 
@@ -231,7 +176,6 @@ export default function Challenges() {
     { id: 'my', label: 'My Goals' },
     { id: 'active', label: 'Active Challenges' },
     { id: 'completed', label: 'Completed' },
-    { id: 'templates', label: 'Templates' },
   ];
 
   return (
@@ -259,7 +203,7 @@ export default function Challenges() {
             <span className="text-sm">🏆</span>
             <div>
               <p className="text-sm font-bold font-mono text-text-primary">Level {user?.level || 1}</p>
-              <p className="text-[9px] text-text-muted">Pro Builder</p>
+              <p className="text-[9px] text-text-muted">{user?.email || 'User'}</p>
             </div>
           </div>
           <div className="flex items-center gap-1.5">
@@ -289,7 +233,6 @@ export default function Challenges() {
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-text-muted">All Categories ▾</span>
           <div className="flex items-center border border-border-subtle rounded-lg overflow-hidden">
             <button onClick={() => setViewMode('grid')} className={`px-3 py-1.5 text-xs ${viewMode === 'grid' ? 'bg-primary text-white' : 'text-text-muted hover:text-text-primary'}`}>
               <FiGrid size={14} />
@@ -310,17 +253,13 @@ export default function Challenges() {
             <div className="space-y-2">
               {[1,2,3].map(i => <div key={i} className="card p-4 h-24 animate-pulse bg-surface-elevated" />)}
             </div>
-          ) : (
+          ) : challenges.length > 0 ? (
             <>
               {challenges.map(ch => {
                 const isSelected = ch.id === selectedId;
-                const chMilestones = ch.milestones || ch.Milestones || [];
-                const chTasks = chMilestones.flatMap(m => m.tasks || m.MilestoneTasks || []);
-                const chCompleted = chTasks.filter(t => t.is_completed).length;
-                const chTotal = chTasks.length;
-                const chDays = Math.max(1, Math.ceil((new Date(ch.end_date) - new Date(ch.start_date)) / 86400000));
-                const chCurrentDay = Math.max(1, Math.min(chDays, Math.ceil((Date.now() - new Date(ch.start_date)) / 86400000)));
-                const chProgress = Math.min(100, Math.round((chCurrentDay / chDays) * 100));
+                const chDays = calcTotalDays(ch.start_date, ch.end_date);
+                const chCurrentDay = calcCurrentDay(ch.start_date, ch.end_date);
+                const chProgress = Math.min(100, Math.round((chCurrentDay / chDays) * 100)) || 0;
 
                 return (
                   <div key={ch.id}
@@ -352,6 +291,13 @@ export default function Challenges() {
                 <FiPlus size={14} /> Create New Goal
               </Link>
             </>
+          ) : (
+            <div className="card p-6 text-center space-y-2">
+              <p className="text-xs text-text-muted">No goals created yet.</p>
+              <Link to="/challenges/new" className="btn-primary text-xs inline-flex items-center gap-1 py-1.5 px-3">
+                <FiPlus size={12} /> Create Goal
+              </Link>
+            </div>
           )}
         </div>
 
@@ -364,20 +310,19 @@ export default function Challenges() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-start gap-3">
                     <div className="w-11 h-11 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-                      <FiTerminal size={22} />
+                      <FiTarget size={22} />
                     </div>
                     <div>
                       <h2 className="text-base font-bold text-text-primary">{selectedChallenge.title}</h2>
-                      <p className="text-xs text-text-muted mt-0.5">{selectedChallenge.description || 'Become the best version of yourself.'}</p>
+                      <p className="text-xs text-text-muted mt-0.5">{selectedChallenge.description || 'Build consistency every day.'}</p>
                       <div className="flex items-center gap-3 mt-2">
                         <span className="badge-primary text-[9px]">📅 {totalDays} Days</span>
-                        <span className="badge-warning text-[9px]">⭐ +5000 XP</span>
+                        <span className="badge-warning text-[9px]">⭐ +500 XP</span>
                         <span className="badge-success text-[9px]">✅ Daily Task</span>
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="btn-ghost text-xs flex items-center gap-1"><FiEdit2 size={12} /> Edit</button>
                     <button onClick={() => handleDelete(selectedChallenge.id)} className="btn-ghost text-xs text-danger flex items-center gap-1"><FiTrash2 size={12} /></button>
                   </div>
                 </div>
@@ -395,7 +340,7 @@ export default function Challenges() {
 
               {/* Milestones Timeline */}
               <div className="card p-4">
-                <h3 className="text-xs font-bold text-text-primary mb-3">Milestones <span className="text-text-muted font-normal">(Auto-generated 10-day milestones)</span></h3>
+                <h3 className="text-xs font-bold text-text-primary mb-3">Milestones</h3>
                 {milestones.length > 0 ? (
                   <MilestoneTimeline milestones={milestones} activeMilestoneIndex={activeMilestoneIndex >= 0 ? activeMilestoneIndex : 0} />
                 ) : (
@@ -409,11 +354,10 @@ export default function Challenges() {
                   <div className="p-4 border-b border-border-subtle flex items-center justify-between">
                     <div>
                       <h3 className="text-sm font-bold text-text-primary">{activeMilestone.title || `Milestone ${(activeMilestoneIndex >= 0 ? activeMilestoneIndex : 0) + 1}`}</h3>
-                      <p className="text-[10px] text-text-muted">Complete one task per day.</p>
+                      <p className="text-[10px] text-text-muted">Complete daily sprint tasks.</p>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-xs text-text-muted">{completedTasks} task{completedTasks !== 1 ? 's' : ''} completed</span>
-                      <button className="btn-primary text-xs">View Milestone Details</button>
                     </div>
                   </div>
                   {/* Table Header */}
@@ -422,7 +366,7 @@ export default function Challenges() {
                     <span className="flex-1">Task</span>
                     <span className="w-16 text-center">Tag</span>
                     <span className="w-20 text-center">Status</span>
-                    <span className="w-20 text-center">Completed On</span>
+                    <span className="w-20 text-center">Date</span>
                     <span className="w-6"></span>
                   </div>
                   {/* Task Rows */}
@@ -438,12 +382,12 @@ export default function Challenges() {
               )}
             </>
           ) : (
-            <div className="card p-12 text-center">
-              <FiTarget size={48} className="text-text-muted mx-auto mb-4" />
-              <h3 className="text-lg font-bold text-text-primary">No Goals Yet</h3>
-              <p className="text-sm text-text-muted mt-1">Create your first goal to start your journey.</p>
-              <Link to="/challenges/new" className="btn-primary inline-flex items-center gap-2 mt-4">
-                <FiPlus size={16} /> Create New Goal
+            <div className="card p-12 text-center space-y-3">
+              <FiTarget size={48} className="text-text-muted mx-auto" />
+              <h3 className="text-lg font-bold text-text-primary">No Goals Set</h3>
+              <p className="text-sm text-text-muted">Create a goal to start building your accountability milestones.</p>
+              <Link to="/challenges/new" className="btn-primary inline-flex items-center gap-2 py-2 px-4">
+                <FiPlus size={16} /> Create Goal
               </Link>
             </div>
           )}
@@ -451,75 +395,31 @@ export default function Challenges() {
 
         {/* Right — Goal Overview Sidebar */}
         <div className="col-span-3 space-y-4">
-          {selectedChallenge && (
-            <>
-              {/* Goal Overview */}
-              <div className="card p-4">
-                <h3 className="section-title mb-3">Goal Overview</h3>
-                <div className="space-y-3">
-                  {[
-                    { icon: '📅', label: 'Started On', value: new Date(selectedChallenge.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) },
-                    { icon: '🏁', label: 'Ends On', value: new Date(selectedChallenge.end_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) },
-                    { icon: '⭐', label: 'Total XP', value: `${totalDays * 50} XP` },
-                    { icon: '🔥', label: 'Current Streak', value: `${streak} Days` },
-                    { icon: '✅', label: 'Tasks Completed', value: `${completedTasks} / ${totalTasks || totalDays}` },
-                  ].map((item, i) => (
-                    <div key={i} className="flex items-center gap-2.5">
-                      <span className="text-sm">{item.icon}</span>
-                      <div className="flex-1">
-                        <p className="text-[10px] text-text-muted">{item.label}</p>
-                        <p className="text-xs font-semibold text-text-primary">{item.value}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                <Link to={`/challenges/${selectedChallenge.id}`} className="block mt-4 text-center text-xs font-semibold text-primary-light hover:text-primary transition-colors">
-                  📊 View Analytics
-                </Link>
-              </div>
-
-              {/* Accountability Partners */}
-              <div className="card p-4">
-                <h3 className="section-title mb-3">Accountability Partners (2)</h3>
+          {selectedChallenge ? (
+            <div className="card p-4">
+              <h3 className="section-title mb-3">Goal Overview</h3>
+              <div className="space-y-3">
                 {[
-                  { name: 'Arjun Verma', status: 'Online' },
-                  { name: 'Rohit Singh', status: 'Last seen 2h ago' },
-                ].map((p, i) => (
-                  <div key={i} className="flex items-center justify-between py-2 border-b border-border-subtle last:border-0">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-white text-[10px] font-bold">
-                        {p.name[0]}
-                      </div>
-                      <div>
-                        <p className="text-[11px] font-semibold text-text-primary">{p.name}</p>
-                        <p className="text-[9px] text-text-muted flex items-center gap-1">
-                          <span className={`w-1.5 h-1.5 rounded-full ${i === 0 ? 'bg-success' : 'bg-text-muted'}`} />{p.status}
-                        </p>
-                      </div>
+                  { icon: '📅', label: 'Started On', value: formatDate(selectedChallenge.start_date) },
+                  { icon: '🏁', label: 'Ends On', value: formatDate(selectedChallenge.end_date) },
+                  { icon: '⭐', label: 'Total XP', value: `${totalDays * 50} XP` },
+                  { icon: '🔥', label: 'Current Streak', value: `${streak} Days` },
+                  { icon: '✅', label: 'Tasks Completed', value: `${completedTasks} / ${totalTasks || totalDays}` },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2.5">
+                    <span className="text-sm">{item.icon}</span>
+                    <div className="flex-1">
+                      <p className="text-[10px] text-text-muted">{item.label}</p>
+                      <p className="text-xs font-semibold text-text-primary">{item.value}</p>
                     </div>
-                    <Link to="/friends" className="text-[10px] font-semibold text-primary-light">Inspect</Link>
                   </div>
                 ))}
               </div>
-
-              {/* Quick Actions */}
-              <div className="card p-4">
-                <h3 className="section-title mb-3">Quick Actions</h3>
-                <div className="space-y-2">
-                  {[
-                    { icon: '📝', label: 'Add Note', color: 'text-info' },
-                    { icon: '📎', label: 'Attach Resource', color: 'text-purple' },
-                    { icon: '🤝', label: 'Share Goal', color: 'text-success' },
-                    { icon: '🗑️', label: 'Abandon Goal', color: 'text-danger' },
-                  ].map((action, i) => (
-                    <button key={i} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-surface-elevated transition-colors text-left ${action.color}`}>
-                      <span>{action.icon}</span>
-                      <span className="text-xs font-medium">{action.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
+            </div>
+          ) : (
+            <div className="card p-4 text-center">
+              <p className="text-xs text-text-muted">Select or create a goal to view details.</p>
+            </div>
           )}
         </div>
       </div>

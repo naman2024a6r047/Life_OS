@@ -154,6 +154,9 @@ async function startServer() {
             await sequelize.sync({ alter: false });
             try {
                 await sequelize.query('ALTER TABLE "PartnerInterventions" ADD COLUMN IF NOT EXISTS "sender_read" BOOLEAN DEFAULT false;');
+                const { User, ExamSession } = require('./src/models');
+                await User.update({ is_in_exam_mode: false }, { where: {} });
+                await ExamSession.update({ is_active: false }, { where: { is_active: true } });
             } catch(e) { console.error('Migration notice:', e.message); }
         } catch (err) {
             console.error(`Database connection attempt ${attempts} failed:`, err.message);

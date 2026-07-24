@@ -9,10 +9,6 @@ const addDays = (date, days) => {
 
 exports.createChallenge = async (req, res) => {
     try {
-        if (req.user.is_in_exam_mode) {
-            return res.status(403).json({ message: "Exam Shield is active. Cannot create new challenges during Exam Mode." });
-        }
-
         const { title, description, category, start_date, end_date, visibility, difficulty, penalty_rule, color, icon } = req.body;
         
         const challenge = await Challenge.create({

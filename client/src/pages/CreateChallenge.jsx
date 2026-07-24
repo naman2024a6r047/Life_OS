@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FiTarget, FiCalendar, FiShield, FiAlertTriangle } from 'react-icons/fi';
+import { FiTarget, FiCalendar, FiShield, FiAlertTriangle, FiFileText } from 'react-icons/fi';
 import dayjs from 'dayjs';
 import BackButton from '../components/ui/BackButton';
 
@@ -13,14 +13,19 @@ export default function CreateChallenge() {
         category: 'Learning',
         duration_days: 30,
         difficulty: 'medium',
-        penalty_rule: 'restart_milestone'
+        penalty_rule: 'restart_milestone',
+        raw_curriculum: ''
     });
+    const [submitting, setSubmitting] = useState(false);
+    const [showCurriculum, setShowCurriculum] = useState(false);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
+        const duration = Number(formData.duration_days) || 30;
         const start_date = dayjs().format('YYYY-MM-DD');
-        const end_date = dayjs().add(formData.duration_days, 'day').format('YYYY-MM-DD');
+        const end_date = dayjs().add(duration, 'day').format('YYYY-MM-DD');
 
         try {
             const token = localStorage.getItem('token');
@@ -28,13 +33,16 @@ export default function CreateChallenge() {
                 ...formData,
                 start_date,
                 end_date,
-                color: '#6366F1' // default
+                color: '#6366F1'
             }, {
-                headers: { Authorization: `Bearer ${token}` }
+                headers: token ? { Authorization: `Bearer ${token}` } : {}
             });
             navigate('/challenges');
         } catch (err) {
-            console.error(err);
+            console.error('Error creating challenge:', err);
+            alert('Failed to create challenge. Please try again.');
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -81,7 +89,7 @@ export default function CreateChallenge() {
                         <div className="space-y-2">
                             <label className="text-sm font-medium text-textSecondary flex items-center gap-2"><FiCalendar /> Duration (Days)</label>
                             <input 
-                                type="number" required min="10" max="365"
+                                type="number" required min="1" max="365"
                                 value={formData.duration_days}
                                 onChange={e => setFormData({...formData, duration_days: e.target.value})}
                                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white"
@@ -103,6 +111,28 @@ export default function CreateChallenge() {
                         </div>
                     </div>
 
+                    {/* Optional Custom Curriculum Box toggle */}
+                    <div className="pt-2">
+                        <button
+                            type="button"
+                            onClick={() => setShowCurriculum(!showCurriculum)}
+                            className="text-xs font-semibold text-primary hover:underline flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <FiFileText size={14} /> {showCurriculum ? 'Hide Custom Syllabus Text Box' : '+ Add Custom Day-by-Day Syllabus (Optional)'}
+                        </button>
+
+                        {showCurriculum && (
+                            <div className="mt-3 space-y-2">
+                                <textarea
+                                    value={formData.raw_curriculum}
+                                    onChange={e => setFormData({...formData, raw_curriculum: e.target.value})}
+                                    placeholder="Paste your raw Day 1, Day 2 syllabus here (Optional)..."
+                                    className="w-full px-4 py-3 bg-slate-900 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white text-xs font-mono h-40 resize-y"
+                                />
+                            </div>
+                        )}
+                    </div>
+
                     <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl mt-6">
                         <div className="flex items-start gap-3">
                             <FiAlertTriangle className="text-accent mt-1 flex-shrink-0" />
@@ -117,8 +147,12 @@ export default function CreateChallenge() {
                         <button type="button" onClick={() => navigate('/challenges')} className="px-6 py-3 rounded-xl font-medium text-textSecondary hover:bg-white/5 transition-colors">
                             Cancel
                         </button>
-                        <button type="submit" className="bg-primary hover:bg-indigo-400 px-8 py-3 rounded-xl font-medium shadow-lg shadow-primary/25 transition-colors">
-                            Commit & Start
+                        <button 
+                            type="submit" 
+                            disabled={submitting}
+                            className="bg-primary hover:bg-indigo-400 disabled:opacity-50 px-8 py-3 rounded-xl font-medium shadow-lg shadow-primary/25 transition-colors text-white"
+                        >
+                            {submitting ? 'Creating...' : 'Commit & Start'}
                         </button>
                     </div>
                 </form>

@@ -65,10 +65,10 @@ export default function MuscleDiagram({
   };
 
   return (
-    <div className={`relative flex flex-col items-center justify-center p-3 bg-surface-elevated/30 rounded-2xl border border-border-subtle ${className}`}>
+    <div className={`relative flex flex-col items-center justify-center p-1 w-full h-full ${className}`}>
       {/* Side-by-Side Dual Body SVG */}
-      <div className="relative w-full max-w-[280px] h-[220px] flex items-center justify-center">
-        <svg viewBox="0 0 200 200" className="w-full h-full drop-shadow-xl select-none">
+      <div className="relative w-full h-full min-h-[160px] flex items-center justify-center">
+        <svg viewBox="0 0 200 200" className="w-full h-full object-contain drop-shadow-xl select-none">
           {/* ======================================================== */}
           {/* LEFT FIGURE — FRONT BODY                                */}
           {/* ======================================================== */}

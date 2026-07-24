@@ -431,7 +431,7 @@ export default function GymDashboard() {
                   </div>
                 </div>
 
-                <div className="w-24 h-24">
+                <div className="w-48 h-44 flex items-center justify-center">
                   <MuscleDiagram selectedExercise="bench press" side="front" />
                 </div>
               </div>

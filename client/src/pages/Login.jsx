@@ -8,7 +8,7 @@ export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
-    const { login } = useContext(AuthContext);
+    const { login, loginDemo } = useContext(AuthContext);
     const navigate = useNavigate();
 
     const handleSubmit = async (e) => {
@@ -83,6 +83,18 @@ export default function Login() {
                         Sign In
                     </motion.button>
                 </form>
+
+                <div className="relative my-6 text-center">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10" /></div>
+                    <span className="relative bg-surface px-3 text-xs text-text-muted">OR PREVIEW DESIGN</span>
+                </div>
+
+                <button 
+                    onClick={() => { loginDemo(); navigate('/'); }}
+                    className="w-full bg-surface-elevated hover:bg-surface-hover text-primary-light font-semibold py-3 rounded-xl border border-primary/30 transition-all text-sm flex items-center justify-center gap-2 shadow-glow-primary"
+                >
+                    ⚡ Launch Instant Demo Mode
+                </button>
 
                 <p className="mt-6 text-center text-sm text-textSecondary">
                     Don't have an account? <Link to="/register" className="text-primary hover:text-indigo-400 font-medium">Create one</Link>

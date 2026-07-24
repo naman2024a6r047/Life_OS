@@ -1,318 +1,285 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import axios from 'axios';
-import dayjs from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { 
-    FiBell, FiCheckCircle, FiAlertTriangle, FiZap, 
-    FiUsers, FiCheck, FiX, FiClock, FiSliders, FiShield,
-    FiMessageCircle, FiSend, FiAlertOctagon, FiArrowDownLeft, FiArrowUpRight, FiRefreshCw
+import { motion } from 'framer-motion';
+import {
+  FiAlertTriangle, FiShield, FiClock, FiCalendar, FiBookOpen,
+  FiInfo, FiCheckCircle, FiXCircle, FiZap, FiAlertCircle, FiArrowRight
 } from 'react-icons/fi';
-import BackButton from '../components/ui/BackButton';
-
-dayjs.extend(relativeTime);
+import { Link } from 'react-router-dom';
 
 export default function NotificationsDashboard() {
-    const { user } = useContext(AuthContext);
-    const [filter, setFilter] = useState('all');
-    const [interventions, setInterventions] = useState([]);
-    const [loading, setLoading] = useState(true);
+  const { user } = useContext(AuthContext);
 
-    // Response modal state
-    const [respondModal, setRespondModal] = useState(null);
-    const [responseText, setResponseText] = useState('');
+  const streak = user?.current_streak || 12;
 
-    const getAuthHeader = () => {
-        const token = localStorage.getItem('token');
-        return token ? { Authorization: `Bearer ${token}` } : {};
-    };
+  const rules = [
+    { rule: 'Miss 2 Consecutive Days', cond: 'No study sessions for 2 consecutive days', cons: 'Restart current goal set from Day 1', sev: 'High' },
+    { rule: 'Skip Daily Goal', cond: 'Daily study time < 50% of target', cons: 'Lose 1 Clean Day', sev: 'Medium' },
+    { rule: 'No Session Logged', cond: 'No study session logged in a day', cons: 'Lose 5 XP', sev: 'Low' },
+    { rule: 'Ignore Reminders (3x)', cond: 'Dismiss 3 reminders in a single day', cons: 'Lose 10 XP', sev: 'Low' },
+  ];
 
-    const fetchInterventions = async () => {
-        try {
-            const res = await axios.get('/api/friends/interventions', { headers: getAuthHeader() });
-            setInterventions(res.data || []);
-            // Mark sent replies as read when opening alerts page
-            try { await axios.post('/api/friends/interventions/mark-read', {}, { headers: getAuthHeader() }); } catch(e) {}
-        } catch (err) {
-            console.error('Error fetching interventions:', err);
-            setInterventions([]);
-        } finally {
-            setLoading(false);
-        }
-    };
+  const penaltyHistory = [
+    { title: 'Goal Set Restart', sev: 'High', desc: 'Missed 2 consecutive days', date: 'May 14, 2026 2:30 PM' },
+    { title: 'Daily Goal Skipped', sev: 'Medium', desc: 'Study time was less than 50%', date: 'May 06, 2026 9:15 PM' },
+    { title: 'No Session Logged', sev: 'Low', desc: 'No study session for the day', date: 'May 03, 2026 11:45 PM' },
+    { title: 'Daily Goal Skipped', sev: 'Medium', desc: 'Study time was less than 50%', date: 'Apr 28, 2026 8:30 PM' },
+    { title: 'No Session Logged', sev: 'Low', desc: 'No study session for the day', date: 'Apr 21, 2026 10:00 PM' },
+  ];
 
-    useEffect(() => { fetchInterventions(); }, []);
+  return (
+    <div className="p-6 space-y-5">
+      {/* Top Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center">
+            <FiAlertTriangle size={22} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">Penalty System</h1>
+            <p className="text-xs text-text-muted">Stay consistent. Avoid penalties. Build discipline.</p>
+          </div>
+        </div>
 
-    const handleResetMilestone = async (interventionId) => {
-        if (!confirm('Are you sure you want to restart this milestone back to Task 1 starting today?')) return;
-        try {
-            const res = await axios.post(`/api/friends/intervention/${interventionId}/reset-milestone`, {}, { headers: getAuthHeader() });
-            alert(res.data?.message || 'Milestone restarted to Day 1!');
-            fetchInterventions();
-        } catch (err) {
-            alert(err.response?.data?.message || 'Error resetting milestone');
-        }
-    };
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary font-mono cursor-pointer">
+            <FiCalendar size={13} className="text-text-muted" />
+            <span>May 12 – May 18, 2026 ▾</span>
+          </div>
+          <button className="btn-outline text-xs flex items-center gap-1.5">
+            <FiBookOpen size={13} /> Rules
+          </button>
+        </div>
+      </div>
 
-    const handleRespond = async (id, status) => {
-        try {
-            await axios.post(`/api/friends/intervention/${id}/respond`, {
-                status,
-                user_response: responseText || undefined
-            }, { headers: getAuthHeader() });
-            setRespondModal(null);
-            setResponseText('');
-            fetchInterventions();
-        } catch (err) {
-            alert(err.response?.data?.message || 'Error responding');
-        }
-    };
+      {/* Top Metric Cards (4 cols) */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center flex-shrink-0 font-bold">
+            <FiAlertCircle size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] text-text-muted">Total Penalties</p>
+            <p className="text-xl font-bold font-mono text-text-primary">3 <span className="text-xs font-normal text-text-muted">This Month</span></p>
+            <p className="text-[9px] text-danger font-semibold">↑ 2 vs last month</p>
+          </div>
+        </div>
 
-    const markAsDismissed = async (id) => {
-        try {
-            await axios.post(`/api/friends/intervention/${id}/respond`, {
-                status: 'dismissed'
-            }, { headers: getAuthHeader() });
-            fetchInterventions();
-        } catch (err) {
-            console.error(err);
-        }
-    };
+        <div className="card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center flex-shrink-0 font-bold">
+            <FiClock size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] text-text-muted">Active Penalties</p>
+            <p className="text-xl font-bold font-mono text-text-primary">1</p>
+            <p className="text-[9px] text-warning font-semibold">Currently Active</p>
+          </div>
+        </div>
 
-    // Filter logic
-    const filtered = interventions.filter(n => {
-        if (filter === 'pending') return n.status === 'pending' && n.direction === 'incoming';
-        if (filter === 'replies') return n.direction === 'reply';
-        if (filter === 'resolved') return n.status !== 'pending';
-        return true;
-    });
+        <div className="card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center flex-shrink-0 font-bold">
+            <FiCalendar size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] text-text-muted">Days Lost</p>
+            <p className="text-xl font-bold font-mono text-text-primary">2 <span className="text-xs font-normal text-text-muted">This Month</span></p>
+            <p className="text-[9px] text-danger font-semibold">↑ 2 vs last month</p>
+          </div>
+        </div>
 
-    const pendingCount = interventions.filter(n => n.status === 'pending' && n.direction === 'incoming').length;
-    const replyCount = interventions.filter(n => n.direction === 'reply').length;
+        <div className="card p-4 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center flex-shrink-0 font-bold">
+            <FiShield size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] text-text-muted">Clean Days</p>
+            <p className="text-xl font-bold font-mono text-text-primary">12</p>
+            <p className="text-[9px] text-success font-semibold">Best: 21 Days</p>
+          </div>
+        </div>
+      </div>
 
-    return (
-        <div className="min-h-screen bg-[#090A0F] text-slate-100 p-4 md:p-8 relative overflow-hidden">
-            <div className="ambient-glow top-[-10%] left-[-10%] w-[500px] h-[500px] bg-rose-600/15"></div>
-            <div className="ambient-glow bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10"></div>
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Left Column — Rules (5 cols) */}
+        <div className="col-span-5 card p-4 space-y-3">
+          <h3 className="section-title">Penalty Rules</h3>
+          
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-border-subtle text-[10px] text-text-muted uppercase">
+                  <th className="py-2">Rule</th>
+                  <th className="py-2">Condition</th>
+                  <th className="py-2">Consequence</th>
+                  <th className="py-2 text-right">Severity</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle">
+                {rules.map((r, i) => (
+                  <tr key={i} className="hover:bg-surface-elevated/40">
+                    <td className="py-2.5 font-bold text-text-primary flex items-center gap-1.5">
+                      <span>{i === 0 ? '📅' : i === 1 ? '🎯' : i === 2 ? '⏱️' : '🔔'}</span>
+                      {r.rule}
+                    </td>
+                    <td className="py-2.5 text-text-muted text-[11px]">{r.cond}</td>
+                    <td className="py-2.5 text-text-secondary text-[11px] font-medium">{r.cons}</td>
+                    <td className="py-2.5 text-right">
+                      <span className={
+                        r.sev === 'High' ? 'badge-danger text-[8px]' : r.sev === 'Medium' ? 'badge-warning text-[8px]' : 'badge-info text-[8px]'
+                      }>{r.sev}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-            <div className="max-w-5xl mx-auto space-y-8 relative z-10">
-                <BackButton />
+          <p className="text-[10px] text-text-muted flex items-center gap-1 pt-2 border-t border-border-subtle">
+            <FiInfo size={12} className="text-purple" /> Penalties help build discipline. Stay consistent and avoid breaking your streak!
+          </p>
+        </div>
 
-                {/* Page Header */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-rose-400 uppercase tracking-widest mb-1">
-                            <FiBell /> Alerts & Interventions
-                        </div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                            <FiBell className="text-rose-400" /> Notification Center
-                        </h1>
-                        <p className="text-slate-400 text-sm mt-1">
-                            Inquiries, punishments, and partner replies appear here.
-                        </p>
-                    </div>
+        {/* Center Column — Active Penalty (4 cols) */}
+        <div className="col-span-4 card p-5 space-y-4 bg-gradient-to-br from-danger/10 to-surface">
+          <div className="flex items-center justify-between">
+            <h3 className="section-title text-danger">Active Penalty</h3>
+          </div>
 
-                    {pendingCount > 0 && (
-                        <div className="px-4 py-2 bg-rose-500/10 border border-rose-500/30 rounded-xl text-xs font-bold text-rose-400 flex items-center gap-2 animate-pulse">
-                            <FiAlertOctagon /> {pendingCount} Pending Action{pendingCount > 1 ? 's' : ''}
-                        </div>
-                    )}
-                </header>
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-2xl bg-danger/20 text-danger flex items-center justify-center mx-auto text-2xl font-bold shadow-glow-warning">
+              ⚠️
+            </div>
+            <h2 className="text-base font-bold text-text-primary">Goal Set Restart</h2>
+            <p className="text-xs text-text-muted max-w-xs mx-auto">
+              You missed 2 consecutive days. Your current goal set has been restarted.
+            </p>
+          </div>
 
-                {/* Filter Tabs */}
-                <div className="flex gap-2 bg-white/5 p-1.5 rounded-xl border border-white/10 w-fit flex-wrap">
-                    {[
-                        { key: 'all', label: `All (${interventions.length})` },
-                        { key: 'pending', label: `Pending (${pendingCount})` },
-                        { key: 'replies', label: `Replies (${replyCount})` },
-                        { key: 'resolved', label: 'Resolved' }
-                    ].map(f => (
-                        <button 
-                            key={f.key}
-                            onClick={() => setFilter(f.key)}
-                            className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f.key ? 'bg-rose-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            {f.label}
-                        </button>
-                    ))}
-                </div>
+          <div className="p-3 rounded-xl bg-surface-elevated text-xs space-y-2">
+            <div className="flex justify-between text-[11px]">
+              <span className="text-text-muted flex items-center gap-1">📅 Restarted On</span>
+              <span className="font-mono font-semibold text-text-primary">May 14, 2026 (2:30 PM)</span>
+            </div>
+            <div>
+              <div className="flex justify-between text-[10px] mb-1">
+                <span className="text-text-muted">New Progress</span>
+                <span className="font-mono font-bold text-danger">Day 1 of 10 (10%)</span>
+              </div>
+              <div className="progress-bar h-1.5">
+                <div className="progress-fill bg-danger" style={{ width: '10%' }} />
+              </div>
+            </div>
+          </div>
 
-                {/* Notifications Feed */}
-                {loading ? (
-                    <div className="text-center py-16">
-                        <div className="w-10 h-10 border-4 border-rose-500/30 border-t-rose-500 rounded-full animate-spin mx-auto mb-4"></div>
-                        <p className="text-slate-500 text-sm">Loading alerts...</p>
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className="text-center py-20 glass-panel rounded-2xl border border-slate-800">
-                        <FiBell className="w-12 h-12 mx-auto mb-4 text-slate-700" />
-                        <p className="text-slate-500 text-sm font-semibold">
-                            {filter === 'pending' ? 'No pending alerts — you\'re all caught up!' : 
-                             filter === 'replies' ? 'No replies yet.' :
-                             'No alerts yet. When your partner sends an inquiry or punishment, it will appear here.'}
-                        </p>
-                    </div>
-                ) : (
-                    <div className="space-y-4">
-                        {filtered.map(iv => {
-                            const isIncoming = iv.direction === 'incoming';
-                            const isReply = iv.direction === 'reply';
-                            const isPending = iv.status === 'pending' && isIncoming;
-                            const isPunishment = iv.type === 'punishment';
-                            
-                            // Determine the "other person" name
-                            const otherPerson = isIncoming ? (iv.sender?.username || 'Partner') : (iv.receiver?.username || 'Partner');
+          <Link to="/challenges" className="w-full py-2.5 rounded-xl bg-danger hover:bg-danger/90 text-white text-xs font-semibold text-center block transition-all shadow-glow-warning">
+            View Current Goals
+          </Link>
+        </div>
 
-                            return (
-                                <div 
-                                    key={`${iv.id}-${iv.direction}`}
-                                    className={`p-5 rounded-2xl border transition-all ${
-                                        isPending ? 'bg-rose-500/10 border-rose-500/30 shadow-md shadow-rose-500/5' : 
-                                        isReply && !iv.sender_read ? 'bg-cyan-500/10 border-cyan-500/30 shadow-md shadow-cyan-500/5' :
-                                        'bg-white/5 border-white/10 opacity-80'
-                                    }`}
-                                >
-                                    <div className="flex justify-between items-start mb-3">
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            {/* Direction badge */}
-                                            <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold flex items-center gap-1 ${isIncoming ? 'bg-amber-500/20 text-amber-400' : 'bg-cyan-500/20 text-cyan-400'}`}>
-                                                {isIncoming ? <><FiArrowDownLeft size={10} /> Received</> : <><FiArrowUpRight size={10} /> Reply</>}
-                                            </span>
-                                            {/* Type badge */}
-                                            <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${isPunishment ? 'bg-rose-500/20 text-rose-400' : 'bg-indigo-500/20 text-indigo-400'}`}>
-                                                {isPunishment ? '⚡ Punishment' : '❓ Inquiry'}
-                                            </span>
-                                            {/* Status badge */}
-                                            <span className={`text-[10px] font-mono uppercase px-2 py-0.5 rounded font-bold ${
-                                                iv.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
-                                                iv.status === 'explained' ? 'bg-cyan-500/20 text-cyan-400' :
-                                                iv.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                'bg-slate-700 text-slate-400'
-                                            }`}>
-                                                {iv.status}
-                                            </span>
-                                        </div>
-                                        <span className="text-[10px] text-slate-500 font-mono">{dayjs(iv.updatedAt || iv.createdAt).fromNow()}</span>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 mb-2 text-xs text-slate-400">
-                                        <FiUsers size={12} />
-                                        {isIncoming ? (
-                                            <span>From <span className="text-white font-bold">{otherPerson}</span></span>
-                                        ) : (
-                                            <span><span className="text-white font-bold">{otherPerson}</span> replied to your {iv.type}</span>
-                                        )}
-                                        {iv.item_title && (
-                                            <>
-                                                <span>•</span>
-                                                <span>About <span className="text-cyan-400 font-semibold">{iv.item_title}</span></span>
-                                            </>
-                                        )}
-                                    </div>
-
-                                    {iv.message && (
-                                        <div className="p-3 bg-white/5 rounded-xl text-sm text-slate-300 mb-3">
-                                            "{iv.message}"
-                                        </div>
-                                    )}
-
-                                    {iv.punishment && (
-                                        <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-sm text-rose-300 mb-3 flex items-start gap-2">
-                                            <FiZap className="text-rose-400 mt-0.5 shrink-0" />
-                                            <span><strong>Punishment:</strong> {iv.punishment}</span>
-                                        </div>
-                                    )}
-
-                                    {iv.user_response && (
-                                        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-sm text-emerald-300 mb-3 flex items-start gap-2">
-                                            <FiMessageCircle className="text-emerald-400 mt-0.5 shrink-0" />
-                                            <span><strong>{isReply ? `${otherPerson}'s response` : 'Your response'}:</strong> {iv.user_response}</span>
-                                        </div>
-                                    )}
-
-                                    {isPending && (
-                                        <div className="flex flex-wrap gap-2 pt-3 border-t border-white/10">
-                                            <button 
-                                                onClick={() => handleResetMilestone(iv.id)}
-                                                className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md shadow-rose-600/20"
-                                                title="Restart this milestone's tasks starting from Day 1"
-                                            >
-                                                <FiRefreshCw size={12} /> Start Over Task 1 (Reset Milestone)
-                                            </button>
-                                            <button 
-                                                onClick={() => { setRespondModal(iv); setResponseText(''); }}
-                                                className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all flex items-center gap-1.5"
-                                            >
-                                                <FiSend size={12} /> {isPunishment ? 'Mark Completed' : 'Explain / Respond'}
-                                            </button>
-                                            <button 
-                                                onClick={() => markAsDismissed(iv.id)}
-                                                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-300 text-xs font-semibold transition-all"
-                                            >
-                                                Dismiss
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                )}
+        {/* Right Column — Streak & Strikes & History (3 cols) */}
+        <div className="col-span-3 space-y-4">
+          {/* Streak & Strikes Widget */}
+          <div className="card p-4 space-y-3">
+            <h3 className="section-title">Streak & Strikes</h3>
+            <div className="grid grid-cols-2 gap-2 text-center">
+              <div className="p-2.5 rounded-xl bg-surface-elevated">
+                <p className="text-[9px] text-text-muted">Current Streak</p>
+                <p className="text-base font-bold font-mono text-text-primary flex items-center justify-center gap-1 mt-0.5">
+                  🔥 {streak} <span className="text-[10px] text-text-muted font-normal">Days</span>
+                </p>
+                <span className="text-[8px] text-success">Keep it up! 🔥</span>
+              </div>
+              <div className="p-2.5 rounded-xl bg-surface-elevated">
+                <p className="text-[9px] text-text-muted">Longest Streak</p>
+                <p className="text-base font-bold font-mono text-text-primary flex items-center justify-center gap-1 mt-0.5">
+                  🏆 21 <span className="text-[10px] text-text-muted font-normal">Days</span>
+                </p>
+                <span className="text-[8px] text-text-muted">Apr 20 – May 10</span>
+              </div>
             </div>
 
-            {/* Response Modal */}
-            {respondModal && (
-                <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="glass-panel max-w-lg w-full p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
-                        <button onClick={() => setRespondModal(null)} className="absolute top-5 right-5 text-slate-400 hover:text-white text-xl">
-                            <FiX />
-                        </button>
+            {/* Strikes (This Month) */}
+            <div className="pt-2 border-t border-border-subtle space-y-1.5">
+              <div className="flex justify-between text-xs">
+                <span className="font-bold text-text-primary">Strikes (This Month)</span>
+                <span className="font-mono font-bold text-danger">2 / 3</span>
+              </div>
+              <p className="text-[9px] text-text-muted">1 more strike will trigger goal restart</p>
+              {/* 3 Strike Bars */}
+              <div className="grid grid-cols-3 gap-1.5 pt-1">
+                <div className="h-2 rounded bg-danger shadow-glow-warning" />
+                <div className="h-2 rounded bg-danger shadow-glow-warning" />
+                <div className="h-2 rounded bg-surface-elevated border border-border-subtle" />
+              </div>
+            </div>
+          </div>
 
-                        <h3 className="text-xl font-bold mb-1 text-white flex items-center gap-2">
-                            <FiMessageCircle className="text-indigo-400" />
-                            {respondModal.type === 'punishment' ? 'Complete Punishment' : 'Respond to Inquiry'}
-                        </h3>
-                        <p className="text-xs text-slate-400 mb-2">
-                            From <strong className="text-white">{respondModal.sender?.username}</strong> about <strong className="text-cyan-400">{respondModal.item_title}</strong>
-                        </p>
+          {/* Penalty History List */}
+          <div className="card p-4 space-y-2.5">
+            <div className="section-header">
+              <h3 className="section-title">Penalty History</h3>
+              <span className="section-link">View All</span>
+            </div>
 
-                        {respondModal.message && (
-                            <div className="p-3 bg-white/5 rounded-xl text-sm text-slate-300 mb-4">"{respondModal.message}"</div>
-                        )}
-                        {respondModal.punishment && (
-                            <div className="p-3 bg-rose-500/10 border border-rose-500/20 rounded-xl text-sm text-rose-300 mb-4">
-                                ⚡ {respondModal.punishment}
-                            </div>
-                        )}
-
-                        <div className="mb-4">
-                            <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Your Response</label>
-                            <textarea 
-                                rows={3}
-                                value={responseText}
-                                onChange={e => setResponseText(e.target.value)}
-                                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 text-sm resize-none"
-                                placeholder={respondModal.type === 'punishment' ? 'Describe how you completed the punishment...' : 'Explain why you skipped...'}
-                            />
-                        </div>
-
-                        <div className="flex justify-end gap-3">
-                            <button 
-                                onClick={() => setRespondModal(null)} 
-                                className="px-4 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition"
-                            >
-                                Cancel
-                            </button>
-                            <button 
-                                onClick={() => handleRespond(respondModal.id, respondModal.type === 'punishment' ? 'completed' : 'explained')}
-                                className="px-5 py-2.5 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold rounded-xl text-xs transition-all shadow-lg shadow-indigo-600/20 flex items-center gap-1.5"
-                            >
-                                <FiCheck size={14} /> {respondModal.type === 'punishment' ? 'Mark as Completed' : 'Submit Explanation'}
-                            </button>
-                        </div>
+            <div className="space-y-2">
+              {penaltyHistory.map((item, i) => (
+                <div key={i} className="flex items-start justify-between py-1 border-b border-border-subtle last:border-0 text-xs">
+                  <div className="flex items-start gap-2">
+                    <span className="text-danger mt-0.5">⚠️</span>
+                    <div>
+                      <div className="flex items-center gap-1.5">
+                        <p className="font-bold text-text-primary leading-tight">{item.title}</p>
+                        <span className={item.sev === 'High' ? 'badge-danger text-[8px]' : 'badge-warning text-[8px]'}>
+                          {item.sev}
+                        </span>
+                      </div>
+                      <p className="text-[9px] text-text-muted">{item.desc}</p>
+                      <p className="text-[8px] text-text-muted mt-0.5">{item.date}</p>
                     </div>
+                  </div>
                 </div>
-            )}
+              ))}
+            </div>
+
+            <button className="w-full mt-2 py-2 rounded-xl bg-surface-elevated hover:bg-surface-hover text-text-primary text-xs font-semibold transition-all">
+              View Full History
+            </button>
+          </div>
         </div>
-    );
+      </div>
+
+      {/* Bottom Area — Warning Levels Cards */}
+      <div className="space-y-3">
+        <h3 className="section-title">Warning Levels</h3>
+        <div className="grid grid-cols-4 gap-4">
+          {[
+            { lvl: 'Level 0 – Safe', strikes: '0 Strikes', msg: "You're on track! No penalties. Keep going!", color: 'success', border: 'border-success/40', btn: 'bg-success' },
+            { lvl: 'Level 1 – Warning', strikes: '1 Strike', msg: 'Be careful! 1 more strike to Level 2.', color: 'warning', border: 'border-warning/40', btn: 'bg-warning' },
+            { lvl: 'Level 2 – At Risk', strikes: '2 Strikes', msg: 'At risk! Next strike will restart your goal set.', color: 'warning', border: 'border-warning/60', btn: 'bg-warning' },
+            { lvl: 'Level 3 – Penalty', strikes: '3 Strikes', msg: "Goal Restarted! You've reached max strikes. Goal set has been restarted.", color: 'danger', border: 'border-danger/60', btn: 'bg-danger' },
+          ].map((w, i) => (
+            <div key={i} className={`card p-4 space-y-2.5 border ${w.border}`}>
+              <div className="flex items-center justify-between text-xs">
+                <span className={`font-bold text-${w.color}`}>{w.lvl}</span>
+                <span className="text-[10px] text-text-muted font-mono">{w.strikes}</span>
+              </div>
+              <p className="text-xs text-text-secondary leading-relaxed">{w.msg}</p>
+              <div className="progress-bar h-1.5">
+                <div className={`progress-fill ${w.btn}`} style={{ width: i === 0 ? '0%' : i === 1 ? '33%' : i === 2 ? '66%' : '100%' }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Tip Banner */}
+      <div className="p-3.5 rounded-xl bg-purple/10 border border-purple/30 flex items-center gap-2.5">
+        <span className="text-purple text-lg">💡</span>
+        <p className="text-xs text-text-primary">
+          <strong>Tip:</strong> Consistency is the key to success. Plan your time, stay focused, and avoid penalties!
+        </p>
+      </div>
+    </div>
+  );
 }

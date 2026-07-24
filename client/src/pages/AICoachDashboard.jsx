@@ -1,151 +1,315 @@
 import React, { useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { 
-    FiCpu, FiZap, FiShield, FiTrendingUp, 
-    FiAlertCircle, FiCheckCircle, FiMessageSquare, FiSliders, FiActivity 
+import { motion } from 'framer-motion';
+import {
+  FiDatabase, FiSearch, FiPlus, FiBookmark, FiDownload, FiUpload,
+  FiFileText, FiVideo, FiBook, FiGlobe, FiFolder, FiMoreVertical,
+  FiArrowRight, FiGrid, FiList, FiChevronDown, FiZap
 } from 'react-icons/fi';
-import BackButton from '../components/ui/BackButton';
 
 export default function AICoachDashboard() {
-    const { user } = useContext(AuthContext);
-    const [persona, setPersona] = useState('strict_commander'); // 'strict_commander' | 'mentor' | 'friend' | 'minimal'
-    const [promptInput, setPromptInput] = useState('');
-    const [chatLogs, setChatLogs] = useState([
-        { role: 'ai', text: 'WARRIOR ATTENTION. You have 3 P1 daily tasks scheduled today. Current streak is 12 days. No missed deadlines allowed.' }
-    ]);
+  const { user } = useContext(AuthContext);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
-    const handleSendPrompt = (e) => {
-        e.preventDefault();
-        if (!promptInput.trim()) return;
+  const categories = [
+    { id: 'all', label: 'All Resources', count: 245, icon: '🗂️' },
+    { id: 'materials', label: 'Study Materials', count: 86, icon: '📖' },
+    { id: 'papers', label: 'Practice Papers', count: 42, icon: '📝' },
+    { id: 'cheatsheets', label: 'Cheat Sheets', count: 28, icon: '📄' },
+    { id: 'videos', label: 'Videos', count: 54, icon: '🎥' },
+    { id: 'books', label: 'Books', count: 21, icon: '📚' },
+    { id: 'tools', label: 'Tools & Websites', count: 14, icon: '🌐' },
+  ];
 
-        const newLogs = [
-            ...chatLogs,
-            { role: 'user', text: promptInput },
-            { role: 'ai', text: `[${persona.toUpperCase()} MODE]: Task priority logged. RAG vector context updated in Supabase pgvector namespace.` }
-        ];
-        setChatLogs(newLogs);
-        setPromptInput('');
-    };
+  const featured = [
+    {
+      title: 'Python Cheatsheet',
+      tag: 'Study Material',
+      tagColor: 'purple',
+      desc: 'Complete Python cheatsheet for quick reference and interviews.',
+      type: 'PDF • 1.2 MB',
+      icon: '🐍',
+      bgColor: 'from-primary/20 to-purple/20',
+    },
+    {
+      title: 'SQL Quick Guide',
+      tag: 'Study Material',
+      tagColor: 'purple',
+      desc: 'Essential SQL queries with examples and use cases.',
+      type: 'PDF • 850 KB',
+      icon: '🛢️',
+      bgColor: 'from-info/20 to-success/20',
+    },
+    {
+      title: 'DSA Roadmap',
+      tag: 'Roadmap',
+      tagColor: 'info',
+      desc: 'Step-by-step roadmap to master Data Structures & Algorithms.',
+      type: 'PDF • 1.5 MB',
+      icon: '🕸️',
+      bgColor: 'from-primary/30 to-info/30',
+    },
+    {
+      title: 'FastAPI Tutorial Series',
+      tag: 'Video',
+      tagColor: 'warning',
+      desc: 'Complete FastAPI tutorial for beginners to advanced.',
+      type: '12 Videos • 6.3 hrs',
+      icon: '⚡',
+      bgColor: 'from-warning/20 to-danger/20',
+    },
+  ];
 
-    return (
-        <div className="min-h-screen bg-[#090A0F] text-slate-100 p-4 md:p-8 relative overflow-hidden">
-            {/* Ambient Background Glows */}
-            <div className="ambient-glow top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-600/15"></div>
-            <div className="ambient-glow bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10"></div>
+  const library = [
+    { name: 'Operating Systems Notes', type: 'PDF', category: 'Study Materials', size: '2.4 MB', date: 'May 15, 2026', tagColor: 'purple' },
+    { name: 'GATE CSE Previous Year Papers', type: 'PDF', category: 'Practice Papers', size: '12.6 MB', date: 'May 14, 2026', tagColor: 'info' },
+    { name: 'Web Development Roadmap', type: 'PDF', category: 'Roadmaps', size: '1.8 MB', date: 'May 13, 2026', tagColor: 'success' },
+    { name: 'React Crash Course', type: 'VIDEO', category: 'Videos', size: '4.2 hrs', date: 'May 12, 2026', tagColor: 'warning' },
+    { name: 'Data Structures Cheatsheet', type: 'PDF', category: 'Cheat Sheets', size: '950 KB', date: 'May 11, 2026', tagColor: 'purple' },
+  ];
 
-            <div className="max-w-7xl mx-auto space-y-8 relative z-10">
-                <BackButton />
+  const recentlyAdded = [
+    { name: 'Docker Basics Guide', info: 'PDF • 1.1 MB', date: 'May 15, 2026', icon: '🐳' },
+    { name: 'Git Cheat Sheet', info: 'PDF • 620 KB', date: 'May 15, 2026', icon: '🔀' },
+    { name: 'ML Algorithms Summary', info: 'PDF • 2.2 MB', date: 'May 14, 2026', icon: '🤖' },
+    { name: 'Linux Commands Cheat Sheet', info: 'PDF • 780 KB', date: 'May 14, 2026', icon: '🐧' },
+  ];
 
-                {/* Page Header */}
-                <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <div className="flex items-center gap-2 text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest mb-1">
-                            <FiCpu /> AI Coach & Growth Intelligence Platform
-                        </div>
-                        <h1 className="text-3xl font-extrabold tracking-tight text-white flex items-center gap-3">
-                            <FiZap className="text-cyan-400" /> AI Growth Intelligence Coach
-                        </h1>
-                        <p className="text-slate-400 text-sm mt-1">
-                            Personal Growth Intelligence observing compliance, predicting burnout, and optimizing discipline.
-                        </p>
-                    </div>
-
-                    <div className="glass-panel px-4 py-2 rounded-xl flex items-center gap-2 border border-cyan-500/30">
-                        <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-                        <span className="text-xs font-mono font-bold text-cyan-400">GPT-4o RAG PIPELINE ACTIVE</span>
-                    </div>
-                </header>
-
-                {/* ROW 1: MORNING BRIEFING & PERSONA SELECTOR */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Today's Morning AI Briefing */}
-                    <div className="lg:col-span-2 glass-panel p-6 rounded-2xl border border-cyan-500/30 flex flex-col justify-between">
-                        <div>
-                            <div className="flex justify-between items-center mb-4">
-                                <span className="text-xs font-mono font-bold text-cyan-400 uppercase">DAILY AI MORNING BRIEFING (07:00 AM)</span>
-                                <span className="text-xs font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 px-3 py-1 rounded-full font-bold">
-                                    DISCIPLINE BRS: 0.12 (LOW RISK)
-                                </span>
-                            </div>
-
-                            <h3 className="text-xl font-bold text-white mb-3">Today's Focus: Execution Velocity</h3>
-                            <p className="text-xs text-slate-300 leading-relaxed mb-4">
-                                Good morning, <strong>{user?.username}</strong>. You have 3 P1 tasks queued. Your 12-day streak is active. 
-                                Target completion window is before 11:30 AM for maximum cognitive efficiency.
-                            </p>
-
-                            <div className="space-y-2 text-xs text-slate-300">
-                                <div className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center gap-2 font-mono">
-                                    <FiCheckCircle className="text-cyan-400" />
-                                    <span>P1 Task: Complete Async Rust Tokio Engine code diff submission</span>
-                                </div>
-                                <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center gap-2 font-mono">
-                                    <FiCheckCircle className="text-indigo-400" />
-                                    <span>P1 Task: Iron Forge Heavy Squats Split workout session</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* AI Persona Selector */}
-                    <div className="glass-panel p-6 rounded-2xl border border-cyan-500/20 flex flex-col justify-between">
-                        <div>
-                            <div className="flex items-center gap-2 text-xs font-mono text-cyan-400 uppercase font-bold mb-3">
-                                <FiSliders /> COACH PERSONALITY MODE
-                            </div>
-                            <h4 className="font-bold text-sm text-white mb-3">Select Active Persona</h4>
-
-                            <div className="space-y-2">
-                                {[
-                                    { id: 'strict_commander', name: 'Strict Commander', desc: 'Zero fluff, intense discipline' },
-                                    { id: 'mentor', name: 'Executive Mentor', desc: 'Strategic & constructive guidance' },
-                                    { id: 'friend', name: 'Supportive Partner', desc: 'Empathetic & encouraging reminders' },
-                                    { id: 'minimal', name: 'Minimal Mode', desc: 'Strict 1-line takeaways' }
-                                ].map(p => (
-                                    <button 
-                                        key={p.id}
-                                        onClick={() => setPersona(p.id)}
-                                        className={`w-full p-3 rounded-xl border text-left transition-all ${persona === p.id ? 'bg-cyan-600/20 border-cyan-500 text-white shadow-md' : 'bg-white/5 border-white/10 text-slate-400 hover:text-slate-200'}`}
-                                    >
-                                        <div className="font-bold text-xs">{p.name}</div>
-                                        <div className="text-[10px] text-slate-500 mt-0.5">{p.desc}</div>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ROW 2: AI CONVERSATION INTERACTION */}
-                <div className="glass-panel p-6 rounded-2xl">
-                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <FiMessageSquare className="text-cyan-400" /> Interactive Intelligence Console
-                    </h3>
-
-                    <div className="min-h-[220px] max-h-[300px] overflow-y-auto space-y-3 p-4 rounded-xl bg-slate-950/80 border border-slate-900 font-mono text-xs mb-4">
-                        {chatLogs.map((msg, idx) => (
-                            <div key={idx} className={`p-3 rounded-xl ${msg.role === 'ai' ? 'bg-cyan-500/10 border border-cyan-500/20 text-cyan-300' : 'bg-white/5 border border-white/10 text-slate-200 ml-8'}`}>
-                                <strong className="text-[10px] text-slate-500 block mb-1 uppercase">{msg.role === 'ai' ? `AI COACH (${persona.toUpperCase()})` : 'YOU'}</strong>
-                                <div>{msg.text}</div>
-                            </div>
-                        ))}
-                    </div>
-
-                    <form onSubmit={handleSendPrompt} className="flex gap-3">
-                        <input 
-                            type="text"
-                            placeholder="Ask AI Coach for goal optimization, recovery advice, or revision strategies..."
-                            value={promptInput}
-                            onChange={(e) => setPromptInput(e.target.value)}
-                            className="flex-1 bg-slate-900/80 border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-500 transition-all"
-                        />
-                        <button type="submit" className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl text-xs transition-all shadow-md shadow-cyan-600/30">
-                            Send Query
-                        </button>
-                    </form>
-                </div>
-
-            </div>
+  return (
+    <div className="p-6 space-y-5">
+      {/* Top Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center">
+            <FiDatabase size={22} />
+          </div>
+          <div>
+            <h1 className="text-xl font-bold text-text-primary">Resources</h1>
+            <p className="text-xs text-text-muted">Your ultimate study hub. Curated materials to help you learn better.</p>
+          </div>
         </div>
-    );
+
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+            <input
+              type="text"
+              placeholder="Search resources..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-9 pr-12 py-2 rounded-xl bg-surface-elevated text-xs text-text-primary placeholder-text-muted border border-border-subtle focus:border-purple focus:outline-none w-64"
+            />
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-mono text-text-muted bg-white/5 px-1.5 py-0.5 rounded border border-border-subtle">
+              Ctrl + K
+            </span>
+          </div>
+          <button className="btn-primary text-xs bg-purple hover:bg-purple/80 flex items-center gap-1.5">
+            <FiPlus size={16} /> Add Resource
+          </button>
+        </div>
+      </div>
+
+      {/* Browse by Category */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs font-bold text-text-primary">Browse by Category</h3>
+          <button className="text-xs font-semibold text-purple hover:underline flex items-center gap-1">
+            View All Categories <FiArrowRight size={12} />
+          </button>
+        </div>
+        <div className="grid grid-cols-7 gap-2">
+          {categories.map(cat => (
+            <div
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={`p-3 rounded-xl border transition-all cursor-pointer text-center ${
+                selectedCategory === cat.id ? 'border-purple bg-purple/10' : 'border-border-subtle bg-surface-elevated/40 hover:bg-surface-elevated'
+              }`}
+            >
+              <span className="text-lg block mb-1">{cat.icon}</span>
+              <p className="text-[11px] font-bold text-text-primary truncate">{cat.label}</p>
+              <p className="text-[9px] text-text-muted font-mono">{cat.count}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Main Grid Layout */}
+      <div className="grid grid-cols-12 gap-4">
+        {/* Left 9 Columns — Featured & Library */}
+        <div className="col-span-9 space-y-5">
+          {/* Featured Resources (4 Cards) */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <h3 className="text-xs font-bold text-text-primary">Featured Resources</h3>
+              <span className="section-link">View All</span>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              {featured.map((f, i) => (
+                <div key={i} className="card overflow-hidden hover:border-purple/40 transition-all flex flex-col justify-between">
+                  {/* Card Cover Banner */}
+                  <div className={`p-4 bg-gradient-to-br ${f.bgColor} flex flex-col items-center justify-center text-center h-28 relative`}>
+                    <span className="text-3xl mb-1">{f.icon}</span>
+                    <h4 className="text-sm font-extrabold text-white">{f.title}</h4>
+                  </div>
+                  <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
+                    <div>
+                      <span className={`badge-${f.tagColor} text-[8px] mb-1 inline-block`}>{f.tag}</span>
+                      <p className="text-[11px] font-bold text-text-primary">{f.title}</p>
+                      <p className="text-[9px] text-text-muted leading-tight mt-0.5">{f.desc}</p>
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t border-border-subtle text-[9px] text-text-muted font-mono">
+                      <span>{f.type}</span>
+                      <FiBookmark className="hover:text-purple cursor-pointer" size={13} />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Resource Library Table */}
+          <div className="card overflow-hidden space-y-3">
+            <div className="p-4 border-b border-border-subtle flex items-center justify-between">
+              <h3 className="text-sm font-bold text-text-primary">Resource Library</h3>
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-text-muted cursor-pointer hover:text-text-primary flex items-center gap-1">
+                  All Types <FiChevronDown size={12} />
+                </span>
+                <span className="text-xs text-text-muted cursor-pointer hover:text-text-primary flex items-center gap-1">
+                  Latest <FiChevronDown size={12} />
+                </span>
+                <div className="flex items-center border border-border-subtle rounded-lg overflow-hidden">
+                  <button className="px-2 py-1 bg-purple text-white"><FiList size={13} /></button>
+                  <button className="px-2 py-1 text-text-muted hover:text-text-primary"><FiGrid size={13} /></button>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-border-subtle bg-surface-elevated/50 text-[10px] text-text-muted uppercase tracking-wider">
+                    <th className="py-2.5 px-4">Name</th>
+                    <th className="py-2.5 px-3">Type</th>
+                    <th className="py-2.5 px-3">Category</th>
+                    <th className="py-2.5 px-3">Size / Duration</th>
+                    <th className="py-2.5 px-3">Added On</th>
+                    <th className="py-2.5 px-4 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {library.map((row, i) => (
+                    <tr key={i} className="hover:bg-surface-elevated/40">
+                      <td className="py-3 px-4 font-bold text-text-primary flex items-center gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-purple/10 text-purple flex items-center justify-center text-xs">
+                          {row.type === 'PDF' ? '📄' : '🎥'}
+                        </div>
+                        <div>
+                          <p className="leading-tight">{row.name}</p>
+                        </div>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[10px]">
+                        <span className="px-2 py-0.5 rounded bg-surface-elevated text-text-secondary border border-border-subtle">
+                          {row.type}
+                        </span>
+                      </td>
+                      <td className="py-3 px-3">
+                        <span className={`badge-${row.tagColor} text-[8px]`}>{row.category}</span>
+                      </td>
+                      <td className="py-3 px-3 font-mono text-[11px] text-text-muted">{row.size}</td>
+                      <td className="py-3 px-3 font-mono text-[11px] text-text-muted">{row.date}</td>
+                      <td className="py-3 px-4 text-right">
+                        <div className="flex items-center justify-end gap-2 text-text-muted">
+                          <FiBookmark className="hover:text-purple cursor-pointer" size={14} />
+                          <FiMoreVertical className="hover:text-text-primary cursor-pointer" size={14} />
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="p-3 border-t border-border-subtle text-center">
+              <button className="text-xs font-semibold text-purple hover:underline flex items-center justify-center gap-1 mx-auto">
+                View More Resources <FiChevronDown size={14} />
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Right 3 Columns — My Resources & Recently Added & Contribute */}
+        <div className="col-span-3 space-y-4">
+          {/* My Resources Stats */}
+          <div className="card p-4 space-y-3">
+            <div className="section-header">
+              <h3 className="section-title">My Resources</h3>
+              <span className="section-link">View All</span>
+            </div>
+
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated">
+                <span className="flex items-center gap-2 text-text-secondary"><FiBookmark className="text-purple" /> Saved Items</span>
+                <span className="font-bold font-mono text-text-primary">18</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated">
+                <span className="flex items-center gap-2 text-text-secondary"><FiDownload className="text-success" /> Downloaded</span>
+                <span className="font-bold font-mono text-text-primary">7</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated">
+                <span className="flex items-center gap-2 text-text-secondary"><FiUpload className="text-warning" /> My Uploads</span>
+                <span className="font-bold font-mono text-text-primary">3</span>
+              </div>
+              <div className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated">
+                <span className="flex items-center gap-2 text-text-secondary"><FiFileText className="text-info" /> Recent Files</span>
+                <span className="font-bold font-mono text-text-primary">12</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Recently Added */}
+          <div className="card p-4 space-y-3">
+            <div className="section-header">
+              <h3 className="section-title">Recently Added</h3>
+              <span className="section-link">View All</span>
+            </div>
+
+            <div className="space-y-2.5">
+              {recentlyAdded.map((item, i) => (
+                <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated/40">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-base">{item.icon}</span>
+                    <div>
+                      <p className="text-xs font-bold text-text-primary leading-tight">{item.name}</p>
+                      <p className="text-[9px] text-text-muted font-mono">{item.info}</p>
+                    </div>
+                  </div>
+                  <span className="text-[8px] text-text-muted">{item.date}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Contribute & Earn Card */}
+          <div className="card p-5 text-center space-y-3 bg-gradient-to-br from-primary/30 to-purple/30 border-purple/40">
+            <div className="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto text-2xl shadow-glow-primary">
+              🚀
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-white">Contribute & Earn</h4>
+              <p className="text-[11px] text-text-secondary leading-relaxed mt-1">
+                Share helpful resources with the community and earn reward points!
+              </p>
+            </div>
+            <button className="w-full py-2.5 rounded-xl bg-white text-primary font-bold text-xs hover:bg-slate-100 transition-all shadow-lg">
+              Upload Resource
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

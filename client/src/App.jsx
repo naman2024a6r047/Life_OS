@@ -23,29 +23,55 @@ import GoalWorkspace from './pages/GoalWorkspace';
 import PartnerDashboard from './pages/PartnerDashboard';
 
 import CommandPalette from './components/navigation/CommandPalette';
-import FloatingActionMenu from './components/navigation/FloatingActionMenu';
+import AppShell from './components/navigation/AppShell';
+import ExamShield from './components/navigation/ExamShield';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useContext(AuthContext);
   
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center animate-pulse">
+          <span className="text-primary font-bold">L</span>
+        </div>
+        <p className="text-text-secondary text-sm">Loading...</p>
+      </div>
+    </div>
+  );
   if (!user) return <Navigate to="/login" />;
   
-  return children;
+  return <AppShell>{children}</AppShell>;
 };
 
 function AppRoutes() {
   const { user, loading } = useContext(AuthContext);
   const [isCmdOpen, setIsCmdOpen] = React.useState(false);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  // Global keyboard shortcut for command palette
+  React.useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        setIsCmdOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="w-8 h-8 rounded-lg bg-primary/20 animate-pulse" />
+    </div>
+  );
 
   return (
     <>
       <Routes>
         <Route path="/login" element={user ? <Navigate to="/" /> : <Login />} />
         <Route path="/register" element={user ? <Navigate to="/" /> : <Register />} />
-        <Route path="/" element={<ProtectedRoute><Dashboard onOpenCommandPalette={() => setIsCmdOpen(true)} /></ProtectedRoute>} />
+        <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/challenges" element={<ProtectedRoute><Challenges /></ProtectedRoute>} />
         <Route path="/challenges/new" element={<ProtectedRoute><CreateChallenge /></ProtectedRoute>} />
         <Route path="/challenges/:id" element={<ProtectedRoute><ChallengeDetail /></ProtectedRoute>} />
@@ -63,16 +89,11 @@ function AppRoutes() {
         <Route path="/goals/workspace/:goalId" element={<ProtectedRoute><GoalWorkspace /></ProtectedRoute>} />
       </Routes>
       {user && (
-        <>
-          <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} />
-          <FloatingActionMenu />
-        </>
+        <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} />
       )}
     </>
   );
 }
-
-import ExamShield from './components/navigation/ExamShield';
 
 function App() {
   return (

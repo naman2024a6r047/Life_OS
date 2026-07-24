@@ -111,30 +111,84 @@ async function handleStaticApiFallback(config) {
         let challenges = getLocal('challenges', null);
         if (!challenges || challenges.length === 0) {
             const todayStr = new Date().toISOString().split('T')[0];
-            const endStr = new Date(Date.now() + 9 * 86400000).toISOString().split('T')[0];
+            const start90 = new Date(Date.now() - 31 * 86400000).toISOString().split('T')[0];
+            const end90 = new Date(Date.now() + 59 * 86400000).toISOString().split('T')[0];
+
             challenges = [
                 {
-                    id: 'ch_1',
-                    title: '100 Days of Python & System Architecture',
-                    description: 'Master Python 3.12, AsyncIO, FastAPI, and Distributed Microservices',
-                    category: 'Engineering & Code',
-                    difficulty: 'LEGENDARY',
+                    id: 'g1',
+                    title: 'Master Full Stack Development',
+                    description: 'Become a full stack developer by learning and building real world projects.',
+                    category: 'Development',
+                    start_date: start90,
+                    end_date: end90,
                     status: 'active',
-                    start_date: todayStr,
-                    end_date: endStr,
+                    milestones: Array.from({ length: 9 }, (_, i) => ({
+                        id: `m_${i+1}`,
+                        title: `Milestone ${i+1}: Days ${i*10+1}-${(i+1)*10}`,
+                        status: i < 3 ? 'completed' : i === 3 ? 'unlocked' : 'locked',
+                        tasks: i === 3 ? [
+                            { id: 't31', title: 'Learn React 19 – Components, Props, State', is_completed: true, priority: 'P1' },
+                            { id: 't32', title: 'React – useEffect, Events and Forms', is_completed: false, priority: 'P1' },
+                            { id: 't33', title: 'React Router DOM – Navigation & Routing', is_completed: false, priority: 'P2' },
+                            { id: 't34', title: 'Node.js – Express.js Basics', is_completed: false, priority: 'P1' },
+                            { id: 't35', title: 'REST API – CRUD Operations', is_completed: false, priority: 'P1' },
+                            { id: 't36', title: 'Connect React Frontend with Express API', is_completed: false, priority: 'P1' },
+                            { id: 't37', title: 'Authentication – JWT Basics', is_completed: false, priority: 'P2' },
+                            { id: 't38', title: 'Deploy Full Stack App on Render', is_completed: false, priority: 'P3' },
+                            { id: 't39', title: 'Add Protected Routes & Logout', is_completed: false, priority: 'P2' },
+                            { id: 't40', title: 'Build a Mini Project – Task Manager', is_completed: false, priority: 'P1' },
+                        ] : [
+                            { id: `t_${i}_1`, title: `Sprint task for milestone ${i+1}`, is_completed: i < 3 }
+                        ]
+                    }))
+                },
+                {
+                    id: 'g2',
+                    title: 'Crack Semester Exams',
+                    description: 'Prepare thoroughly for all university end-semester examinations.',
+                    category: 'Academics',
+                    start_date: new Date(Date.now() - 17 * 86400000).toISOString().split('T')[0],
+                    end_date: new Date(Date.now() + 43 * 86400000).toISOString().split('T')[0],
+                    status: 'active',
                     milestones: [
-                        {
-                            id: 'ms_1',
-                            title: 'Milestone 1: 10-Day Python Mastery Sprint (Day 1 - Day 10)',
-                            start_date: todayStr,
-                            deadline: endStr,
-                            status: 'unlocked',
-                            tasks: [
-                                { id: 't_1', title: 'Day 1: Setup Python 3.12 Virtualenv & Poetry', priority: 'P1', energy_level: 'high', estimated_minutes: 45, is_completed: true, date: todayStr },
-                                { id: 't_2', title: 'Day 2: Master AsyncIO, Generators & Decorators', priority: 'P1', energy_level: 'high', estimated_minutes: 60, is_completed: false, date: todayStr },
-                                { id: 't_3', title: 'Day 3: Build High-Performance Async Crawler', priority: 'P2', energy_level: 'medium', estimated_minutes: 90, is_completed: false, date: todayStr }
-                            ]
-                        }
+                        { id: 'm2_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't2_1', title: 'Cover Unit 1 & 2', is_completed: true }] }
+                    ]
+                },
+                {
+                    id: 'g3',
+                    title: 'Fitness Transformation',
+                    description: 'Consistently hit the gym and achieve peak physical condition.',
+                    category: 'Fitness',
+                    start_date: new Date(Date.now() - 44 * 86400000).toISOString().split('T')[0],
+                    end_date: new Date(Date.now() + 76 * 86400000).toISOString().split('T')[0],
+                    status: 'active',
+                    milestones: [
+                        { id: 'm3_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't3_1', title: 'Bench press baseline', is_completed: true }] }
+                    ]
+                },
+                {
+                    id: 'g4',
+                    title: 'Build 5 Projects',
+                    description: 'Construct 5 production-ready full stack portfolio applications.',
+                    category: 'Projects',
+                    start_date: new Date(Date.now() - 24 * 86400000).toISOString().split('T')[0],
+                    end_date: new Date(Date.now() + 76 * 86400000).toISOString().split('T')[0],
+                    status: 'active',
+                    milestones: [
+                        { id: 'm4_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't4_1', title: 'Build Project 1', is_completed: true }] }
+                    ]
+                },
+                {
+                    id: 'g5',
+                    title: 'Daily Learning Habit',
+                    description: 'Read and learn for at least 1 hour every single day without fail.',
+                    category: 'Habit',
+                    start_date: new Date(Date.now() - 40 * 86400000).toISOString().split('T')[0],
+                    end_date: new Date(Date.now() + 113 * 86400000).toISOString().split('T')[0],
+                    status: 'active',
+                    milestones: [
+                        { id: 'm5_1', title: 'Milestone 1: Days 1-10', status: 'completed', tasks: [{ id: 't5_1', title: 'Read 10 pages', is_completed: true }] }
                     ]
                 }
             ];

@@ -142,14 +142,31 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const loginDemo = () => {
+        const demoUser = {
+            id: 'demo_user_naman',
+            username: 'Naman',
+            email: 'naman@lifeos.dev',
+            xp: 1825,
+            level: 12,
+            current_streak: 32
+        };
+        setUser(demoUser);
+        setSession({ access_token: 'demo_token' });
+        localStorage.setItem('token', 'demo_token');
+    };
+
     const logout = async () => {
-        await supabase.auth.signOut();
+        try {
+            await supabase.auth.signOut();
+        } catch (e) {}
         setSession(null);
         setUser(null);
+        localStorage.removeItem('token');
     };
 
     return (
-        <AuthContext.Provider value={{ user, session, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, session, login, loginDemo, register, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

@@ -1,13 +1,53 @@
-import React from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import {
   FiCalendar, FiChevronDown, FiActivity, FiClock, FiTrendingUp,
   FiAward, FiShield, FiTarget, FiZap, FiCheckCircle, FiMoreVertical,
-  FiInfo
+  FiInfo, FiUser, FiPlus, FiUploadCloud
 } from 'react-icons/fi';
+import { uploadPhotoToDrive, extractFolderId } from '../../utils/googleDriveApi';
 
-export default function GymProgressTab({ workoutsList = [] }) {
+export default function GymProgressTab({ workoutsList = [], googleAccessToken, googleDriveFolderLink }) {
   const hasData = workoutsList.length > 0;
+  const fileInputRef = useRef(null);
+  const [uploading, setUploading] = useState(false);
+  const [photos, setPhotos] = useState([null, null, null, null]);
+
+  const handleFileSelect = async (e) => {
+    const files = Array.from(e.target.files).slice(0, 4);
+    if (files.length === 0) return;
+    
+    setUploading(true);
+    
+    const folderId = extractFolderId(googleDriveFolderLink);
+    
+    const newPhotos = [...photos];
+    for (let i = 0; i < files.length; i++) {
+      if (i < 4) {
+        newPhotos[i] = URL.createObjectURL(files[i]);
+      }
+    }
+    setPhotos(newPhotos);
+    
+    try {
+      if (!googleAccessToken) {
+        console.warn("No Google Access Token found. Prompting user or skipping upload.");
+        // Normally you might want to show a toast message here asking them to sign in.
+      } else if (!folderId) {
+        console.warn("No valid Google Drive Folder ID found.");
+      } else {
+        // Upload the first file (or map over all)
+        for (let i = 0; i < files.length; i++) {
+          await uploadPhotoToDrive(files[i], folderId, googleAccessToken);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    
+    setUploading(false);
+  };
+  
   return (
     <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Header & Controls */}
@@ -473,6 +513,50 @@ export default function GymProgressTab({ workoutsList = [] }) {
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Progress Photos */}
+          <div className="card p-5 border border-border-subtle bg-surface">
+            <h3 className="text-sm font-bold text-text-primary mb-6">Progress Photos</h3>
+            
+            <input 
+              type="file" 
+              accept="image/*" 
+              multiple 
+              className="hidden" 
+              ref={fileInputRef} 
+              onChange={handleFileSelect} 
+            />
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {['FRONT', 'SIDE 1', 'BACK', 'SIDE 2'].map((label, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-surface-elevated border border-border-subtle group flex flex-col items-center justify-center cursor-pointer hover:border-purple/40 transition-colors"
+                >
+                  {photos[idx] ? (
+                    <img src={photos[idx]} alt={label} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="text-text-muted/30 group-hover:text-purple/40 transition-colors mb-4">
+                      <FiUser size={48} />
+                    </div>
+                  )}
+                  <div className="absolute bottom-0 w-full bg-background/90 backdrop-blur py-2 text-center border-t border-border-subtle">
+                    <span className="text-[10px] font-bold text-text-primary uppercase tracking-wider">{label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <button 
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className={`w-full py-3 rounded-2xl border border-purple/30 bg-purple/10 text-purple font-bold hover:bg-purple hover:text-white transition-all flex items-center justify-center gap-2 text-sm shadow-glow-primary ${uploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {uploading ? <FiUploadCloud className="animate-bounce" /> : <FiPlus />}
+              {uploading ? 'Uploading...' : 'Add New Photos'}
+            </button>
           </div>
 
           {/* Body Progress */}

@@ -11,6 +11,8 @@ import {
   FiCamera, FiShare2, FiStar, FiRotateCcw, FiList, FiVideo, FiImage, FiExternalLink
 } from 'react-icons/fi';
 import MuscleDiagram from '../components/fitness/MuscleDiagram';
+import GymProgressTab from '../components/fitness/GymProgressTab';
+import GymBodyStatsTab from '../components/fitness/GymBodyStatsTab';
 
 export default function GymDashboard() {
   const { user } = useContext(AuthContext);
@@ -143,45 +145,16 @@ export default function GymDashboard() {
   });
 
   const [personalRecords, setPersonalRecords] = useState(() => {
-    if (isDemoAccount) return defaultPRs;
     const saved = localStorage.getItem(prStorageKey);
     return saved ? JSON.parse(saved) : {};
   });
 
   const [workoutsList, setWorkoutsList] = useState(() => {
-    if (isDemoAccount) return demoWorkouts;
     const saved = localStorage.getItem(workoutStorageKey);
     return saved ? JSON.parse(saved) : [];
   });
 
   const [userProfile, setUserProfile] = useState(() => {
-    if (isDemoAccount) {
-      return {
-        fullName: 'Naman',
-        username: 'naman_fitness',
-        email: 'naman@example.com',
-        height: '175 cm',
-        weight: '68.5 kg',
-        age: 21,
-        gender: 'Male',
-        primaryGoal: 'Build Muscle',
-        targetWeight: '75',
-        targetDate: '2026-12-31',
-        weeklyGoal: 5,
-        experienceLevel: 'Intermediate',
-        splitPreference: 'Push / Pull / Legs',
-        equipment: 'Gym',
-        preferredUnits: 'Metric (kg, cm)',
-        theme: 'Dark',
-        language: 'English',
-        privacyMode: false,
-        workoutReminders: true,
-        progressUpdates: true,
-        achievementAlerts: true,
-        streakReminders: true,
-        newsletter: false
-      };
-    }
     const savedProf = localStorage.getItem(profileStorageKey);
     if (savedProf) return JSON.parse(savedProf);
     return {
@@ -211,8 +184,13 @@ export default function GymDashboard() {
     };
   });
 
+  // Get current weekday for highlighting and default selection
+  const currentWeekday = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
+
   // Active Selected Day for Weekly Plan Preview / Editing
-  const [selectedPlanDay, setSelectedPlanDay] = useState('Monday');
+  const [selectedPlanDay, setSelectedPlanDay] = useState(currentWeekday);
+  const [editingDayTitle, setEditingDayTitle] = useState(false);
+  const [editedTitle, setEditedTitle] = useState('');
   const [showWeeklyPlanModal, setShowWeeklyPlanModal] = useState(false);
   const [newPlanExercise, setNewPlanExercise] = useState({ name: exercisesList[0]?.name || 'Barbell Bench Press', sets: 3, reps: 10, targetWeight: '80' });
 
@@ -321,7 +299,7 @@ export default function GymDashboard() {
   };
 
   // One-Click Checkbox Logging Function & PR Carryover Logic
-  const handleToggleExerciseCheckbox = (day, exerciseId, currentWeight) => {
+  const handleToggleExerciseCheckbox = (day, exerciseId) => {
     const updatedPlan = { ...weeklyPlan };
     const dayExList = updatedPlan[day].exercises;
     const targetEx = dayExList.find(e => e.id === exerciseId);
@@ -331,7 +309,7 @@ export default function GymDashboard() {
       setWeeklyPlan(updatedPlan);
 
       if (targetEx.completed) {
-        const weightNum = parseFloat(currentWeight || targetEx.targetWeight) || 0;
+        const weightNum = parseFloat(targetEx.loggedWeight || targetEx.targetWeight) || 0;
         const exName = targetEx.name;
         const oldPR = personalRecords[exName];
 
@@ -366,7 +344,7 @@ export default function GymDashboard() {
   };
 
   // Interactive Muscle & Exercise Filter State
-  const streak = isDemoAccount ? 28 : (user?.current_streak || (workoutsList.length > 0 ? 1 : 0));
+  const streak = user?.current_streak || (workoutsList.length > 0 ? 1 : 0);
   const [selectedMuscleCategory, setSelectedMuscleCategory] = useState('all');
   const [selectedExercise, setSelectedExercise] = useState('Barbell Bench Press');
   const [searchExercise, setSearchExercise] = useState('');
@@ -395,8 +373,8 @@ export default function GymDashboard() {
   };
 
   // Header Metrics Calculations
-  const workoutsCountMonth = isDemoAccount ? 12 : workoutsList.filter(w => w.status === 'Completed').length;
-  const totalVolumeLiftedStr = isDemoAccount ? '47.5 kg' : `${workoutsList.reduce((sum, w) => sum + (parseFloat(String(w.volume).replace(/[^0-9.]/g, '')) || 0), 0).toLocaleString()} kg`;
+  const workoutsCountMonth = workoutsList.filter(w => w.status === 'Completed').length;
+  const totalVolumeLiftedStr = `${workoutsList.reduce((sum, w) => sum + (parseFloat(String(w.volume).replace(/[^0-9.]/g, '')) || 0), 0).toLocaleString()} kg`;
   const totalPRCount = Object.keys(personalRecords).length;
 
   // Exercise Categories
@@ -412,92 +390,100 @@ export default function GymDashboard() {
 
   const activeExerciseObj = exercisesList.find(e => e.name === selectedExercise) || exercisesList[0] || defaultExercises[0];
 
-  // Helper to determine target exercise for today's scheduled workout SVG highlighting
-  const todayTitle = (weeklyPlan['Monday']?.title || 'Push Day').toLowerCase();
-  const todayExerciseFocus = todayTitle.includes('pull') ? 'pull up' : todayTitle.includes('leg') ? 'squat' : 'bench press';
+  const todayTitle = (weeklyPlan[currentWeekday]?.title || 'Rest Day').toLowerCase();
+  const todayExercises = weeklyPlan[currentWeekday]?.exercises?.map(e => {
+    const fullEx = exercisesList.find(x => x.name === e.name);
+    return fullEx ? { name: e.name, primary: fullEx.primary, secondary: fullEx.secondary } : e.name;
+  }) || [];
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-6 lg:p-8 space-y-6 max-w-[1700px] mx-auto">
       {/* PR Toast Alert */}
       <AnimatePresence>
         {prNotification && (
           <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="fixed top-6 right-6 z-50 p-4 rounded-xl bg-purple text-white shadow-glow-primary flex items-center gap-3"
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -20, scale: 0.95 }}
+            className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-gradient-to-r from-purple to-purple-accent text-white shadow-glow-primary flex items-center gap-3 border border-purple-light/40"
           >
-            <span className="text-xl">🏆</span>
+            <span className="text-2xl">🏆</span>
             <div>
-              <p className="font-extrabold text-sm">{prNotification}</p>
-              <p className="text-[10px] opacity-80">Saved to your Personal Records!</p>
+              <p className="font-extrabold text-sm tracking-wide">{prNotification}</p>
+              <p className="text-[10px] opacity-90">Saved to your Personal Records!</p>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Top Header Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center">
-            <FiActivity size={22} />
+      {/* DENSE PRODUCTION PAGE HEADER (32px Title) */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border-subtle pb-4">
+        <div className="flex items-center gap-3.5">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple/20 to-purple-accent/10 border border-purple/30 text-purple flex items-center justify-center shadow-glow-primary">
+            <FiActivity size={26} />
           </div>
           <div>
-            <h1 className="text-xl font-bold text-text-primary">Gym & Fitness</h1>
-            <p className="text-xs text-text-muted">Train hard. Stay consistent. Be your best.</p>
+            <h1 className="text-3xl font-extrabold text-text-primary tracking-tight font-sans">Gym & Fitness</h1>
+            <p className="text-sm text-text-muted">High-performance athletic tracking, muscle heatmap & workout OS.</p>
           </div>
         </div>
 
-        {/* Top 4 Metrics Summary Bar */}
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
-            <span className="text-base">🔥</span>
+        {/* 4 TOP METRICS CARDS BAR (ENLARGED HIIRARCHY & HOVER ANIMATION) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-lg font-bold">🔥</div>
             <div>
-              <p className="text-sm font-bold font-mono text-text-primary">{workoutsCountMonth}</p>
-              <p className="text-[9px] text-text-muted">Workouts This Month</p>
+              <h4 className="text-2xl font-black font-mono text-text-primary leading-none">{workoutsCountMonth}</h4>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Workouts / Mo</p>
+              <span className="text-[9px] text-success font-bold font-mono">↑ 18% vs last mo</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
-            <span className="text-base">🏆</span>
+          </motion.div>
+
+          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-lg font-bold">🏆</div>
             <div>
-              <p className="text-sm font-bold font-mono text-text-primary">{totalVolumeLiftedStr}</p>
-              <p className="text-[9px] text-text-muted">Total Volume (Lifted)</p>
+              <h4 className="text-2xl font-black font-mono text-purple leading-none">{totalVolumeLiftedStr}</h4>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Volume Lifted</p>
+              <span className="text-[9px] text-success font-bold font-mono">↑ 24% vs last mo</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
-            <span className="text-base">⭐</span>
+          </motion.div>
+
+          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-info/40 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-info/10 text-info flex items-center justify-center text-lg font-bold">⭐</div>
             <div>
-              <p className="text-sm font-bold font-mono text-text-primary">{totalPRCount}</p>
-              <p className="text-[9px] text-text-muted">Personal Records</p>
+              <h4 className="text-2xl font-black font-mono text-info leading-none">{totalPRCount}</h4>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Personal Records</p>
+              <span className="text-[9px] text-info font-bold font-mono">3 Active PRs</span>
             </div>
-          </div>
-          <div className="flex items-center gap-2 p-2 rounded-xl bg-surface-elevated border border-border-subtle">
-            <span className="text-base">⚡</span>
+          </motion.div>
+
+          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-success/40 shadow-sm flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center text-lg font-bold">⚡</div>
             <div>
-              <p className="text-sm font-bold font-mono text-text-primary">{streak}</p>
-              <p className="text-[9px] text-text-muted">Active Streak Days</p>
+              <h4 className="text-2xl font-black font-mono text-success leading-none">{streak} Days</h4>
+              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Active Streak</p>
+              <span className="text-[9px] text-text-muted font-mono">Best: 32 Days</span>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
 
-      {/* Sub Tabs Navigation Bar */}
+      {/* GLOWING NAVIGATION TABS BAR (SMOOTH UNDERLINE) */}
       <div className="flex items-center gap-2 border-b border-border-subtle pb-1 overflow-x-auto sidebar-scroll">
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'workouts', label: 'Workouts' },
           { id: 'progress', label: 'Progress' },
           { id: 'exercises', label: 'Exercises' },
-          { id: 'nutrition', label: 'Nutrition' },
           { id: 'body-stats', label: 'Body Stats' },
           { id: 'settings', label: 'Settings' },
         ].map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-xs font-semibold rounded-lg transition-all ${
+            className={`relative px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all duration-300 ${
               activeTab === tab.id
-                ? 'bg-purple text-white shadow-glow-primary'
+                ? 'bg-purple/20 text-white border border-purple/40 shadow-glow-primary'
                 : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
             }`}
           >
@@ -508,63 +494,78 @@ export default function GymDashboard() {
 
       {/* SUB TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          {/* Top Row Cards */}
-          <div className="grid grid-cols-12 gap-4">
-            {/* Today's Scheduled Workout Card (PROMINENT LARGE SVG & TARGET MUSCLES HIGHLIGHT) */}
-            <div className="col-span-5 card p-5 space-y-4 bg-gradient-to-br from-surface to-surface-elevated relative overflow-hidden flex flex-col justify-between border border-purple/30">
-              <div className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          {/* Top Row Cards (Unified Heights, Balanced Densified Grid) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            {/* CARD 1: TODAY'S SCHEDULED WORKOUT (PROMINENT FULL-HEIGHT SVG & COLOR CHIPS) */}
+            <div className="lg:col-span-5 card p-5 space-y-4 bg-gradient-to-br from-surface to-surface-elevated relative overflow-visible flex flex-col justify-between border border-purple/30">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                 <span className="text-xs font-bold text-text-primary tracking-wide">Today's Scheduled Workout</span>
-                <span className="badge-success text-[9px] px-2.5 py-0.5">Active Split</span>
+                <span className="badge-success text-[10px] px-2.5 py-0.5 font-bold">Push Day • Active Split</span>
               </div>
 
               {/* Title & Workout Header */}
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <div className="w-9 h-9 rounded-xl bg-purple/10 text-purple flex items-center justify-center font-bold">
-                      <FiActivity size={20} />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-extrabold text-text-primary">
-                        {weeklyPlan['Monday']?.title || 'Push Day'}
-                      </h3>
-                      <p className="text-xs font-medium text-purple">
-                        {weeklyPlan['Monday']?.focus || 'Chest • Shoulders • Triceps'}
-                      </p>
-                    </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center font-bold text-lg">
+                    🏋️
                   </div>
-                  <p className="text-[11px] text-text-muted pt-1">
-                    Target Muscles highlighted below based on today's training plan ({weeklyPlan['Monday']?.exercises?.length || 3} exercises scheduled).
-                  </p>
+                  <div>
+                    <h3 className="text-xl font-extrabold text-text-primary">
+                      {weeklyPlan[currentWeekday]?.title || 'Rest Day'}
+                    </h3>
+                    <p className="text-xs font-semibold text-purple">
+                      {weeklyPlan[currentWeekday]?.focus || 'Rest & Recovery'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sleek Colored Metric Chips */}
+                <div className="grid grid-cols-4 gap-2 pt-1">
+                  <div className="p-2 rounded-xl bg-purple/10 border border-purple/20 text-center">
+                    <p className="text-[9px] text-text-muted uppercase">Duration</p>
+                    <p className="text-xs font-bold font-mono text-purple">60 min</p>
+                  </div>
+                  <div className="p-2 rounded-xl bg-info/10 border border-info/20 text-center">
+                    <p className="text-[9px] text-text-muted uppercase">Exercises</p>
+                    <p className="text-xs font-bold font-mono text-info">{weeklyPlan[currentWeekday]?.exercises?.length || 0}</p>
+                  </div>
+                  <div className="p-2 rounded-xl bg-warning/10 border border-warning/20 text-center">
+                    <p className="text-[9px] text-text-muted uppercase">Calories</p>
+                    <p className="text-xs font-bold font-mono text-warning">550 kcal</p>
+                  </div>
+                  <div className="p-2 rounded-xl bg-success/10 border border-success/20 text-center">
+                    <p className="text-[9px] text-text-muted uppercase">Target Vol</p>
+                    <p className="text-xs font-bold font-mono text-success">7.5k kg</p>
+                  </div>
                 </div>
               </div>
 
-              {/* ENLARGED PROMINENT ANATOMICAL SVG (HIGHLIGHTS CURRENT DAY'S TARGET MUSCLES) */}
-              <div className="w-full h-64 flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-2 my-1">
-                <MuscleDiagram selectedExercise={todayExerciseFocus} className="w-full h-full" />
+              {/* ENLARGED PROMINENT ANATOMICAL SVG (320px Height, Zero Cropping) */}
+              <div className="w-full h-[320px] flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-2 my-1 overflow-visible">
+                <MuscleDiagram activeExercises={todayExercises} className="w-full h-full" />
               </div>
 
               {/* View Weekly Plan Action */}
               <div className="pt-1">
-                <button onClick={() => setActiveTab('workouts')} className="btn-outline text-xs w-full py-2.5 border-purple/50 text-purple hover:bg-purple/10 font-bold flex items-center justify-center gap-1.5">
-                  View Weekly Plan & Schedule <FiChevronRight size={14} />
+                <button onClick={() => setActiveTab('workouts')} className="btn-primary text-xs w-full py-3 bg-gradient-to-r from-purple to-purple-accent text-white font-bold flex items-center justify-center gap-1.5 shadow-glow-primary rounded-xl">
+                  View Weekly Plan & Schedule <FiChevronRight size={16} />
                 </button>
               </div>
             </div>
 
-            {/* IMPROVED WEEKLY ACTIVITY CARD */}
-            <div className="col-span-4 card p-5 space-y-4 flex flex-col justify-between bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+            {/* CARD 2: REDESIGNED COMPACT WEEKLY ACTIVITY CARD */}
+            <div className="lg:col-span-4 card p-5 space-y-4 flex flex-col justify-between bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                 <div>
-                  <h3 className="section-title text-sm">Weekly Activity</h3>
-                  <p className="text-[10px] text-text-muted">Training frequency for this week</p>
+                  <h3 className="section-title text-base font-bold">Weekly Activity</h3>
+                  <p className="text-[10px] text-text-muted">83% Weekly Plan Completion</p>
                 </div>
                 <span onClick={() => setActiveTab('workouts')} className="section-link text-xs">View Calendar</span>
               </div>
 
-              {/* Day Badges */}
-              <div className="flex justify-between items-center px-1 py-2">
+              {/* Weekday Row */}
+              <div className="flex justify-between items-center px-1">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
                   <div key={day} className="flex flex-col items-center gap-1.5">
                     <span className="text-[10px] text-text-muted font-mono uppercase">{day}</span>
@@ -577,132 +578,172 @@ export default function GymDashboard() {
                 ))}
               </div>
 
+              {/* Mini Completion Progress Bar */}
+              <div className="space-y-1.5 bg-surface-elevated/40 p-3 rounded-xl border border-border-subtle">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-text-muted font-medium">Weekly Target Progress</span>
+                  <span className="font-mono font-bold text-success">5 of 6 Sessions (83%)</span>
+                </div>
+                <div className="w-full h-2 rounded-full bg-background overflow-hidden">
+                  <div className="h-full rounded-full bg-gradient-to-r from-success to-purple w-[83%]" />
+                </div>
+              </div>
+
               {/* Stats Summary Bar */}
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border-subtle text-center">
-                <div className="p-2 rounded-xl bg-surface-elevated/40">
-                  <p className="text-[9px] text-text-muted">Workouts Done</p>
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border-subtle text-center">
+                <div className="p-2.5 rounded-xl bg-surface-elevated/40">
+                  <p className="text-[9px] text-text-muted">Workouts</p>
                   <p className="text-sm font-extrabold font-mono text-text-primary">5 / 6</p>
                 </div>
-                <div className="p-2 rounded-xl bg-surface-elevated/40">
+                <div className="p-2.5 rounded-xl bg-surface-elevated/40">
                   <p className="text-[9px] text-text-muted">Total Time</p>
                   <p className="text-sm font-extrabold font-mono text-purple">6.4 hrs</p>
                 </div>
-                <div className="p-2 rounded-xl bg-surface-elevated/40">
-                  <p className="text-[9px] text-text-muted">Weekly Calories</p>
-                  <p className="text-sm font-extrabold font-mono text-warning">2,850 kcal</p>
+                <div className="p-2.5 rounded-xl bg-surface-elevated/40">
+                  <p className="text-[9px] text-text-muted">Calories</p>
+                  <p className="text-sm font-extrabold font-mono text-warning">2.85k kcal</p>
                 </div>
               </div>
             </div>
 
-            {/* IMPROVED CURRENT STREAK CARD */}
-            <div className="col-span-3 card p-5 flex flex-col items-center justify-between text-center space-y-3 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
-              <div className="w-full border-b border-border-subtle pb-2">
-                <h3 className="section-title text-xs">Current Streak</h3>
-                <p className="text-[10px] text-text-muted">Consistency Counter</p>
+            {/* CARD 3: REDESIGNED ENLARGED CURRENT STREAK CARD */}
+            <div className="lg:col-span-3 card p-5 flex flex-col items-center justify-between text-center space-y-3 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
+              <div className="w-full border-b border-border-subtle pb-3">
+                <h3 className="section-title text-base font-bold">Current Streak</h3>
+                <p className="text-[10px] text-text-muted">Consistency & Streak Metrics</p>
               </div>
 
-              {/* Glowing Streak Dial */}
-              <div className="relative w-32 h-32 my-1 flex items-center justify-center">
-                <svg className="w-32 h-32 -rotate-90" viewBox="0 0 112 112">
-                  <circle cx="56" cy="56" r="44" stroke="#161A2E" strokeWidth="10" fill="none" />
-                  <circle cx="56" cy="56" r="44" stroke="#22C55E" strokeWidth="10" strokeDasharray="240 276" strokeLinecap="round" fill="none" className="filter drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+              {/* ENLARGED CIRCULAR PROGRESS RING (+35% Diameter) */}
+              <div className="relative w-40 h-40 my-1 flex items-center justify-center">
+                <svg className="w-40 h-40 -rotate-90" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="48" stroke="#161A2E" strokeWidth="12" fill="none" />
+                  <circle cx="60" cy="60" r="48" stroke="#22C55E" strokeWidth="12" strokeDasharray="260 300" strokeLinecap="round" fill="none" className="filter drop-shadow-[0_0_10px_rgba(34,197,94,0.85)]" />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-2xl font-extrabold font-mono text-text-primary">{streak}</span>
-                  <span className="text-[9px] font-bold text-success uppercase tracking-wider">Days Streak</span>
+                  <span className="text-3xl font-black font-mono text-text-primary">{streak}</span>
+                  <span className="text-[10px] font-extrabold text-success uppercase tracking-wider mt-0.5">Days Streak</span>
                 </div>
               </div>
 
-              <div className="w-full p-2 rounded-xl bg-surface-elevated/50 text-[10px] text-text-muted flex justify-between items-center">
+              {/* Best Streak Directly Below Ring */}
+              <div className="w-full p-2.5 rounded-xl bg-surface-elevated/50 border border-border-subtle text-xs text-text-muted flex justify-between items-center">
                 <span>Best Streak Record</span>
-                <strong className="text-text-primary font-mono text-xs">32 Days</strong>
+                <strong className="text-text-primary font-mono text-sm font-bold">32 Days</strong>
+              </div>
+
+              {/* Statistics Chips */}
+              <div className="grid grid-cols-2 gap-2 w-full text-[10px]">
+                <div className="p-2 rounded-xl bg-surface-elevated/40 text-center">
+                  <span className="text-text-muted">Longest Month</span>
+                  <p className="font-bold text-text-primary font-mono text-xs">30 Days</p>
+                </div>
+                <div className="p-2 rounded-xl bg-surface-elevated/40 text-center">
+                  <span className="text-text-muted">Consistency Rate</span>
+                  <p className="font-bold text-success font-mono text-xs">93%</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Middle Row (Workout History & PRs with CLEAN EMPTY STATES for Fresh Accounts) */}
-          <div className="grid grid-cols-12 gap-4">
+          {/* Middle Row (Workout History & PRs with Production-Level Empty/Active States) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* WORKOUT HISTORY CARD */}
-            <div className="col-span-4 card p-4 space-y-3">
+            <div className="lg:col-span-4 card p-5 space-y-4 border border-border-subtle">
               <div className="section-header">
-                <h3 className="section-title text-xs">Workout History</h3>
+                <h3 className="section-title text-base font-bold">Workout History</h3>
                 <span onClick={() => setActiveTab('workouts')} className="section-link text-xs">View All</span>
               </div>
 
               {workoutsList.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {workoutsList.slice(0, 5).map((w, i) => (
-                    <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated/40 text-xs border border-border-subtle/50">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-purple/10 text-purple flex items-center justify-center font-bold">
-                          <FiActivity size={14} />
+                    <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-surface-elevated/40 text-xs border border-border-subtle/50 hover:border-purple/30 transition-all">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-purple/10 text-purple flex items-center justify-center font-bold">
+                          🏋️
                         </div>
                         <div>
                           <p className="font-bold text-text-primary leading-tight">{w.title}</p>
                           <p className="text-[9px] text-text-muted">{w.time}</p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 font-mono text-[10px]">
+                      <div className="flex items-center gap-2 font-mono text-xs">
                         <span className="text-text-muted">{w.duration}</span>
                         <span className="font-bold text-text-primary">{w.volume}</span>
-                        <FiCheckCircle className="text-success" size={12} />
+                        <FiCheckCircle className="text-success" size={14} />
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                /* CLEAN EMPTY STATE UNLESS DATA IS ADDED */
-                <div className="text-center py-10 px-4 rounded-xl border border-dashed border-border-subtle bg-surface-elevated/20 text-xs text-text-muted space-y-2">
-                  <p className="font-bold text-text-primary text-xs">No Workouts Recorded Yet</p>
-                  <p className="text-[10px]">Your completed workout sessions will appear here once logged.</p>
+                /* PRODUCTION ONBOARDING EMPTY STATE */
+                <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-border-subtle bg-surface-elevated/20 text-xs text-text-muted space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-purple/10 text-purple flex items-center justify-center mx-auto text-xl font-bold">
+                    🏋️
+                  </div>
+                  <div>
+                    <p className="font-bold text-text-primary text-sm">No Workouts Recorded Yet</p>
+                    <p className="text-xs text-text-muted mt-1">Complete your first training session to start building your workout history.</p>
+                  </div>
+                  <button onClick={() => setActiveTab('workouts')} className="btn-primary text-xs px-4 py-2 bg-purple text-white font-bold rounded-xl shadow-glow-primary">
+                    + Log First Workout
+                  </button>
                 </div>
               )}
             </div>
 
-            {/* PROGRESS OVERVIEW CHART */}
-            <div className="col-span-5 card p-4 space-y-3">
+            {/* PROGRESS VOLUME CHART */}
+            <div className="lg:col-span-5 card p-5 space-y-4 border border-border-subtle">
               <div className="section-header">
-                <h3 className="section-title text-xs">Progress Volume Overview</h3>
-                <span className="text-[10px] text-text-muted">Volume (kg) ▾</span>
+                <h3 className="section-title text-base font-bold">Progress Volume Trend</h3>
+                <span className="text-xs text-text-muted">Volume (kg) ▾</span>
               </div>
-              <div className="h-36 flex items-end justify-between gap-1.5 px-1 pt-4 pb-2 border-b border-border-subtle relative">
+              <div className="h-44 flex items-end justify-between gap-2 px-1 pt-4 pb-2 border-b border-border-subtle relative">
                 {[40, 75, 50, 65, 55, 85, 45, 60, 90, 70, 80].map((h, i) => (
                   <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-                    <div className={`w-full rounded-t-md ${i === 5 ? 'bg-purple shadow-glow-primary' : 'bg-primary/40'}`} style={{ height: `${workoutsList.length > 0 ? h : 10}%` }} />
+                    <div className={`w-full rounded-t-md transition-all ${i === 5 ? 'bg-gradient-to-t from-purple to-purple-accent shadow-glow-primary' : 'bg-primary/40'}`} style={{ height: `${workoutsList.length > 0 ? h : 15}%` }} />
                   </div>
                 ))}
               </div>
-              <div className="flex justify-between text-[8px] text-text-muted font-mono">
+              <div className="flex justify-between text-[10px] text-text-muted font-mono">
                 <span>9 May</span><span>15 May</span><span>23 May</span><span>30 May</span><span>6 Jun</span><span>13 Jun</span>
               </div>
             </div>
 
             {/* PERSONAL RECORDS CARD */}
-            <div className="col-span-3 card p-4 space-y-3">
+            <div className="lg:col-span-3 card p-5 space-y-4 border border-border-subtle">
               <div className="section-header">
-                <h3 className="section-title text-xs">Personal Records</h3>
+                <h3 className="section-title text-base font-bold">Personal Records</h3>
                 <span onClick={() => setActiveTab('progress')} className="section-link text-xs">View All</span>
               </div>
 
               {Object.keys(personalRecords).length > 0 ? (
-                <div className="space-y-2 text-xs">
+                <div className="space-y-2.5 text-xs">
                   {Object.entries(personalRecords).map(([exName, record]) => (
-                    <div key={exName} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated/40 border border-border-subtle/50">
-                      <span className="font-bold text-text-primary flex items-center gap-1.5 text-[11px]">
-                        <span>🏋️</span> {exName}
+                    <div key={exName} className="flex items-center justify-between p-3 rounded-xl bg-surface-elevated/40 border border-border-subtle/50 hover:border-purple/30 transition-all">
+                      <span className="font-bold text-text-primary flex items-center gap-1.5 text-xs">
+                        <span>🏆</span> {exName}
                       </span>
                       <div className="flex items-center gap-1.5 font-mono">
                         <span className="font-bold text-purple">{record.weight} {record.unit || 'kg'}</span>
-                        <span className="text-[8px] text-text-muted">{record.date}</span>
+                        <span className="text-[9px] text-text-muted">{record.date}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                /* CLEAN EMPTY STATE UNLESS DATA IS ADDED */
-                <div className="text-center py-10 px-4 rounded-xl border border-dashed border-border-subtle bg-surface-elevated/20 text-xs text-text-muted space-y-2">
-                  <p className="font-bold text-text-primary text-xs">No Personal Records Yet</p>
-                  <p className="text-[10px]">Personal records logged during workouts will be saved here automatically.</p>
+                /* PRODUCTION ONBOARDING EMPTY STATE */
+                <div className="text-center py-10 px-4 rounded-2xl border border-dashed border-border-subtle bg-surface-elevated/20 text-xs text-text-muted space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-info/10 text-info flex items-center justify-center mx-auto text-xl font-bold">
+                    🏆
+                  </div>
+                  <div>
+                    <p className="font-bold text-text-primary text-sm">No Personal Records Yet</p>
+                    <p className="text-xs text-text-muted mt-1">Set personal bests during workouts to automatically log your records here.</p>
+                  </div>
+                  <button onClick={() => setActiveTab('exercises')} className="btn-outline text-xs px-4 py-2 border-purple text-purple font-bold rounded-xl">
+                    View Exercises
+                  </button>
                 </div>
               )}
             </div>
@@ -712,40 +753,44 @@ export default function GymDashboard() {
 
       {/* SUB TAB 2: WORKOUTS */}
       {activeTab === 'workouts' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-text-primary">Workouts & Weekly Schedule</h2>
+              <h2 className="text-xl font-bold text-text-primary">Workouts & Weekly Schedule</h2>
               <p className="text-xs text-text-muted">Manage your saved exercises and assign them to your weekly routine.</p>
             </div>
             <div className="flex items-center gap-3">
-              <button onClick={() => setShowWeeklyPlanModal(true)} className="btn-outline text-xs px-3 py-2 border-purple text-purple hover:bg-purple/10 flex items-center gap-1.5 font-bold">
+              <button onClick={() => setShowWeeklyPlanModal(true)} className="btn-outline text-xs px-4 py-2.5 border-purple text-purple hover:bg-purple/10 flex items-center gap-1.5 font-bold rounded-xl">
                 <FiList size={16} /> Edit Weekly Plan
               </button>
-              <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2 bg-purple hover:bg-purple/80 flex items-center gap-1.5 shadow-glow-primary">
+              <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2.5 bg-gradient-to-r from-purple to-purple-accent text-white font-bold flex items-center gap-1.5 shadow-glow-primary rounded-xl">
                 <FiPlus size={16} /> Create New Exercise
               </button>
             </div>
           </div>
 
-          {/* WEEKLY PLANNER SELECTOR BAR */}
-          <div className="card p-3 space-y-3 bg-gradient-to-br from-surface to-surface-elevated">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+          <div className="card p-4 space-y-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
               <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
                 <FiCalendar className="text-purple" /> Weekly Plan Split
               </h3>
               <span className="text-[10px] text-text-muted">Select day to view or edit exercises</span>
             </div>
 
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-2.5">
               {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                 <button
                   key={day}
                   onClick={() => setSelectedPlanDay(day)}
-                  className={`p-2 rounded-xl text-center transition-all border ${
-                    selectedPlanDay === day ? 'bg-purple text-white border-purple font-bold shadow-glow-primary' : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-primary'
+                  className={`relative p-3 rounded-2xl text-center transition-all border ${
+                    selectedPlanDay === day 
+                      ? 'bg-gradient-to-r from-purple to-purple-accent text-white border-purple font-bold shadow-glow-primary' 
+                      : day === currentWeekday 
+                        ? 'bg-surface-elevated border-success/60 text-text-primary'
+                        : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-primary'
                   }`}
                 >
+                  {day === currentWeekday && <div className="absolute -top-1 -right-1 w-3 h-3 bg-success rounded-full border-2 border-surface animate-pulse" title="Today" />}
                   <p className="text-[9px] uppercase tracking-wider">{day.slice(0, 3)}</p>
                   <p className="text-xs font-extrabold truncate mt-0.5">{weeklyPlan[day]?.title || 'Rest Day'}</p>
                 </button>
@@ -753,43 +798,93 @@ export default function GymDashboard() {
             </div>
           </div>
 
-          {/* TODAY'S CHECKBOX EXERCISE LOGGING CARD */}
-          <div className="card p-5 space-y-4 border border-purple/30 bg-surface-elevated/20">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+          <div className="card p-6 space-y-4 border border-purple/30 bg-surface-elevated/20">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-4">
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-purple">{selectedPlanDay}'s Routine</span>
-                <h3 className="text-base font-bold text-text-primary">{weeklyPlan[selectedPlanDay]?.title}</h3>
+                <div className="flex items-center gap-2">
+                  {editingDayTitle ? (
+                    <input 
+                      type="text" 
+                      value={editedTitle} 
+                      onChange={(e) => setEditedTitle(e.target.value)} 
+                      onBlur={() => {
+                        setWeeklyPlan(prev => ({...prev, [selectedPlanDay]: {...prev[selectedPlanDay], title: editedTitle}}));
+                        setEditingDayTitle(false);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          setWeeklyPlan(prev => ({...prev, [selectedPlanDay]: {...prev[selectedPlanDay], title: editedTitle}}));
+                          setEditingDayTitle(false);
+                        }
+                      }}
+                      autoFocus
+                      className="bg-background border border-purple text-text-primary text-lg font-extrabold rounded px-2 py-1 outline-none w-48" 
+                    />
+                  ) : (
+                    <>
+                      <h3 className="text-lg font-extrabold text-text-primary">{weeklyPlan[selectedPlanDay]?.title || 'Rest Day'}</h3>
+                      <button onClick={() => { setEditedTitle(weeklyPlan[selectedPlanDay]?.title || ''); setEditingDayTitle(true); }} className="text-text-muted hover:text-purple transition-colors">
+                        <FiEdit3 size={14} />
+                      </button>
+                    </>
+                  )}
+                </div>
                 <p className="text-xs text-text-muted">{weeklyPlan[selectedPlanDay]?.focus}</p>
               </div>
 
-              <button onClick={() => setShowWeeklyPlanModal(true)} className="btn-outline text-xs px-3 py-1.5 border-purple/50 text-purple flex items-center gap-1.5">
+              <button onClick={() => setShowWeeklyPlanModal(true)} className="btn-outline text-xs px-3.5 py-2 border-purple/50 text-purple flex items-center gap-1.5 font-bold rounded-xl">
                 <FiPlus size={14} /> Add Saved Exercise
               </button>
             </div>
 
             {weeklyPlan[selectedPlanDay]?.exercises?.length > 0 ? (
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {weeklyPlan[selectedPlanDay].exercises.map((ex) => (
-                  <div key={ex.id} className={`flex items-center justify-between p-3 rounded-xl border transition-all ${
+                  <div key={ex.id} className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
                     ex.completed ? 'bg-success/10 border-success/30' : 'bg-surface-elevated border-border-subtle hover:border-purple/40'
                   }`}>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3.5">
                       <button
-                        onClick={() => handleToggleExerciseCheckbox(selectedPlanDay, ex.id, ex.targetWeight)}
-                        className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                        onClick={() => handleToggleExerciseCheckbox(selectedPlanDay, ex.id)}
+                        className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all shrink-0 ${
                           ex.completed ? 'bg-success text-white shadow-glow-success' : 'border-2 border-border-subtle bg-surface hover:border-purple'
                         }`}
                       >
-                        {ex.completed && <FiCheck size={14} className="stroke-[3]" />}
+                        {ex.completed && <FiCheck size={16} className="stroke-[3]" />}
                       </button>
 
-                      <div>
-                        <p className={`text-xs font-bold ${ex.completed ? 'line-through text-text-muted' : 'text-text-primary'}`}>
+                      <div className="flex-1 min-w-0">
+                        <p className={`text-sm font-bold truncate ${ex.completed ? 'line-through text-text-muted' : 'text-text-primary'}`}>
                           {ex.name}
                         </p>
-                        <p className="text-[10px] text-text-muted font-mono">
-                          {ex.sets} Sets × {ex.reps} Reps • Target: <strong className="text-purple">{ex.targetWeight} kg</strong>
-                        </p>
+                        <div className="text-xs text-text-muted font-mono flex items-center gap-1.5 mt-0.5 flex-wrap">
+                          <span>{ex.sets} Sets × {ex.reps} Reps</span>
+                          <span className="text-border-subtle">•</span>
+                          <span>Target: <strong className="text-purple">{ex.targetWeight} kg</strong></span>
+                          <span className="text-border-subtle hidden sm:inline">•</span>
+                          <div className="flex items-center gap-1.5 bg-background border border-border-subtle rounded px-1.5 py-0.5">
+                            <span className="text-[9px] uppercase tracking-wider font-bold">Lifted:</span>
+                            <input 
+                              type="number" 
+                              className="bg-transparent text-text-primary w-10 text-center outline-none font-bold placeholder-text-muted disabled:opacity-50"
+                              placeholder={ex.targetWeight}
+                              value={ex.loggedWeight || ''}
+                              disabled={ex.completed}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setWeeklyPlan(prev => ({
+                                  ...prev,
+                                  [selectedPlanDay]: {
+                                    ...prev[selectedPlanDay],
+                                    exercises: prev[selectedPlanDay].exercises.map(e => e.id === ex.id ? { ...e, loggedWeight: val } : e)
+                                  }
+                                }));
+                              }}
+                            />
+                            <span className="text-[9px]">kg</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
@@ -803,8 +898,8 @@ export default function GymDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-xs text-text-muted space-y-2">
-                <p className="font-bold text-text-primary">No Exercises Assigned Yet</p>
+              <div className="text-center py-10 text-xs text-text-muted space-y-2">
+                <p className="font-bold text-text-primary text-sm">No Exercises Assigned Yet</p>
                 <p>Click 'Add Saved Exercise' to assign exercises from your saved exercise library to {selectedPlanDay}.</p>
               </div>
             )}
@@ -812,34 +907,35 @@ export default function GymDashboard() {
         </motion.div>
       )}
 
+
       {/* SUB TAB 4: EXERCISES */}
       {activeTab === 'exercises' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-bold text-text-primary">Exercise Library Management (CRUD)</h2>
+              <h2 className="text-xl font-bold text-text-primary">Exercise Library Management (CRUD)</h2>
               <p className="text-xs text-text-muted">Create, edit, and manage your personal exercise library with custom video links and images.</p>
             </div>
-            <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2 bg-purple hover:bg-purple/80 flex items-center gap-1.5 shadow-glow-primary">
+            <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2.5 bg-gradient-to-r from-purple to-purple-accent text-white font-bold flex items-center gap-1.5 shadow-glow-primary rounded-xl">
               <FiPlus size={16} /> + Create New Exercise
             </button>
           </div>
 
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
-              <FiSearch className="absolute left-3 top-3 text-text-muted" size={16} />
+              <FiSearch className="absolute left-3.5 top-3 text-text-muted" size={16} />
               <input
                 type="text"
                 placeholder="Search exercise library..."
                 value={searchExercise}
                 onChange={e => setSearchExercise(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary focus:outline-none focus:border-purple"
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-surface-elevated border border-border-subtle text-xs text-text-primary focus:outline-none focus:border-purple"
               />
             </div>
             <select
               value={selectedMuscleCategory}
               onChange={e => setSelectedMuscleCategory(e.target.value)}
-              className="px-4 py-2 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary"
+              className="px-4 py-2.5 rounded-2xl bg-surface-elevated border border-border-subtle text-xs text-text-primary"
             >
               <option value="all">All Muscle Groups</option>
               <option value="chest">Chest</option>
@@ -851,26 +947,26 @@ export default function GymDashboard() {
             </select>
           </div>
 
-          <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-3 card p-2 space-y-1">
+          <div className="grid grid-cols-12 gap-5">
+            <div className="col-span-3 card p-3 space-y-1.5">
               {exerciseCategories.map(cat => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedMuscleCategory(cat.id)}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-xl text-xs font-medium transition-all ${
-                    selectedMuscleCategory === cat.id ? 'bg-purple text-white font-bold shadow-glow-primary' : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
+                  className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all ${
+                    selectedMuscleCategory === cat.id ? 'bg-gradient-to-r from-purple to-purple-accent text-white shadow-glow-primary' : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
                   }`}
                 >
                   <span>{cat.label}</span>
-                  <span className="font-mono text-[10px]">{cat.count}</span>
+                  <span className="font-mono text-xs">{cat.count}</span>
                 </button>
               ))}
             </div>
 
-            <div className="col-span-5 card p-4 space-y-3">
+            <div className="col-span-5 card p-5 space-y-3">
               <table className="w-full text-left text-xs">
                 <thead>
-                  <tr className="border-b border-border-subtle text-[10px] text-text-muted uppercase">
+                  <tr className="border-b border-border-subtle text-[10px] text-text-muted uppercase tracking-wider">
                     <th className="pb-3">EXERCISE</th>
                     <th className="pb-3">GROUP</th>
                     <th className="pb-3">DIFFICULTY</th>
@@ -886,19 +982,19 @@ export default function GymDashboard() {
                         key={ex.id || ex.name}
                         onClick={() => setSelectedExercise(ex.name)}
                         className={`cursor-pointer hover:bg-surface-elevated/40 transition-colors ${
-                          selectedExercise === ex.name ? 'bg-purple/10 border-l-2 border-purple font-bold' : ''
+                          selectedExercise === ex.name ? 'bg-purple/10 border-l-4 border-purple font-bold' : ''
                         }`}
                       >
                         <td className="py-3 pr-2 flex items-center gap-2">
                           <span className="text-base">🏋️</span>
-                          <span className="text-text-primary">{ex.name}</span>
+                          <span className="text-text-primary font-bold">{ex.name}</span>
                         </td>
                         <td className="py-3 px-2 text-text-muted">{ex.group}</td>
                         <td className="py-3 px-2">
-                          <span className="badge-warning text-[9px]">{ex.difficulty}</span>
+                          <span className="badge-warning text-[9px] px-2 py-0.5">{ex.difficulty}</span>
                         </td>
                         <td className="py-3 pl-2 text-right">
-                          <button onClick={(e) => { e.stopPropagation(); openEditExerciseModal(ex); }} className="text-purple hover:underline p-1 text-[10px] font-bold">
+                          <button onClick={(e) => { e.stopPropagation(); openEditExerciseModal(ex); }} className="text-purple hover:underline p-1 text-xs font-bold">
                             Edit
                           </button>
                         </td>
@@ -908,21 +1004,21 @@ export default function GymDashboard() {
               </table>
             </div>
 
-            <div className="col-span-4 card p-4 space-y-4">
+            <div className="col-span-4 card p-5 space-y-4">
               <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-                <h3 className="text-sm font-bold text-text-primary">{activeExerciseObj.name}</h3>
-                <button onClick={() => openEditExerciseModal(activeExerciseObj)} className="btn-outline text-[10px] py-1 px-2 flex items-center gap-1">
+                <h3 className="text-base font-bold text-text-primary">{activeExerciseObj.name}</h3>
+                <button onClick={() => openEditExerciseModal(activeExerciseObj)} className="btn-outline text-xs py-1.5 px-3 flex items-center gap-1 font-bold rounded-xl">
                   <FiEdit3 /> Edit Exercise
                 </button>
               </div>
 
-              <div className="relative w-full h-40 rounded-xl overflow-hidden bg-slate-900 border border-border-subtle flex items-center justify-center group">
+              <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-slate-900 border border-border-subtle flex items-center justify-center group">
                 {activeExerciseObj.image_url ? (
                   <img src={activeExerciseObj.image_url} alt={activeExerciseObj.name} className="w-full h-full object-cover" />
                 ) : (
                   <div className="text-center text-text-muted space-y-1">
-                    <FiImage size={32} className="mx-auto text-purple/60" />
-                    <p className="text-[10px]">No Exercise Image URL</p>
+                    <FiImage size={36} className="mx-auto text-purple/60" />
+                    <p className="text-xs">No Exercise Image URL</p>
                   </div>
                 )}
 
@@ -931,17 +1027,17 @@ export default function GymDashboard() {
                     href={activeExerciseObj.video_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="absolute bottom-2 right-2 px-3 py-1 rounded-lg bg-purple/90 text-white text-[10px] font-bold flex items-center gap-1 shadow-glow-primary hover:bg-purple"
+                    className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-xl bg-purple/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow-primary hover:bg-purple"
                   >
-                    <FiVideo size={12} /> Watch Video <FiExternalLink size={10} />
+                    <FiVideo size={14} /> Watch Video <FiExternalLink size={12} />
                   </a>
                 )}
               </div>
 
-              <div className="space-y-1 text-xs">
-                <p className="text-text-muted">Primary Target: <strong className="text-purple">{activeExerciseObj.primary}</strong></p>
-                <p className="text-text-muted">Equipment: <strong className="text-text-primary">{activeExerciseObj.equipment}</strong></p>
-                <p className="text-text-muted">Difficulty: <strong className="text-text-primary">{activeExerciseObj.difficulty}</strong></p>
+              <div className="space-y-1.5 text-xs">
+                <p className="text-text-muted">Primary Target: <strong className="text-purple font-bold">{activeExerciseObj.primary}</strong></p>
+                <p className="text-text-muted">Equipment: <strong className="text-text-primary font-bold">{activeExerciseObj.equipment}</strong></p>
+                <p className="text-text-muted">Difficulty: <strong className="text-text-primary font-bold">{activeExerciseObj.difficulty}</strong></p>
               </div>
             </div>
           </div>
@@ -950,55 +1046,114 @@ export default function GymDashboard() {
 
       {/* SUB TAB 3: PROGRESS */}
       {activeTab === 'progress' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-text-primary">Progress Overview</h2>
-              <p className="text-xs text-text-muted">Track your fitness journey and personal records.</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-5 gap-3">
-            <div className="card p-3 space-y-1"><span className="text-xs font-bold text-text-muted">Total Workouts</span><h3 className="text-2xl font-bold font-mono text-text-primary">{isDemoAccount ? 128 : workoutsList.length}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-xs font-bold text-text-muted">Total Volume</span><h3 className="text-2xl font-bold font-mono text-text-primary">{totalVolumeLiftedStr}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-xs font-bold text-text-muted">Calories Burned</span><h3 className="text-2xl font-bold font-mono text-text-primary">{isDemoAccount ? '18,450 kcal' : `${workoutsList.length * 450} kcal`}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-xs font-bold text-text-muted">Total Duration</span><h3 className="text-2xl font-bold font-mono text-text-primary">{isDemoAccount ? '68h 35m' : `${(workoutsList.length * 1.1).toFixed(1)}h`}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-xs font-bold text-text-muted">Avg. / Week</span><h3 className="text-2xl font-bold font-mono text-text-primary">{isDemoAccount ? '5.1' : (workoutsList.length > 0 ? '3.0' : '0')}</h3></div>
-          </div>
-        </motion.div>
+        <GymProgressTab workoutsList={workoutsList} />
       )}
 
       {/* SUB TAB 6: BODY STATS */}
       {activeTab === 'body-stats' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-text-primary">Body Status</h2>
-              <p className="text-xs text-text-muted">Track your body composition and measurements.</p>
-            </div>
-          </div>
-        </motion.div>
+        <GymBodyStatsTab />
       )}
 
-      {/* SUB TAB 5: NUTRITION */}
-      {activeTab === 'nutrition' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-text-primary">Nutrition Tracker</h2>
-              <p className="text-xs text-text-muted">Track your daily calories and macros.</p>
-            </div>
-          </div>
-        </motion.div>
-      )}
+
 
       {/* SUB TAB 7: SETTINGS */}
       {activeTab === 'settings' && (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
-          <div className="flex items-center justify-between">
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+          <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-base font-bold text-text-primary">Settings</h2>
+              <h2 className="text-xl font-bold text-text-primary">Settings</h2>
               <p className="text-xs text-text-muted">Manage your preferences and profile.</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+            <div className="md:col-span-8 space-y-6">
+              
+              {/* Profile Card */}
+              <div className="card p-6 border border-border-subtle bg-surface">
+                <h3 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><FiUser className="text-purple"/> User Profile</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-text-muted">Height</label>
+                    <input 
+                      type="text"
+                      className="w-full bg-surface-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:border-purple outline-none"
+                      value={userProfile.height}
+                      onChange={(e) => setUserProfile({...userProfile, height: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-text-muted">Target Weight</label>
+                    <input 
+                      type="text"
+                      className="w-full bg-surface-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:border-purple outline-none"
+                      value={userProfile.targetWeight}
+                      onChange={(e) => setUserProfile({...userProfile, targetWeight: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-text-muted">Fitness Goal</label>
+                    <select 
+                      className="w-full bg-surface-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:border-purple outline-none"
+                      value={userProfile.primaryGoal}
+                      onChange={(e) => setUserProfile({...userProfile, primaryGoal: e.target.value})}
+                    >
+                      <option>Build Muscle</option>
+                      <option>Lose Weight</option>
+                      <option>Maintain Weight</option>
+                      <option>Endurance</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferences Card */}
+              <div className="card p-6 border border-border-subtle bg-surface">
+                <h3 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><FiSliders className="text-purple"/> Preferences</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold text-text-muted">Units System</label>
+                    <select 
+                      className="w-full bg-surface-elevated border border-border-subtle rounded-lg px-3 py-2 text-sm text-text-primary focus:border-purple outline-none"
+                      value={userProfile.preferredUnits}
+                      onChange={(e) => setUserProfile({...userProfile, preferredUnits: e.target.value})}
+                    >
+                      <option>Metric (kg, cm)</option>
+                      <option>Imperial (lbs, in)</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex justify-end gap-3 pt-2">
+                <button 
+                  onClick={() => localStorage.removeItem(profileStorageKey)}
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-danger/10 text-danger border border-danger/30 hover:bg-danger hover:text-white transition-colors"
+                >
+                  Reset Profile
+                </button>
+              </div>
+            </div>
+            
+            <div className="md:col-span-4 space-y-6">
+              <div className="card p-6 border border-border-subtle bg-surface">
+                <h3 className="text-sm font-bold text-text-primary mb-4 flex items-center gap-2"><FiTrash2 className="text-danger"/> Data Management</h3>
+                <p className="text-xs text-text-muted mb-4">You can clear all your gym data if you want to start fresh.</p>
+                <button 
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to delete all Gym data? This cannot be undone.")) {
+                      localStorage.removeItem(workoutStorageKey);
+                      localStorage.removeItem('lifeos_user_body_stats');
+                      localStorage.removeItem(prStorageKey);
+                      window.location.reload();
+                    }
+                  }}
+                  className="w-full px-4 py-2 bg-danger/10 text-danger border border-danger/30 rounded-lg text-xs font-bold hover:bg-danger hover:text-white transition-colors text-center block"
+                >
+                  Clear All Gym Data
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -1009,33 +1164,33 @@ export default function GymDashboard() {
         {showExerciseModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-lg w-full space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-text-primary">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+                <h3 className="text-base font-extrabold text-text-primary">
                   {editingExerciseId ? 'Edit Exercise' : 'Create New Exercise'}
                 </h3>
                 <button onClick={() => setShowExerciseModal(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
               </div>
 
-              <form onSubmit={handleSaveExercise} className="space-y-3 text-xs">
+              <form onSubmit={handleSaveExercise} className="space-y-3.5 text-xs">
                 <div>
-                  <label className="block text-text-muted mb-1">Exercise Name *</label>
+                  <label className="block text-text-muted mb-1 font-bold">Exercise Name *</label>
                   <input
                     type="text"
                     required
                     value={exerciseForm.name}
                     onChange={e => setExerciseForm({ ...exerciseForm, name: e.target.value })}
                     placeholder="e.g. Incline Dumbbell Bench Press"
-                    className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle focus:border-purple focus:outline-none"
+                    className="w-full p-3 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle focus:border-purple focus:outline-none"
                   />
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="block text-text-muted mb-1">Muscle Group</label>
+                    <label className="block text-text-muted mb-1 font-bold">Muscle Group</label>
                     <select
                       value={exerciseForm.group}
                       onChange={e => setExerciseForm({ ...exerciseForm, group: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     >
                       <option value="Chest">Chest</option>
                       <option value="Back">Back</option>
@@ -1048,11 +1203,11 @@ export default function GymDashboard() {
                   </div>
 
                   <div>
-                    <label className="block text-text-muted mb-1">Equipment</label>
+                    <label className="block text-text-muted mb-1 font-bold">Equipment</label>
                     <select
                       value={exerciseForm.equipment}
                       onChange={e => setExerciseForm({ ...exerciseForm, equipment: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     >
                       <option value="Barbell">Barbell</option>
                       <option value="Dumbbell">Dumbbell</option>
@@ -1064,11 +1219,11 @@ export default function GymDashboard() {
                   </div>
 
                   <div>
-                    <label className="block text-text-muted mb-1">Difficulty</label>
+                    <label className="block text-text-muted mb-1 font-bold">Difficulty</label>
                     <select
                       value={exerciseForm.difficulty}
                       onChange={e => setExerciseForm({ ...exerciseForm, difficulty: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     >
                       <option value="Beginner">Beginner</option>
                       <option value="Intermediate">Intermediate</option>
@@ -1077,9 +1232,64 @@ export default function GymDashboard() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-2.5">
                   <div>
-                    <label className="block text-text-muted mb-1 flex items-center gap-1">
+                    <label className="block text-text-muted mb-1 font-bold">Primary Target (Heatmap)</label>
+                    <select
+                      value={exerciseForm.primary}
+                      onChange={e => setExerciseForm({ ...exerciseForm, primary: e.target.value })}
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
+                    >
+                      <option value="chest">Chest</option>
+                      <option value="deltoids_front">Front Deltoids</option>
+                      <option value="deltoids_side">Side Deltoids</option>
+                      <option value="deltoids_rear">Rear Deltoids</option>
+                      <option value="biceps">Biceps</option>
+                      <option value="triceps">Triceps</option>
+                      <option value="forearms">Forearms</option>
+                      <option value="core">Core / Abs</option>
+                      <option value="obliques">Obliques</option>
+                      <option value="quads">Quads</option>
+                      <option value="calves">Calves</option>
+                      <option value="traps">Traps</option>
+                      <option value="lats">Lats</option>
+                      <option value="lower_back">Lower Back</option>
+                      <option value="glutes">Glutes</option>
+                      <option value="hamstrings">Hamstrings</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-text-muted mb-1 font-bold">Secondary Target (Optional)</label>
+                    <select
+                      value={exerciseForm.secondary}
+                      onChange={e => setExerciseForm({ ...exerciseForm, secondary: e.target.value })}
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
+                    >
+                      <option value="">None</option>
+                      <option value="chest">Chest</option>
+                      <option value="deltoids_front">Front Deltoids</option>
+                      <option value="deltoids_side">Side Deltoids</option>
+                      <option value="deltoids_rear">Rear Deltoids</option>
+                      <option value="biceps">Biceps</option>
+                      <option value="triceps">Triceps</option>
+                      <option value="forearms">Forearms</option>
+                      <option value="core">Core / Abs</option>
+                      <option value="obliques">Obliques</option>
+                      <option value="quads">Quads</option>
+                      <option value="calves">Calves</option>
+                      <option value="traps">Traps</option>
+                      <option value="lats">Lats</option>
+                      <option value="lower_back">Lower Back</option>
+                      <option value="glutes">Glutes</option>
+                      <option value="hamstrings">Hamstrings</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div>
+                    <label className="block text-text-muted mb-1 flex items-center gap-1 font-bold">
                       <FiImage size={12} /> Image URL / Link
                     </label>
                     <input
@@ -1087,12 +1297,12 @@ export default function GymDashboard() {
                       value={exerciseForm.image_url}
                       onChange={e => setExerciseForm({ ...exerciseForm, image_url: e.target.value })}
                       placeholder="https://images.unsplash.com/..."
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-text-muted mb-1 flex items-center gap-1">
+                    <label className="block text-text-muted mb-1 flex items-center gap-1 font-bold">
                       <FiVideo size={12} /> Video URL / Link
                     </label>
                     <input
@@ -1100,12 +1310,12 @@ export default function GymDashboard() {
                       value={exerciseForm.video_url}
                       onChange={e => setExerciseForm({ ...exerciseForm, video_url: e.target.value })}
                       placeholder="https://youtube.com/watch?v=..."
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     />
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-2.5 rounded-xl bg-purple hover:bg-purple/80 text-white font-bold transition-all shadow-glow-primary">
+                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple to-purple-accent hover:bg-purple/80 text-white font-extrabold transition-all shadow-glow-primary">
                   {editingExerciseId ? 'Save Changes' : 'Create Exercise'}
                 </button>
               </form>
@@ -1119,19 +1329,19 @@ export default function GymDashboard() {
         {showWeeklyPlanModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-lg w-full space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-bold text-text-primary">Add Exercise to {selectedPlanDay}'s Plan</h3>
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+                <h3 className="text-base font-extrabold text-text-primary">Add Exercise to {selectedPlanDay}'s Plan</h3>
                 <button onClick={() => setShowWeeklyPlanModal(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
               </div>
 
-              <form onSubmit={handleAddExerciseToPlan} className="space-y-3 text-xs">
+              <form onSubmit={handleAddExerciseToPlan} className="space-y-3.5 text-xs">
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <label className="block text-text-muted">Select Saved Exercise *</label>
+                    <label className="block text-text-muted font-bold">Select Saved Exercise *</label>
                     <button
                       type="button"
                       onClick={() => { setShowWeeklyPlanModal(false); openCreateExerciseModal(); }}
-                      className="text-[10px] font-bold text-purple hover:underline flex items-center gap-1"
+                      className="text-[10px] font-extrabold text-purple hover:underline flex items-center gap-1"
                     >
                       <FiPlus size={12} /> Create New Exercise First
                     </button>
@@ -1139,7 +1349,7 @@ export default function GymDashboard() {
                   <select
                     value={newPlanExercise.name}
                     onChange={e => setNewPlanExercise({ ...newPlanExercise, name: e.target.value })}
-                    className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                    className="w-full p-3 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                   >
                     {exercisesList.map(e => (
                       <option key={e.id || e.name} value={e.name}>
@@ -1149,40 +1359,40 @@ export default function GymDashboard() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   <div>
-                    <label className="block text-text-muted mb-1">Target Sets</label>
+                    <label className="block text-text-muted mb-1 font-bold">Target Sets</label>
                     <input
                       type="number"
                       required
                       value={newPlanExercise.sets}
                       onChange={e => setNewPlanExercise({ ...newPlanExercise, sets: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     />
                   </div>
                   <div>
-                    <label className="block text-text-muted mb-1">Target Reps</label>
+                    <label className="block text-text-muted mb-1 font-bold">Target Reps</label>
                     <input
                       type="number"
                       required
                       value={newPlanExercise.reps}
                       onChange={e => setNewPlanExercise({ ...newPlanExercise, reps: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     />
                   </div>
                   <div>
-                    <label className="block text-text-muted mb-1">Target Weight (kg)</label>
+                    <label className="block text-text-muted mb-1 font-bold">Target Weight (kg)</label>
                     <input
                       type="text"
                       required
                       value={newPlanExercise.targetWeight}
                       onChange={e => setNewPlanExercise({ ...newPlanExercise, targetWeight: e.target.value })}
-                      className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
+                      className="w-full p-2.5 rounded-2xl bg-surface-elevated text-text-primary border border-border-subtle"
                     />
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-2.5 rounded-xl bg-purple text-white font-bold shadow-glow-primary">
+                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple to-purple-accent text-white font-extrabold shadow-glow-primary">
                   + Add Saved Exercise to {selectedPlanDay}'s Plan
                 </button>
               </form>

@@ -1,0 +1,527 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  FiCalendar, FiChevronDown, FiActivity, FiDroplet, FiHeart, FiCamera, FiPlus,
+  FiInfo, FiTrendingUp, FiTrendingDown, FiShield, FiMoon, FiEdit2, FiCheck, FiX, FiUploadCloud
+} from 'react-icons/fi';
+import MuscleDiagram from './MuscleDiagram';
+
+export default function GymBodyStatsTab() {
+  const [bodyStats, setBodyStats] = useState(() => {
+    const saved = localStorage.getItem('lifeos_user_body_stats');
+    if (saved) return JSON.parse(saved);
+    return {
+      weight: 0,
+      bodyFat: 0,
+      muscleMass: 0,
+      bmi: 0,
+      bodyWater: 0,
+      visceralFat: 0,
+      measurements: {
+        Neck: 0, Chest: 0, Waist: 0, Hips: 0, 'Right Arm': 0, 'Left Arm': 0, 'Right Thigh': 0, 'Left Thigh': 0
+      },
+      health: {
+        'Resting Heart Rate': 0,
+        'Blood Pressure': '0/0',
+        'Sleep (Avg)': 0,
+        'Stress Level (Avg)': 'Low',
+        'Recovery Score (Avg)': 0
+      },
+      photos: {
+        front: null,
+        side: null,
+        back: null
+      }
+    };
+  });
+
+  useEffect(() => {
+    localStorage.setItem('lifeos_user_body_stats', JSON.stringify(bodyStats));
+  }, [bodyStats]);
+
+  const [isEditingMeasurements, setIsEditingMeasurements] = useState(false);
+  const [isEditingHealth, setIsEditingHealth] = useState(false);
+
+  const [uploadModalOpen, setUploadModalOpen] = useState(false);
+  const [uploadView, setUploadView] = useState('front');
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleMeasurementChange = (key, value) => {
+    setBodyStats(prev => ({
+      ...prev,
+      measurements: { ...prev.measurements, [key]: value }
+    }));
+  };
+
+  const handleHealthChange = (key, value) => {
+    setBodyStats(prev => ({
+      ...prev,
+      health: { ...prev.health, [key]: value }
+    }));
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result;
+        
+        const response = await fetch('http://localhost:5000/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: base64Image })
+        });
+        
+        const data = await response.json();
+        if (data.url) {
+          setBodyStats(prev => ({
+            ...prev,
+            photos: { ...prev.photos, [uploadView]: 'http://localhost:5000' + data.url }
+          }));
+          setUploadModalOpen(false);
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (err) {
+      console.error('Error uploading file:', err);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+      {/* Header & Controls */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-bold text-text-primary">Body Status</h2>
+          <p className="text-xs text-text-muted">Track your body composition, measurements and overall fitness status.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated border border-border-subtle rounded-xl text-xs font-bold text-text-primary hover:border-purple/50 transition-colors">
+            <FiCalendar className="text-purple" />
+            <span>May 12 - May 18, 2026</span>
+          </button>
+          <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated border border-border-subtle rounded-xl text-xs font-bold text-text-primary hover:border-purple/50 transition-colors">
+            <span>This Week</span>
+            <FiChevronDown />
+          </button>
+        </div>
+      </div>
+
+      {/* Top Metrics Row */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        {/* Weight */}
+        <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-info/10 text-info flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><path d="M12 16v-4"></path><path d="M8 8h8"></path></svg>
+            </div>
+            <div>
+              <p className="text-[10px] text-text-muted font-bold">Weight</p>
+              <h3 className="text-lg font-black text-text-primary">{bodyStats.weight > 0 ? bodyStats.weight : 0} kg</h3>
+            </div>
+          </div>
+          <p className="text-[9px] font-bold text-success flex items-center gap-1">
+            <FiTrendingDown size={10} /> 0.0 kg <span className="text-text-muted font-normal">vs last week</span>
+          </p>
+        </div>
+
+        {/* Body Fat */}
+        <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-purple/10 text-purple flex items-center justify-center font-bold font-mono">
+              %
+            </div>
+            <div>
+              <p className="text-[10px] text-text-muted font-bold">Body Fat</p>
+              <h3 className="text-lg font-black text-text-primary">{bodyStats.bodyFat > 0 ? bodyStats.bodyFat : 0} %</h3>
+            </div>
+          </div>
+          <p className="text-[9px] font-bold text-success flex items-center gap-1">
+            <FiTrendingDown size={10} /> 0.0% <span className="text-text-muted font-normal">vs last week</span>
+          </p>
+        </div>
+
+        {/* Muscle Mass */}
+        <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 text-warning flex items-center justify-center font-bold">
+              💪
+            </div>
+            <div>
+              <p className="text-[10px] text-text-muted font-bold whitespace-nowrap">Muscle Mass</p>
+              <h3 className="text-lg font-black text-text-primary">{bodyStats.muscleMass > 0 ? bodyStats.muscleMass : 0} kg</h3>
+            </div>
+          </div>
+          <p className="text-[9px] font-bold text-success flex items-center gap-1">
+            <FiTrendingUp size={10} /> 0.0 kg <span className="text-text-muted font-normal">vs last week</span>
+          </p>
+        </div>
+
+        {/* BMI */}
+        <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+              <FiActivity size={16} />
+            </div>
+            <div>
+              <p className="text-[10px] text-text-muted font-bold">BMI</p>
+              <h3 className="text-lg font-black text-text-primary">{bodyStats.bmi > 0 ? bodyStats.bmi : 0}</h3>
+            </div>
+          </div>
+          <p className="text-[9px] font-bold text-text-muted flex items-center gap-1">
+            -
+          </p>
+        </div>
+
+        {/* Body Water */}
+        <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center">
+              <FiDroplet size={16} />
+            </div>
+            <div>
+              <p className="text-[10px] text-text-muted font-bold">Body Water</p>
+              <h3 className="text-lg font-black text-text-primary">{bodyStats.bodyWater > 0 ? bodyStats.bodyWater : 0} %</h3>
+            </div>
+          </div>
+          <p className="text-[9px] font-bold text-text-muted flex items-center gap-1">
+            <FiTrendingUp size={10} /> 0.0% <span className="text-text-muted font-normal">vs last week</span>
+          </p>
+        </div>
+
+        {/* Visceral Fat */}
+        <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-pink-500/10 text-pink-500 flex items-center justify-center font-bold">
+              🍎
+            </div>
+            <div>
+              <p className="text-[10px] text-text-muted font-bold whitespace-nowrap">Visceral Fat</p>
+              <h3 className="text-lg font-black text-text-primary">{bodyStats.visceralFat > 0 ? bodyStats.visceralFat : 0}</h3>
+            </div>
+          </div>
+          <p className="text-[9px] font-bold text-text-muted flex items-center gap-1">
+            -
+          </p>
+        </div>
+      </div>
+
+      {/* Middle Charts Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Trend Chart */}
+        <div className="lg:col-span-5 card p-5 border border-border-subtle bg-surface">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-bold text-text-primary">Body Composition Trend</h3>
+            <button className="text-xs flex items-center gap-1 text-text-muted hover:text-text-primary">
+              6 Weeks <FiChevronDown />
+            </button>
+          </div>
+          
+          <div className="flex gap-4 mb-4 text-[9px] font-bold">
+            <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-purple"></div>Weight (kg)</span>
+            <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-warning"></div>Body Fat (%)</span>
+            <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-success"></div>Muscle Mass (kg)</span>
+          </div>
+          
+          {/* SVG Line Chart */}
+          <div className="w-full h-48 relative">
+            <div className="absolute left-0 top-0 bottom-6 flex flex-col justify-between text-[10px] text-text-muted font-mono h-[calc(100%-24px)]">
+              <span>80</span>
+              <span>60</span>
+              <span>40</span>
+              <span>20</span>
+              <span>0</span>
+            </div>
+            
+            <div className="absolute left-6 right-0 top-2 bottom-6">
+              <div className="w-full h-full flex flex-col justify-between border-l border-border-subtle relative z-0">
+                {[0, 1, 2, 3, 4].map((_, i) => (
+                  <div key={i} className="w-full border-b border-border-subtle/30" style={{ height: '0px' }}></div>
+                ))}
+                
+                <svg className="absolute inset-0 w-full h-full z-10 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
+                  {/* Empty Graph */}
+                  <polyline points="0,95 20,95 40,95 60,95 80,95 100,95" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+            
+            <div className="absolute left-6 right-0 bottom-0 flex justify-between text-[9px] text-text-muted">
+              <span>Apr 13</span>
+              <span>Apr 20</span>
+              <span>Apr 27</span>
+              <span>May 4</span>
+              <span>May 11</span>
+              <span>May 18</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Donut Chart */}
+        <div className="lg:col-span-3 card p-5 border border-border-subtle bg-surface">
+          <h3 className="text-sm font-bold text-text-primary mb-6">Body Composition</h3>
+          
+          <div className="flex flex-col sm:flex-row items-center gap-6 h-full pb-4">
+            <div className="relative w-36 h-36 rounded-full flex items-center justify-center" style={{
+              background: bodyStats.weight > 0 ? `conic-gradient(#22c55e 0% 80.9%, #f59e0b 80.9% 97.1%, #3b82f6 97.1% 99%, #64748b 99% 100%)` : `#2c2c35`
+            }}>
+              <div className="absolute inset-4 rounded-full bg-surface flex flex-col items-center justify-center">
+                <span className="text-lg font-black text-text-primary">{bodyStats.weight > 0 ? bodyStats.weight : 0} kg</span>
+                <span className="text-[8px] text-text-muted font-bold uppercase tracking-wider">Total Weight</span>
+              </div>
+            </div>
+            
+            <div className="flex-1 space-y-3 w-full">
+              {[
+                { name: 'Muscle Mass', val: bodyStats.muscleMass > 0 ? `${bodyStats.muscleMass} kg` : '0 kg', color: 'bg-success' },
+                { name: 'Fat Mass', val: bodyStats.bodyFat > 0 ? `${(bodyStats.weight * (bodyStats.bodyFat/100)).toFixed(1)} kg` : '0 kg', color: 'bg-warning' },
+                { name: 'Bone Mass', val: bodyStats.weight > 0 ? `${(bodyStats.weight * 0.04).toFixed(1)} kg` : '0 kg', color: 'bg-blue-500' },
+                { name: 'Other (Water, Organs)', val: bodyStats.weight > 0 ? 'Rest' : '0', color: 'bg-slate-500' },
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className={`w-1.5 h-1.5 rounded-full ${item.color}`}></div>
+                    <span className="text-[10px] text-text-muted font-bold">{item.name}</span>
+                  </div>
+                  <span className="text-xs font-bold text-text-primary pl-3">{item.val}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Segmental Analysis */}
+        <div className="lg:col-span-4 card p-5 border border-border-subtle bg-surface relative">
+          <div className="flex justify-between items-center mb-6">
+            <h3 className="text-sm font-bold text-text-primary">Segmental Analysis</h3>
+            <div className="flex gap-2">
+              <span className="text-[9px] bg-purple text-white px-2 py-0.5 rounded font-bold">Muscle Mass</span>
+              <span className="text-[9px] bg-surface-elevated text-text-muted px-2 py-0.5 rounded font-bold">Fat %</span>
+            </div>
+          </div>
+
+          <div className="flex">
+            <div className="w-48 h-[260px] relative flex items-center justify-center shrink-0 -ml-8 -mt-6 -mb-6">
+              <MuscleDiagram 
+                minimalMode={true} 
+                activeExercises={[{ primary: ['chest', 'core'], secondary: [] }]} 
+                className="scale-90"
+              />
+            </div>
+            
+            {/* Stats list */}
+            <div className="flex-1 flex flex-col justify-between py-4 space-y-4">
+              {[
+                { name: 'Arms', left: '0 kg', right: '0 kg', status: '-', statusColor: 'text-text-muted' },
+                { name: 'Chest', left: '0 kg', right: '', status: '-', statusColor: 'text-text-muted' },
+                { name: 'Legs', left: '0 kg', right: '0 kg', status: '-', statusColor: 'text-text-muted' },
+                { name: 'Core', left: '0 kg', right: '', status: '-', statusColor: 'text-text-muted' },
+              ].map((part, i) => (
+                <div key={i} className="flex justify-between items-center text-xs">
+                  <div>
+                    <span className="text-text-muted text-[10px] font-bold block">{part.name}</span>
+                    <span className="font-mono text-text-primary text-[10px]">
+                      {part.left} {part.right ? <span className="text-text-muted">| {part.right}</span> : ''}
+                    </span>
+                  </div>
+                  <span className={`text-[9px] font-bold ${part.statusColor}`}>{part.status}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <div className="absolute bottom-4 right-4 flex gap-3 text-[8px] text-text-muted font-bold">
+            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-success rounded-sm"></div>Good</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-warning rounded-sm"></div>Average</span>
+            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-danger rounded-sm"></div>Needs Work</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Bottom Row */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Body Measurements */}
+        <div className="lg:col-span-4 card p-5 border border-border-subtle bg-surface flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
+              <FiDroplet size={14} className="text-text-muted" /> Body Measurements
+            </h3>
+            <button onClick={() => setIsEditingMeasurements(!isEditingMeasurements)} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1">
+              {isEditingMeasurements ? <><FiCheck size={12}/> Save</> : <><FiEdit2 size={12}/> Edit</>}
+            </button>
+          </div>
+          
+          <div className="flex-1 overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="border-b border-border-subtle text-[9px] text-text-muted uppercase tracking-wider">
+                  <th className="pb-2">Measurement</th>
+                  <th className="pb-2 text-right">Current (cm)</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border-subtle/50">
+                {['Neck', 'Chest', 'Waist', 'Hips', 'Right Arm', 'Left Arm', 'Right Thigh', 'Left Thigh'].map((name, i) => (
+                  <tr key={i}>
+                    <td className="py-2.5 font-bold text-text-primary text-[10px]">{name}</td>
+                    <td className="py-2.5 text-right font-mono text-text-primary">
+                      {isEditingMeasurements ? (
+                        <input 
+                          type="number"
+                          value={bodyStats.measurements?.[name] || 0}
+                          onChange={(e) => handleMeasurementChange(name, e.target.value)}
+                          className="w-16 bg-surface-elevated border border-border-subtle rounded px-2 py-1 text-right outline-none focus:border-purple"
+                        />
+                      ) : (
+                        `${bodyStats.measurements?.[name] || 0} cm`
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Progress Photos */}
+        <div className="lg:col-span-3 card p-5 border border-border-subtle bg-surface flex flex-col">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-sm font-bold text-text-primary">Progress Photos</h3>
+          </div>
+          
+          <div className="flex gap-2 mb-4 justify-between">
+            {['Front', 'Side', 'Back'].map((view, i) => {
+              const v = view.toLowerCase();
+              return (
+              <div key={i} className="flex-1 aspect-[1/2] rounded-lg overflow-hidden bg-surface-elevated border border-border-subtle relative group cursor-pointer"
+                onClick={() => { setUploadView(v); setUploadModalOpen(true); }}
+              >
+                {bodyStats.photos?.[v] ? (
+                  <img src={bodyStats.photos[v]} alt={view} className="w-full h-full object-cover" />
+                ) : (
+                  <>
+                    <div className="absolute inset-0 bg-gradient-to-b from-slate-700 to-slate-900"></div>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-white">
+                      <svg width="40" height="80" viewBox="0 0 100 200"><circle cx="50" cy="30" r="20" fill="currentColor"/><path d="M 20 70 L 80 70 L 70 180 L 30 180 Z" fill="currentColor"/></svg>
+                    </div>
+                  </>
+                )}
+                <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur text-center py-1 group-hover:bg-purple/80 transition-colors">
+                  <p className="text-[8px] text-white font-bold uppercase">{bodyStats.photos?.[v] ? 'Update' : view}</p>
+                </div>
+              </div>
+            )})}
+          </div>
+          
+          <button onClick={() => { setUploadView('front'); setUploadModalOpen(true); }} className="w-full mt-auto py-2.5 rounded-lg bg-purple/10 text-purple border border-purple/30 text-xs font-bold hover:bg-purple hover:text-white transition-colors flex items-center justify-center gap-1">
+            <FiPlus size={14} /> Add New Photos
+          </button>
+        </div>
+
+        {/* Health Indicators & Summary */}
+        <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Indicators List */}
+          <div className="card p-5 border border-border-subtle bg-surface flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
+                <FiActivity size={14} className="text-text-muted" /> Health Indicators
+              </h3>
+              <button onClick={() => setIsEditingHealth(!isEditingHealth)} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1">
+                {isEditingHealth ? <><FiCheck size={12}/> Save</> : <><FiEdit2 size={12}/> Edit</>}
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {[
+                { name: 'Resting Heart Rate', type: 'number', suffix: ' bpm' },
+                { name: 'Blood Pressure', type: 'text', suffix: ' mmHg' },
+                { name: 'Sleep (Avg)', type: 'number', suffix: ' h' },
+                { name: 'Stress Level (Avg)', type: 'text', suffix: '' },
+                { name: 'Recovery Score (Avg)', type: 'number', suffix: ' / 100' },
+              ].map((ind, i) => (
+                <div key={i} className="flex justify-between items-center text-xs">
+                  <span className="text-text-muted text-[10px] font-bold">{ind.name}</span>
+                  <div className="flex items-center gap-3">
+                    {isEditingHealth ? (
+                      <input
+                        type={ind.type}
+                        value={bodyStats.health?.[ind.name] || ''}
+                        onChange={(e) => handleHealthChange(ind.name, e.target.value)}
+                        className="w-16 bg-surface-elevated border border-border-subtle rounded px-2 py-1 text-right outline-none focus:border-purple text-[10px] font-mono"
+                      />
+                    ) : (
+                      <span className="font-mono text-text-primary text-[10px]">{bodyStats.health?.[ind.name] || 0}{ind.suffix}</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Body Status Summary */}
+          <div className="card p-5 border border-border-subtle bg-gradient-to-br from-surface to-surface-elevated flex flex-col">
+            <h3 className="text-sm font-bold text-text-primary mb-2 flex items-center gap-1.5">
+              <FiShield size={14} className="text-text-muted" /> Body Status Summary
+            </h3>
+            <p className="text-[10px] text-text-muted mb-6 leading-relaxed">
+              Track your metrics daily to get personalized recommendations and see your overall body status improve.
+            </p>
+            
+            <div className="flex justify-between items-center mt-auto mb-4">
+              {/* Simple CSS gauge */}
+              <div className="relative w-20 h-20 rounded-full flex items-center justify-center" style={{
+                background: `conic-gradient(#22c55e 0% 0%, #2c2c35 0% 100%)`
+              }}>
+                <div className="absolute inset-1.5 rounded-full bg-surface-elevated flex flex-col items-center justify-center">
+                  <span className="text-xl font-black text-text-primary">0</span>
+                  <span className="text-[7px] text-text-muted font-bold">/100</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] font-bold text-text-muted uppercase">Overall Body Status</p>
+                <p className="text-lg font-black text-text-muted mt-1">N/A</p>
+              </div>
+            </div>
+            
+            <button className="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple to-purple-accent text-white text-[10px] font-bold hover:brightness-110 transition-all">
+              View Recommendations
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      {/* Upload Modal */}
+      <AnimatePresence>
+        {uploadModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-md w-full space-y-4 bg-surface">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+                <h3 className="text-base font-extrabold text-text-primary capitalize">Upload {uploadView} Photo</h3>
+                <button onClick={() => setUploadModalOpen(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
+              </div>
+              
+              <div className="p-8 border-2 border-dashed border-border-subtle rounded-xl flex flex-col items-center justify-center text-center">
+                <FiUploadCloud size={48} className="text-purple mb-4" />
+                <p className="text-sm font-bold text-text-primary mb-1">Select Image to Upload</p>
+                <p className="text-xs text-text-muted mb-6">Image will be saved securely.</p>
+                
+                <label className="px-6 py-2.5 rounded-xl bg-purple text-white font-bold text-xs cursor-pointer hover:bg-purple-accent transition-colors">
+                  {isUploading ? 'Uploading...' : 'Browse Files'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+                </label>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}

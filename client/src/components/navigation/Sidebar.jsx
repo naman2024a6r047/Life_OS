@@ -22,7 +22,7 @@ const navItems = [
   { path: '/ai-coach', label: 'Resources', icon: FiDatabase },
 ];
 
-export default function Sidebar() {
+export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation();
   const { user, logout } = useContext(AuthContext);
 
@@ -31,7 +31,16 @@ export default function Sidebar() {
   const xpProgress = Math.min(100, Math.round((xpCurrent / xpForLevel) * 100));
 
   return (
-    <aside className="w-[240px] min-w-[240px] h-screen bg-surface border-r border-border-subtle flex flex-col fixed left-0 top-0 z-30">
+    <>
+      {/* Mobile Backdrop */}
+      {isOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden backdrop-blur-sm"
+          onClick={onClose}
+        />
+      )}
+      
+      <aside className={`w-[240px] min-w-[240px] h-screen bg-surface border-r border-border-subtle flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       {/* Branding */}
       <div className="px-4 pt-5 pb-3">
         <div className="flex items-center gap-2.5">
@@ -113,5 +122,6 @@ export default function Sidebar() {
         </button>
       </div>
     </aside>
+    </>
   );
 }

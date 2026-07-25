@@ -8,11 +8,12 @@ import {
   FiSliders, FiUser, FiInfo, FiArrowUpRight, FiArrowDownRight, FiX,
   FiLock, FiMail, FiTrash2, FiBell, FiGlobe, FiShield, FiDownload,
   FiRefreshCw, FiHelpCircle, FiCopy, FiCheckSquare, FiAlertCircle,
-  FiCamera, FiShare2, FiStar, FiRotateCcw, FiList, FiVideo, FiImage, FiExternalLink
+  FiCamera, FiShare2, FiStar, FiRotateCcw, FiList, FiVideo, FiImage, FiExternalLink, FiMenu
 } from 'react-icons/fi';
 import MuscleDiagram from '../components/fitness/MuscleDiagram';
 import GymProgressTab from '../components/fitness/GymProgressTab';
 import GymBodyStatsTab from '../components/fitness/GymBodyStatsTab';
+import GymBottomNav from '../components/navigation/GymBottomNav';
 
 export default function GymDashboard() {
   const { user } = useContext(AuthContext);
@@ -397,7 +398,7 @@ export default function GymDashboard() {
   }) || [];
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-[1700px] mx-auto">
+    <div className="p-4 md:p-6 lg:p-8 space-y-5 md:space-y-6 max-w-[1700px] mx-auto pb-28 md:pb-8">
       {/* PR Toast Alert */}
       <AnimatePresence>
         {prNotification && (
@@ -416,8 +417,25 @@ export default function GymDashboard() {
         )}
       </AnimatePresence>
 
-      {/* DENSE PRODUCTION PAGE HEADER (32px Title) */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border-subtle pb-4">
+      {/* MOBILE TOP HEADER */}
+      <div className="flex md:hidden items-center justify-between pb-2">
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => window.dispatchEvent(new Event('toggle-mobile-menu'))}
+            className="text-text-primary p-1"
+          >
+            <FiMenu size={24} />
+          </button>
+          <h2 className="text-sm font-bold text-text-primary">Good Morning, {user?.username || 'Naman'} 👋</h2>
+        </div>
+        <button className="relative p-1 text-text-muted hover:text-text-primary">
+          <FiBell size={20} />
+          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-purple text-white text-[8px] font-bold rounded-full flex items-center justify-center border border-surface">3</span>
+        </button>
+      </div>
+
+      {/* DENSE PRODUCTION PAGE HEADER (32px Title) - HIDDEN ON MOBILE */}
+      <div className="hidden md:flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-border-subtle pb-4">
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-purple/20 to-purple-accent/10 border border-purple/30 text-purple flex items-center justify-center shadow-glow-primary">
             <FiActivity size={26} />
@@ -427,49 +445,49 @@ export default function GymDashboard() {
             <p className="text-sm text-text-muted">High-performance athletic tracking, muscle heatmap & workout OS.</p>
           </div>
         </div>
+      </div>
 
-        {/* 4 TOP METRICS CARDS BAR (ENLARGED HIIRARCHY & HOVER ANIMATION) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-lg font-bold">🔥</div>
-            <div>
-              <h4 className="text-2xl font-black font-mono text-text-primary leading-none">{workoutsCountMonth}</h4>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Workouts / Mo</p>
-              <span className="text-[9px] text-success font-bold font-mono">↑ 18% vs last mo</span>
-            </div>
-          </motion.div>
+      {/* 4 TOP METRICS CARDS BAR (ENLARGED HIIRARCHY & HOVER ANIMATION) */}
+      <div className="grid grid-cols-4 gap-2 md:gap-3">
+        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
+          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">🔥</div>
+          <div>
+            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{workoutsCountMonth}</h4>
+            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Workouts</p>
+            <span className="text-[6px] md:text-[9px] text-success font-bold font-mono">↑ 18% <span className="hidden md:inline">vs last mo</span></span>
+          </div>
+        </motion.div>
 
-          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-lg font-bold">🏆</div>
-            <div>
-              <h4 className="text-2xl font-black font-mono text-purple leading-none">{totalVolumeLiftedStr}</h4>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Volume Lifted</p>
-              <span className="text-[9px] text-success font-bold font-mono">↑ 24% vs last mo</span>
-            </div>
-          </motion.div>
+        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
+          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">🏆</div>
+          <div>
+            <h4 className="text-sm md:text-2xl font-black font-mono text-purple leading-none">{totalVolumeLiftedStr}</h4>
+            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Volume</p>
+            <span className="text-[6px] md:text-[9px] text-success font-bold font-mono">↑ 24% <span className="hidden md:inline">vs last mo</span></span>
+          </div>
+        </motion.div>
 
-          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-info/40 shadow-sm flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-info/10 text-info flex items-center justify-center text-lg font-bold">⭐</div>
-            <div>
-              <h4 className="text-2xl font-black font-mono text-info leading-none">{totalPRCount}</h4>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Personal Records</p>
-              <span className="text-[9px] text-info font-bold font-mono">3 Active PRs</span>
-            </div>
-          </motion.div>
+        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
+          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">⭐</div>
+          <div>
+            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{Object.keys(personalRecords).length}</h4>
+            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Records</p>
+            <span className="text-[6px] md:text-[9px] text-info font-bold font-mono">{Object.keys(personalRecords).length} Active PRs</span>
+          </div>
+        </motion.div>
 
-          <motion.div whileHover={{ y: -2 }} className="p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-success/40 shadow-sm flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-success/10 text-success flex items-center justify-center text-lg font-bold">⚡</div>
-            <div>
-              <h4 className="text-2xl font-black font-mono text-success leading-none">{streak} Days</h4>
-              <p className="text-[10px] font-bold text-text-muted uppercase tracking-wider mt-1">Active Streak</p>
-              <span className="text-[9px] text-text-muted font-mono">Best: 32 Days</span>
-            </div>
-          </motion.div>
-        </div>
+        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
+          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">⚡</div>
+          <div>
+            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{user?.current_streak || 0}</h4>
+            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Day Streak</p>
+            <span className="text-[6px] md:text-[9px] text-text-muted font-bold font-mono">Best: {user?.best_streak || 0} <span className="hidden md:inline">Days</span></span>
+          </div>
+        </motion.div>
       </div>
 
       {/* GLOWING NAVIGATION TABS BAR (SMOOTH UNDERLINE) */}
-      <div className="flex items-center gap-2 border-b border-border-subtle pb-1 overflow-x-auto sidebar-scroll">
+      <div className="hidden md:flex items-center gap-2 border-b border-border-subtle pb-1 overflow-x-auto sidebar-scroll">
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'workouts', label: 'Workouts' },
@@ -1400,6 +1418,7 @@ export default function GymDashboard() {
           </div>
         )}
       </AnimatePresence>
+      <GymBottomNav activeTab={activeTab} setActiveTab={setActiveTab} onAddClick={() => setShowWeeklyPlanModal(true)} />
     </div>
   );
 }

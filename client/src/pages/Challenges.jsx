@@ -670,37 +670,28 @@ function TaskRow({ task, onToggle, onOpenDetail }) {
       layout
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex items-center gap-4 px-4 py-3 hover:bg-surface-elevated/60 transition-all ${isCompleted ? 'opacity-65' : ''}`}
+      className={`flex items-center gap-3 px-4 py-3 hover:bg-surface-elevated/60 transition-all border-b border-border-subtle/30 last:border-0 ${isCompleted ? 'opacity-60' : ''}`}
     >
-      <div className="w-24 text-center flex-shrink-0">
-        <button
-          onClick={() => onToggle(task)}
-          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 w-full cursor-pointer ${
-            isCompleted
-              ? 'bg-success/15 text-success border border-success/30'
-              : 'bg-surface-elevated text-text-muted border border-border-subtle hover:border-primary hover:text-primary'
-          }`}
-        >
-          {isCompleted ? <><FiCheckCircle size={12} /> Done</> : <><div className="w-2.5 h-2.5 rounded-full border border-text-muted" /> Pending</>}
-        </button>
-      </div>
+      <button
+        onClick={() => onToggle(task)}
+        className={`w-5 h-5 rounded-[4px] border-2 flex flex-shrink-0 items-center justify-center transition-all cursor-pointer ${
+          isCompleted 
+            ? 'bg-primary border-primary text-white' 
+            : 'bg-transparent border-border-subtle hover:border-primary/50'
+        }`}
+      >
+        {isCompleted && <FiCheck size={14} strokeWidth={4} />}
+      </button>
 
-      <div className="flex-1 min-w-0">
-        <p className={`text-[13px] font-semibold ${isCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
+      <div className="flex-1 min-w-0 flex items-center gap-2">
+        <p className={`text-[13px] font-medium tracking-wide ${isCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
           {displayTitle}
         </p>
       </div>
-      
-      <span className={`badge-${tag.color} text-[9px]`}>{tag.label}</span>
-      <span className="text-[10px] font-mono text-text-muted w-12 text-center">{task.priority || 'P1'}</span>
-      
-      <span className="text-[10px] text-text-muted w-24 text-center font-mono">
-        {isCompleted ? new Date(task.updatedAt || new Date()).toLocaleDateString() : 'Today'}
-      </span>
 
       <button
         onClick={() => onOpenDetail(task)}
-        className="p-1 text-text-muted hover:text-primary transition-colors flex-shrink-0"
+        className="p-1.5 text-text-muted hover:text-primary transition-colors flex-shrink-0 rounded-lg hover:bg-primary/10"
         title="View Task Details & Notes"
       >
         <FiEye size={14} />
@@ -824,10 +815,6 @@ export default function Challenges() {
         tDate.setHours(0, 0, 0, 0);
         const diffDays = Math.round((tDate - challengeStart) / (1000 * 60 * 60 * 24));
         dayNum = diffDays + 1;
-      } else {
-        // Ultimate fallback if dates are missing for some reason
-        const match = task.title?.match(/Day[\s\-]*(\d+)/i);
-        if (match) dayNum = parseInt(match[1], 10);
       }
 
       if (!groups[dayNum]) groups[dayNum] = [];

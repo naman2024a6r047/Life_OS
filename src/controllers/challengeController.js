@@ -28,7 +28,7 @@ const parseRawCurriculum = (text) => {
         if (!line) return;
 
         // Detect Day Header (e.g. 📅 Day 1, Day 1, Day 01, Day-1, DAY 1)
-        const dayMatch = line.match(/(?:📅\s*)?Day[\s\-]*(\d+)/i);
+        const dayMatch = line.match(/^(?:📅\s*)?Day[\s\-]*(\d+)/i);
         if (dayMatch) {
             const dayNum = parseInt(dayMatch[1], 10);
             currentDay = {

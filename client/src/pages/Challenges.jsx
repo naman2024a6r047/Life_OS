@@ -7,7 +7,7 @@ import {
   FiClock, FiZap, FiGrid, FiList, FiChevronRight, FiMoreVertical,
   FiSearch, FiFilter, FiPause, FiPlay, FiArchive, FiX, FiAward,
   FiCalendar, FiArrowUpRight, FiPaperclip, FiFileText, FiBell,
-  FiChevronLeft, FiAlertTriangle, FiLock, FiEye, FiCheck, FiInfo, FiUpload
+  FiChevronLeft, FiAlertTriangle, FiLock, FiEye, FiCheck, FiInfo, FiUpload, FiSend
 } from 'react-icons/fi';
 import axios from 'axios';
 
@@ -405,6 +405,102 @@ function ImportCurriculumModal({ isOpen, onClose, challengeId, onImportSuccess }
   );
 }
 
+// --- Review Request Modal ---
+function ReviewRequestModal({ isOpen, onClose, milestoneId, onSubmitSuccess }) {
+  const [friends, setFriends] = useState([]);
+  const [selectedFriend, setSelectedFriend] = useState('');
+  const [reflection, setReflection] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      axios.get('/api/friends').then(res => {
+        setFriends(res.data || []);
+        if (res.data?.length > 0) setSelectedFriend(res.data[0].id);
+      }).catch(err => console.error("Failed to fetch friends", err));
+    }
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const handleSubmit = async () => {
+    if (!selectedFriend) return alert("Please select an accountability partner.");
+    try {
+      setLoading(true);
+      await axios.post('/api/reviews/submit', {
+        milestone_id: milestoneId,
+        reviewer_id: selectedFriend,
+        reflection
+      });
+      onSubmitSuccess();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send for review.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        className="card max-w-md w-full p-6 space-y-5 border border-border-subtle shadow-2xl relative"
+      >
+        <button onClick={onClose} className="absolute top-5 right-5 text-text-muted hover:text-text-primary">
+          <FiX size={18} />
+        </button>
+        <div>
+          <h2 className="text-lg font-bold text-text-primary flex items-center gap-2">
+            <FiSend className="text-primary" /> Request Peer Approval
+          </h2>
+          <p className="text-xs text-text-muted mt-1">
+            You've completed all tasks! Send this milestone to your accountability partner to unlock the next phase.
+          </p>
+        </div>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-text-muted mb-1 block">Select Partner</label>
+            <select
+              value={selectedFriend}
+              onChange={(e) => setSelectedFriend(e.target.value)}
+              className="w-full bg-surface-elevated border border-border-subtle text-text-primary text-sm rounded-xl px-3 py-2.5 focus:outline-none focus:border-primary"
+            >
+              <option value="" disabled>Choose a friend...</option>
+              {friends.map(f => (
+                <option key={f.id} value={f.friend_id || f.id}>{f.friend?.username || 'Unknown User'}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-text-muted mb-1 block">Quick Reflection (Optional)</label>
+            <textarea
+              value={reflection}
+              onChange={(e) => setReflection(e.target.value)}
+              placeholder="What did you learn in this milestone? Any struggles?"
+              className="w-full h-24 bg-surface-elevated border border-border-subtle text-text-primary text-sm rounded-xl p-3 focus:outline-none focus:border-primary resize-none"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-3 pt-3 border-t border-border-subtle">
+          <button onClick={onClose} className="btn-ghost text-xs px-4 py-2">Cancel</button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading || !selectedFriend}
+            className="btn-primary text-xs px-5 py-2 disabled:opacity-50"
+          >
+            {loading ? 'Sending...' : 'Send for Approval'}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 // --- Task Detail Modal / Side Drawer ---
 function TaskDetailModal({ task, isOpen, onClose, onSaveNotes }) {
   const [notes, setNotes] = useState(task?.notes || '');
@@ -551,9 +647,12 @@ function MilestoneTimeline({ milestones = [], activeMilestoneIndex = 0, onSelect
 }
 
 // --- Task Row ---
-function TaskRow({ task, index, onToggle, onOpenDetail, dayOffset = 0 }) {
-  const dayNum = dayOffset + index + 1;
+function TaskRow({ task, onToggle, onOpenDetail }) {
   const isCompleted = task.is_completed;
+
+  // Extract clean title (remove "Day X • ")
+  const match = task.title?.match(/Day[\s\-]*\d+\s*[•\-\:]\s*(.*)/i);
+  const displayTitle = match ? match[1] : task.title;
 
   const getTag = (title) => {
     const lower = (title || '').toLowerCase();
@@ -564,44 +663,37 @@ function TaskRow({ task, index, onToggle, onOpenDetail, dayOffset = 0 }) {
     if (lower.includes('project') || lower.includes('build') || lower.includes('mini')) return { label: 'Project', color: 'danger' };
     return { label: 'General', color: 'primary' };
   };
-  const tag = getTag(task.title);
+  const tag = getTag(displayTitle);
 
   return (
     <motion.div
       layout
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex items-center gap-4 px-4 py-3 border-b border-border-subtle hover:bg-surface-elevated/60 transition-all ${isCompleted ? 'opacity-65' : ''}`}
+      className={`flex items-center gap-4 px-4 py-3 hover:bg-surface-elevated/60 transition-all ${isCompleted ? 'opacity-65' : ''}`}
     >
-      <span className="text-xs font-mono font-bold text-text-muted w-10">Day {dayNum}</span>
+      <button
+        onClick={() => onToggle(task)}
+        className={`w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border transition-all cursor-pointer ${
+          isCompleted 
+            ? 'bg-success border-success text-white' 
+            : 'bg-transparent border-border-subtle hover:border-primary'
+        }`}
+      >
+        {isCompleted && <FiCheck size={14} strokeWidth={3} />}
+      </button>
+
       <div className="flex-1 min-w-0">
         <p className={`text-xs font-semibold ${isCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
-          {task.title}
+          {displayTitle}
         </p>
       </div>
-      <span className={`badge-${tag.color} text-[9px]`}>{tag.label}</span>
-      <span className="text-[10px] font-mono text-text-muted w-12 text-center">{task.priority || 'P1'}</span>
+      <span className={`badge-${tag.color} text-[9px] hidden sm:inline-block`}>{tag.label}</span>
+      <span className="text-[10px] font-mono text-text-muted w-8 text-center hidden sm:inline-block">{task.priority || 'P1'}</span>
       
-      <div className="w-24 text-center">
-        <button
-          onClick={() => onToggle(task)}
-          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 w-full cursor-pointer ${
-            isCompleted
-              ? 'bg-success/15 text-success border border-success/30'
-              : 'bg-surface-elevated text-text-muted border border-border-subtle hover:border-primary hover:text-primary'
-          }`}
-        >
-          {isCompleted ? <><FiCheckCircle size={12} /> Done</> : <><div className="w-2.5 h-2.5 rounded-full border border-text-muted" /> Pending</>}
-        </button>
-      </div>
-
-      <span className="text-[10px] text-text-muted w-24 text-center font-mono">
-        {isCompleted ? formatDate(task.updatedAt || new Date()) : 'Today'}
-      </span>
-
       <button
         onClick={() => onOpenDetail(task)}
-        className="p-1 text-text-muted hover:text-primary transition-colors"
+        className="p-1 text-text-muted hover:text-primary transition-colors ml-auto"
         title="View Task Details & Notes"
       >
         <FiEye size={14} />
@@ -634,6 +726,7 @@ export default function Challenges() {
   const [detailTask, setDetailTask] = useState(null);
   const [isTaskModalOpen, setIsTaskModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -707,6 +800,21 @@ export default function Challenges() {
   
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const totalTasks = tasks.length;
+  const dayOffset = activeMilestoneIdx * 10;
+
+  const groupedTasks = useMemo(() => {
+    const groups = {};
+    tasks.forEach((task) => {
+      let dayNum = dayOffset + 1;
+      const match = task.title?.match(/Day[\s\-]*(\d+)/i);
+      if (match) {
+        dayNum = parseInt(match[1], 10);
+      }
+      if (!groups[dayNum]) groups[dayNum] = [];
+      groups[dayNum].push(task);
+    });
+    return groups;
+  }, [tasks, dayOffset]);
 
   const totalDays = selectedChallenge ? calcTotalDays(selectedChallenge.start_date, selectedChallenge.end_date) : 30;
   const currentDay = selectedChallenge ? calcCurrentDay(selectedChallenge.start_date, selectedChallenge.end_date) : 1;
@@ -812,6 +920,16 @@ export default function Challenges() {
         onClose={() => setIsImportModalOpen(false)}
         challengeId={selectedChallenge?.id}
         onImportSuccess={handleImportSuccess}
+      />
+      <ReviewRequestModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        milestoneId={activeMilestone?.id}
+        onSubmitSuccess={() => {
+          setIsReviewModalOpen(false);
+          addToast('Sent to partner for approval! 🚀', 'success', '✨');
+          fetchChallenges();
+        }}
       />
 
       {/* --- HEADER --- */}
@@ -1119,6 +1237,19 @@ export default function Challenges() {
 
               {/* --- ACTIVE MILESTONE TASK TABLE --- */}
               {activeMilestone ? (
+                activeMilestone.status === 'locked' ? (
+                  <div className="card p-12 text-center border border-border-subtle bg-surface-elevated/20 space-y-4">
+                    <div className="w-16 h-16 rounded-full bg-surface-elevated flex items-center justify-center mx-auto text-text-muted border border-border-subtle shadow-inner">
+                      <FiLock size={24} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-text-primary">Phase Locked</h3>
+                      <p className="text-xs text-text-muted max-w-sm mx-auto mt-1">
+                        Complete the previous milestone and get it approved by your accountability partner to unlock this phase.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
                 <div className="card overflow-hidden border border-border-subtle">
                   <div className="p-4 border-b border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-elevated/40">
                     <div>
@@ -1133,41 +1264,68 @@ export default function Challenges() {
                       <span className="text-xs font-mono font-bold text-text-muted mr-1">
                         {completedTasks} / {totalTasks} Completed
                       </span>
-                      <button
-                        onClick={() => setIsImportModalOpen(true)}
-                        className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 cursor-pointer shadow-glow-primary"
-                      >
-                        <FiFileText size={13} /> Import Syllabus / Tasks
-                      </button>
+                      {activeMilestone.status === 'unlocked' && totalTasks > 0 && completedTasks === totalTasks ? (
+                        <button
+                          onClick={() => setIsReviewModalOpen(true)}
+                          className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 cursor-pointer shadow-glow-primary bg-gradient-to-r from-success to-primary"
+                        >
+                          <FiSend size={13} /> Request Peer Approval
+                        </button>
+                      ) : activeMilestone.status === 'pending_review' ? (
+                        <span className="badge-warning text-xs px-3 py-1.5 flex items-center gap-1.5 animate-pulse">
+                           ⏳ Pending Partner Approval
+                        </span>
+                      ) : activeMilestone.status === 'approved' || activeMilestone.status === 'completed' ? (
+                        <span className="badge-success text-xs px-3 py-1.5 flex items-center gap-1.5">
+                           <FiCheckCircle size={13} /> Approved
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setIsImportModalOpen(true)}
+                          className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 cursor-pointer shadow-glow-primary"
+                        >
+                          <FiFileText size={13} /> Import Syllabus / Tasks
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Table Header */}
-                  <div className="flex items-center gap-4 px-4 py-2 bg-surface-elevated text-[10px] font-bold text-text-muted uppercase tracking-wider border-b border-border-subtle">
-                    <span className="w-10">Day</span>
-                    <span className="flex-1">Task Description</span>
-                    <span className="w-16 text-center">Category</span>
-                    <span className="w-12 text-center">Priority</span>
-                    <span className="w-24 text-center">Status</span>
-                    <span className="w-24 text-center">Completed</span>
-                    <span className="w-6"></span>
-                  </div>
-
-                  {/* Task Rows */}
+                  {/* Task Rows Grouped by Day */}
                   {tasks.length > 0 ? (
-                    tasks.map((task, i) => (
-                      <TaskRow
-                        key={task.id || i}
-                        task={task}
-                        index={i}
-                        onToggle={handleToggleTask}
-                        onOpenDetail={(t) => {
-                          setDetailTask(t);
-                          setIsTaskModalOpen(true);
-                        }}
-                        dayOffset={activeMilestoneIdx * 10}
-                      />
-                    ))
+                    <div className="p-4 space-y-4 bg-surface-elevated/20">
+                      {Object.keys(groupedTasks).sort((a,b)=>a-b).map((dayKey) => {
+                        const dayTasks = groupedTasks[dayKey];
+                        const dayCompleted = dayTasks.filter(t => t.is_completed).length;
+                        const isAllDone = dayCompleted === dayTasks.length;
+                        return (
+                          <div key={dayKey} className={`border rounded-xl overflow-hidden shadow-lg transition-all ${isAllDone ? 'border-success/30 bg-success/5' : 'border-border-subtle bg-surface'}`}>
+                            <div className={`px-4 py-3 flex items-center justify-between border-b ${isAllDone ? 'bg-success/10 border-success/20' : 'bg-surface-elevated border-border-subtle'}`}>
+                              <h4 className={`font-bold text-sm flex items-center gap-2 ${isAllDone ? 'text-success' : 'text-text-primary'}`}>
+                                {isAllDone && <FiCheckCircle size={14} />}
+                                Day {dayKey} Checklist
+                                <span className="text-text-muted text-[10px] font-normal uppercase tracking-wider">({dayTasks.length} Tasks)</span>
+                              </h4>
+                              <span className="text-[10px] font-mono font-bold text-text-muted">
+                                {dayCompleted} / {dayTasks.length} Done
+                              </span>
+                            </div>
+                            <div className="divide-y divide-border-subtle">
+                              {dayTasks.map((task, i) => (
+                                <TaskRow
+                                  key={task.id || i}
+                                  task={task}
+                                  onToggle={handleToggleTask}
+                                  onOpenDetail={(t) => {
+                                    setDetailTask(t);
+                                    setIsTaskModalOpen(true);
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
                   ) : (
                     /* EMPTY STATE WITH 1-CLICK AUTO-FILL AND TEXT BOX IMPORT */
                     <div className="p-10 text-center text-text-muted text-xs space-y-4 bg-surface-elevated/20">
@@ -1196,6 +1354,7 @@ export default function Challenges() {
                     </div>
                   )}
                 </div>
+                )
               ) : (
                 <div className="card p-8 text-center text-text-muted text-xs">
                   Select a milestone above to view tasks.

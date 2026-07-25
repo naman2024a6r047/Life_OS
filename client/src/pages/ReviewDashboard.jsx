@@ -10,7 +10,9 @@ import {
 export default function ReviewDashboard() {
   const { user } = useContext(AuthContext);
   const [activeTab, setActiveTab] = useState('to-do');
-  const [selectedReviewId, setSelectedReviewId] = useState('r1');
+  const [selectedReviewId, setSelectedReviewId] = useState(null);
+  const [reviewsToDo, setReviewsToDo] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [ratings, setRatings] = useState({
     quality: 5,
     completeness: 5,
@@ -19,52 +21,29 @@ export default function ReviewDashboard() {
   });
   const [feedback, setFeedback] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    fetchPendingReviews();
+  }, []);
+
+  const fetchPendingReviews = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get('/api/reviews/pending');
+      const data = res.data || [];
+      setReviewsToDo(data);
+      if (data.length > 0) setSelectedReviewId(data[0].id);
+    } catch (err) {
+      console.error('Error fetching pending reviews:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const streak = user?.current_streak || 32;
   const totalXP = (user?.xp || 0) + ((user?.level || 1) - 1) * 100 || 1825;
   const level = user?.level || 13;
-
-  const reviewsToDo = [
-    {
-      id: 'r1',
-      title: 'Build a To-Do App with React',
-      milestone: 'Milestone 4 • Day 37-40',
-      author: 'Arjun Verma',
-      dueDate: 'Due in 1 day',
-      dueFull: '12 May 2026',
-      icon: '</>',
-      description: 'Integrate backend API with React app, implement CRUD operations for tasks, add authentication and deploy.',
-      repoUrl: 'https://github.com/arjunverma/todo-app',
-      notes: 'I have connected the frontend with Node.js backend API. Users can signup/login, create tasks, update and delete their tasks. Please review the code quality, UI/UX and overall functionality.',
-      activity: [
-        { label: 'Milestone Started', day: 'Day 31', date: '10 Apr 2026', color: 'purple' },
-        { label: 'Progress Update', day: 'Day 34', date: '13 Apr 2026', color: 'info' },
-        { label: 'Work Submitted', day: 'Day 40', date: '10 May 2026', color: 'success' },
-      ],
-      evidence: [
-        'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=300&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=300&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?w=300&auto=format&fit=crop&q=60',
-        'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=300&auto=format&fit=crop&q=60',
-      ]
-    },
-    {
-      id: 'r2',
-      title: 'Quantitative Aptitude Practice',
-      milestone: 'Milestone 2 • Day 11-20',
-      author: 'Priya Sharma',
-      dueDate: 'Due in 2 days',
-      icon: '📖',
-    },
-    {
-      id: 'r3',
-      title: 'Push Pull Legs Routine',
-      milestone: 'Milestone 3 • Week 3',
-      author: 'Rohit Singh',
-      dueDate: 'Due in 3 days',
-      icon: '🏋️',
-    }
-  ];
 
   const selectedReview = reviewsToDo.find(r => r.id === selectedReviewId) || reviewsToDo[0];
 
@@ -96,6 +75,29 @@ export default function ReviewDashboard() {
       ))}
     </div>
   );
+
+  const handleEvaluate = async (isApproved) => {
+    if (!selectedReview) return;
+    try {
+      setSubmitting(true);
+      await axios.post(`/api/reviews/evaluate/${selectedReview.id}`, {
+        is_approved: isApproved,
+        rating_understanding: ratings.quality,
+        rating_consistency: ratings.consistency,
+        rating_quality: ratings.completeness,
+        rating_overall: ratings.creativity,
+        comment: feedback
+      });
+      alert(`Milestone ${isApproved ? 'Approved' : 'Rejected'}!`);
+      fetchPendingReviews();
+      setFeedback('');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to submit evaluation.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="p-6 space-y-5">
@@ -179,7 +181,7 @@ export default function ReviewDashboard() {
           {/* Reviews to Do Search & List */}
           <div className="card p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold text-text-primary">Reviews to Do (3)</h3>
+              <h3 className="text-xs font-bold text-text-primary">Reviews to Do ({reviewsToDo.length})</h3>
               <FiFilter className="text-text-muted text-xs cursor-pointer hover:text-text-primary" />
             </div>
             <div className="relative mb-3">
@@ -193,32 +195,36 @@ export default function ReviewDashboard() {
               />
             </div>
             <div className="space-y-2">
-              {reviewsToDo.map(r => {
-                const isSelected = r.id === selectedReviewId;
-                return (
-                  <div
-                    key={r.id}
-                    onClick={() => setSelectedReviewId(r.id)}
-                    className={`p-3 rounded-xl border transition-all cursor-pointer ${
-                      isSelected ? 'border-purple bg-purple/10' : 'border-border-subtle bg-surface-elevated/40 hover:bg-surface-elevated'
-                    }`}
-                  >
-                    <div className="flex items-start gap-2.5">
-                      <div className="w-7 h-7 rounded-lg bg-warning/10 text-warning flex items-center justify-center font-mono text-xs flex-shrink-0 mt-0.5">
-                        {r.icon}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs font-bold text-text-primary truncate">{r.title}</p>
-                        <p className="text-[10px] text-text-muted">{r.milestone}</p>
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-[10px] text-text-secondary">By {r.author}</span>
-                          <span className="badge-danger text-[8px] px-1.5 py-0">{r.dueDate}</span>
+              {loading ? (
+                <div className="text-center text-text-muted text-xs p-4">Loading requests...</div>
+              ) : reviewsToDo.length === 0 ? (
+                <div className="text-center text-text-muted text-xs p-4 border border-dashed border-border-subtle rounded-xl">No pending reviews. You're all caught up!</div>
+              ) : (
+                reviewsToDo.map(r => {
+                  const isSelected = r.id === selectedReviewId;
+                  const authorName = r.requester?.username || 'Unknown User';
+                  const title = r.Milestone?.title || 'Unknown Milestone';
+                  return (
+                    <div
+                      key={r.id}
+                      onClick={() => setSelectedReviewId(r.id)}
+                      className={`p-3 rounded-xl border transition-all cursor-pointer ${
+                        isSelected ? 'border-purple bg-purple/10' : 'border-border-subtle bg-surface-elevated/40 hover:bg-surface-elevated'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-warning/10 text-warning flex items-center justify-center font-mono text-xs flex-shrink-0 mt-0.5">
+                          🎯
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-bold text-text-primary truncate">{title}</p>
+                          <p className="text-[10px] text-text-muted">By {authorName}</p>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })
+              )}
             </div>
           </div>
 
@@ -273,16 +279,16 @@ export default function ReviewDashboard() {
             <div className="flex items-start justify-between">
               <div className="flex items-start gap-3">
                 <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center font-mono font-bold">
-                  {selectedReview.icon}
+                  🎯
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="badge-purple text-[9px]">Milestone Review</span>
                     <span className="badge-info text-[9px]">In Progress</span>
                   </div>
-                  <h2 className="text-base font-bold text-text-primary mt-1">{selectedReview.title}</h2>
+                  <h2 className="text-base font-bold text-text-primary mt-1">{selectedReview?.Milestone?.title || 'No review selected'}</h2>
                   <p className="text-xs text-text-muted">
-                    {selectedReview.milestone} • By <span className="text-text-primary font-medium">{selectedReview.author}</span> • Due: {selectedReview.dueFull}
+                    By <span className="text-text-primary font-medium">{selectedReview?.requester?.username || '-'}</span>
                   </p>
                 </div>
               </div>
@@ -295,17 +301,19 @@ export default function ReviewDashboard() {
             </div>
 
             {/* Submitted Work Link */}
-            <div className="p-3 rounded-xl bg-surface-elevated flex items-center justify-between">
-              <div>
-                <p className="text-[10px] text-text-muted">Submitted Work</p>
-                <a href={selectedReview.repoUrl} target="_blank" rel="noreferrer" className="text-xs text-info font-mono hover:underline flex items-center gap-1">
-                  {selectedReview.repoUrl} <FiExternalLink size={11} />
+            {selectedReview?.evidence_url && (
+              <div className="p-3 rounded-xl bg-surface-elevated flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] text-text-muted">Submitted Work</p>
+                  <a href={selectedReview.evidence_url} target="_blank" rel="noreferrer" className="text-xs text-info font-mono hover:underline flex items-center gap-1">
+                    {selectedReview.evidence_url} <FiExternalLink size={11} />
+                  </a>
+                </div>
+                <a href={selectedReview.evidence_url} target="_blank" rel="noreferrer" className="btn-outline text-xs px-3 py-1.5">
+                  View Submission
                 </a>
               </div>
-              <a href={selectedReview.repoUrl} target="_blank" rel="noreferrer" className="btn-outline text-xs px-3 py-1.5">
-                View Submission
-              </a>
-            </div>
+            )}
 
             {/* Progress Evidence */}
             <div>
@@ -322,30 +330,16 @@ export default function ReviewDashboard() {
               </div>
             </div>
 
-            {/* Arjun's Notes */}
-            <div>
-              <h4 className="text-xs font-bold text-text-primary mb-1.5">{selectedReview.author.split(' ')[0]}'s Notes</h4>
-              <div className="p-3 rounded-xl bg-surface-elevated/70 border-l-2 border-purple text-xs text-text-secondary italic">
-                "{selectedReview.notes}"
+            {/* Peer Notes */}
+            {selectedReview?.reflection && (
+              <div>
+                <h4 className="text-xs font-bold text-text-primary mb-1.5">{selectedReview?.requester?.username || 'Peer'}'s Reflection</h4>
+                <div className="p-3 rounded-xl bg-surface-elevated/70 border-l-2 border-purple text-xs text-text-secondary italic">
+                  "{selectedReview.reflection}"
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Milestone Activity Timeline */}
-            <div>
-              <h4 className="text-xs font-bold text-text-primary mb-2">Milestone Activity</h4>
-              <div className="space-y-2">
-                {selectedReview.activity?.map((act, i) => (
-                  <div key={i} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className={`w-2 h-2 rounded-full bg-${act.color}`} />
-                      <span className="font-semibold text-text-primary">{act.label}</span>
-                      <span className="text-text-muted text-[10px]">{act.day}</span>
-                    </div>
-                    <span className="text-text-muted font-mono text-[10px]">{act.date}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
           </div>
         </div>
 
@@ -391,11 +385,19 @@ export default function ReviewDashboard() {
 
             {/* Buttons */}
             <div className="grid grid-cols-2 gap-2 pt-1">
-              <button className="py-2 rounded-xl border border-danger/40 text-danger hover:bg-danger/10 text-xs font-semibold transition-all">
-                Request Changes
+              <button 
+                onClick={() => handleEvaluate(false)}
+                disabled={submitting || !selectedReview}
+                className="py-2 rounded-xl border border-danger/40 text-danger hover:bg-danger/10 text-xs font-semibold transition-all disabled:opacity-50"
+              >
+                {submitting ? '...' : 'Request Changes'}
               </button>
-              <button className="py-2 rounded-xl bg-success hover:bg-success/90 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-glow-success">
-                <FiCheck size={14} /> Approve Milestone
+              <button 
+                onClick={() => handleEvaluate(true)}
+                disabled={submitting || !selectedReview}
+                className="py-2 rounded-xl bg-success hover:bg-success/90 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-glow-success disabled:opacity-50"
+              >
+                <FiCheck size={14} /> {submitting ? '...' : 'Approve Milestone'}
               </button>
             </div>
           </div>

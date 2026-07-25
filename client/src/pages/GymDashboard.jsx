@@ -93,49 +93,10 @@ export default function GymDashboard() {
       video_url: 'https://www.youtube.com/watch?v=op9kVnSso6Q',
       instructions: 'Stand under bar, hinge hips, grip bar firmly and extend hips to lift.',
       tips: 'Keep bar close to body throughout.'
-    },
-    {
-      id: 'ex_6',
-      name: 'Dumbbell Bicep Curl',
-      group: 'Arms',
-      equipment: 'Dumbbell',
-      difficulty: 'Beginner',
-      primary: 'Biceps',
-      secondary: 'Forearms',
-      image_url: 'https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=600&auto=format&fit=crop&q=60',
-      video_url: '',
-      instructions: 'Stand holding dumbbells, curl up towards shoulders with palms up.',
-      tips: 'Keep upper arms stationary.'
-    },
-    {
-      id: 'ex_7',
-      name: 'Cable Tricep Pushdown',
-      group: 'Arms',
-      equipment: 'Cable Machine',
-      difficulty: 'Beginner',
-      primary: 'Triceps',
-      secondary: 'Forearms',
-      image_url: '',
-      video_url: '',
-      instructions: 'Push rope down until arms lock out, control return.',
-      tips: 'Keep elbows pinned to torso.'
-    },
-    {
-      id: 'ex_8',
-      name: 'Plank',
-      group: 'Core',
-      equipment: 'Bodyweight',
-      difficulty: 'Beginner',
-      primary: 'Core',
-      secondary: 'Shoulders',
-      image_url: '',
-      video_url: '',
-      instructions: 'Hold forearm plank position with straight body alignment.',
-      tips: 'Squeeze glutes and brace abs.'
     }
   ];
 
-  // Exercises Library State (Custom User Saved Exercises)
+  // Exercises Library State
   const [exercisesList, setExercisesList] = useState(() => {
     const saved = localStorage.getItem(exerciseLibraryStorageKey);
     return saved ? JSON.parse(saved) : defaultExercises;
@@ -146,12 +107,10 @@ export default function GymDashboard() {
     Monday: { title: 'Push Day', focus: 'Chest • Shoulders • Triceps', exercises: [
       { id: 'ex_1', name: 'Barbell Bench Press', sets: 4, reps: 10, targetWeight: '80', completed: true },
       { id: 'ex_2', name: 'Dumbbell Shoulder Press', sets: 3, reps: 12, targetWeight: '24', completed: true },
-      { id: 'ex_7', name: 'Cable Tricep Pushdown', sets: 3, reps: 15, targetWeight: '35', completed: false },
     ]},
     Tuesday: { title: 'Pull Day', focus: 'Back • Biceps • Rear Delts', exercises: [
       { id: 'ex_3', name: 'Pull Up', sets: 4, reps: 10, targetWeight: 'BW', completed: false },
       { id: 'ex_5', name: 'Deadlift', sets: 3, reps: 8, targetWeight: '120', completed: false },
-      { id: 'ex_6', name: 'Dumbbell Bicep Curl', sets: 3, reps: 12, targetWeight: '16', completed: false },
     ]},
     Wednesday: { title: 'Leg Day', focus: 'Quads • Hamstrings • Calves', exercises: [
       { id: 'ex_2', name: 'Barbell Back Squat', sets: 4, reps: 10, targetWeight: '100', completed: false },
@@ -168,17 +127,13 @@ export default function GymDashboard() {
   const demoWorkouts = [
     { id: 1, title: 'Push Day', time: 'Today, 7:00 AM', focus: 'Chest, Shoulders, Triceps', duration: '75 min', volume: '8,250 kg', calories: '620 kcal', notes: '—', status: 'Completed' },
     { id: 2, title: 'Pull Day', time: 'Yesterday, 6:30 PM', focus: 'Back, Biceps, Rear Delts', duration: '70 min', volume: '6,200 kg', calories: '560 kcal', notes: 'Felt strong 💪', status: 'Completed' },
-    { id: 3, title: 'Leg Day', time: '16 May 2026', focus: 'Quads, Hamstrings, Calves', duration: '80 min', volume: '7,100 kg', calories: '720 kcal', notes: '—', status: 'Completed' },
-    { id: 4, title: 'Push Day', time: '14 May 2026', focus: 'Chest, Shoulders, Triceps', duration: '65 min', volume: '6,000 kg', calories: '480 kcal', notes: 'Added reps', status: 'Completed' },
   ];
 
   // Default PRs
   const defaultPRs = {
     'Barbell Bench Press': { weight: 80, date: '14 May 2026' },
     'Barbell Back Squat': { weight: 100, date: '12 May 2026' },
-    'Deadlift': { weight: 120, date: '10 May 2026' },
-    'Overhead Press': { weight: 40, date: '8 May 2026' },
-    'Pull Up': { weight: 15, date: '6 May 2026' }
+    'Deadlift': { weight: 120, date: '10 May 2026' }
   };
 
   // State Declarations
@@ -188,8 +143,9 @@ export default function GymDashboard() {
   });
 
   const [personalRecords, setPersonalRecords] = useState(() => {
+    if (isDemoAccount) return defaultPRs;
     const saved = localStorage.getItem(prStorageKey);
-    return saved ? JSON.parse(saved) : defaultPRs;
+    return saved ? JSON.parse(saved) : {};
   });
 
   const [workoutsList, setWorkoutsList] = useState(() => {
@@ -286,8 +242,10 @@ export default function GymDashboard() {
   }, [weeklyPlan, planStorageKey]);
 
   useEffect(() => {
-    localStorage.setItem(prStorageKey, JSON.stringify(personalRecords));
-  }, [personalRecords, prStorageKey]);
+    if (!isDemoAccount && user?.id) {
+      localStorage.setItem(prStorageKey, JSON.stringify(personalRecords));
+    }
+  }, [personalRecords, isDemoAccount, user?.id, prStorageKey]);
 
   useEffect(() => {
     if (!isDemoAccount && user?.id) {
@@ -343,17 +301,14 @@ export default function GymDashboard() {
     if (!exerciseForm.name.trim()) return;
 
     if (editingExerciseId) {
-      // Update existing
       setExercisesList(prev => prev.map(ex => ex.id === editingExerciseId ? { ...ex, ...exerciseForm } : ex));
     } else {
-      // Create new
       const newEx = {
         id: `ex_${Date.now()}`,
         ...exerciseForm
       };
       setExercisesList(prev => [newEx, ...prev]);
       setSelectedExercise(newEx.name);
-      // Auto update default select in plan modal
       setNewPlanExercise(prev => ({ ...prev, name: newEx.name }));
     }
     setShowExerciseModal(false);
@@ -390,7 +345,7 @@ export default function GymDashboard() {
     }
   };
 
-  // Add Exercise to Weekly Plan (STRICTLY FROM SAVED EXERCISES)
+  // Add Exercise to Weekly Plan
   const handleAddExerciseToPlan = (e) => {
     e.preventDefault();
     const selectedEx = exercisesList.find(ex => ex.name === newPlanExercise.name);
@@ -416,88 +371,11 @@ export default function GymDashboard() {
   const [selectedExercise, setSelectedExercise] = useState('Barbell Bench Press');
   const [searchExercise, setSearchExercise] = useState('');
 
-  // Active Workout Mode State
-  const [isWorkoutActive, setIsWorkoutActive] = useState(false);
-  const [workoutTimer, setWorkoutTimer] = useState(0);
-  const [restTimer, setRestTimer] = useState(0);
-  const [isResting, setIsResting] = useState(false);
-  const [loggedSets, setLoggedSets] = useState([
-    { setNum: 1, weight: '80', reps: '10', done: true },
-    { setNum: 2, weight: '80', reps: '10', done: false },
-    { setNum: 3, weight: '85', reps: '8', done: false },
-  ]);
-
+  // Modals state
   const [prNotification, setPrNotification] = useState(null);
   const [showNewWorkoutModal, setShowNewWorkoutModal] = useState(false);
-  const [showAddPhotoModal, setShowAddPhotoModal] = useState(false);
-  const [showEditGoalsModal, setShowEditGoalsModal] = useState(false);
 
   const [newWorkout, setNewWorkout] = useState({ title: 'Push Day', focus: 'Chest • Shoulders • Triceps', duration: '60', volume: '7500', calories: '550', notes: '' });
-
-  // Active workout timer tick
-  useEffect(() => {
-    let timerInterval;
-    if (isWorkoutActive) {
-      timerInterval = setInterval(() => {
-        setWorkoutTimer(prev => prev + 1);
-      }, 1000);
-    }
-    return () => clearInterval(timerInterval);
-  }, [isWorkoutActive]);
-
-  // Rest timer tick
-  useEffect(() => {
-    let restInterval;
-    if (isResting && restTimer > 0) {
-      restInterval = setInterval(() => {
-        setRestTimer(prev => prev - 1);
-      }, 1000);
-    } else if (restTimer === 0) {
-      setIsResting(false);
-    }
-    return () => clearInterval(restInterval);
-  }, [isResting, restTimer]);
-
-  const formatTimer = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
-
-  const startLiveWorkout = () => {
-    setIsWorkoutActive(true);
-    setWorkoutTimer(0);
-    setActiveTab('workouts');
-  };
-
-  const finishLiveWorkout = () => {
-    setIsWorkoutActive(false);
-    const maxWeight = Math.max(...loggedSets.map(s => Number(s.weight)));
-    const createdSession = {
-      id: Date.now(),
-      title: 'Live Session Workout',
-      time: 'Just now',
-      focus: 'Chest • Triceps',
-      duration: `${Math.max(1, Math.floor(workoutTimer / 60))} min`,
-      volume: `${maxWeight * 10} kg`,
-      calories: '450 kcal',
-      notes: maxWeight >= 85 ? 'New PR Hit! 🏆' : 'Great session!',
-      status: 'Completed'
-    };
-    setWorkoutsList([createdSession, ...workoutsList]);
-    if (maxWeight >= 85) {
-      setPrNotification(`🎉 New Personal Record! Bench Press ${maxWeight} kg achieved!`);
-      setTimeout(() => setPrNotification(null), 5000);
-    }
-  };
-
-  const handleLogSet = (index) => {
-    const updated = [...loggedSets];
-    updated[index].done = true;
-    setLoggedSets(updated);
-    setRestTimer(60);
-    setIsResting(true);
-  };
 
   const handleAddWorkout = (e) => {
     e.preventDefault();
@@ -533,6 +411,10 @@ export default function GymDashboard() {
   ];
 
   const activeExerciseObj = exercisesList.find(e => e.name === selectedExercise) || exercisesList[0] || defaultExercises[0];
+
+  // Helper to determine target exercise for today's scheduled workout SVG highlighting
+  const todayTitle = (weeklyPlan['Monday']?.title || 'Push Day').toLowerCase();
+  const todayExerciseFocus = todayTitle.includes('pull') ? 'pull up' : todayTitle.includes('leg') ? 'squat' : 'bench press';
 
   return (
     <div className="p-6 space-y-5">
@@ -627,99 +509,208 @@ export default function GymDashboard() {
       {/* SUB TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
+          {/* Top Row Cards */}
           <div className="grid grid-cols-12 gap-4">
-            <div className="col-span-5 card p-4 space-y-3 bg-gradient-to-br from-surface to-surface-elevated relative overflow-hidden">
+            {/* Today's Scheduled Workout Card (PROMINENT LARGE SVG & TARGET MUSCLES HIGHLIGHT) */}
+            <div className="col-span-5 card p-5 space-y-4 bg-gradient-to-br from-surface to-surface-elevated relative overflow-hidden flex flex-col justify-between border border-purple/30">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-text-primary">Today's Scheduled Workout</span>
-                <span className="badge-success text-[9px]">Active Split</span>
+                <span className="text-xs font-bold text-text-primary tracking-wide">Today's Scheduled Workout</span>
+                <span className="badge-success text-[9px] px-2.5 py-0.5">Active Split</span>
               </div>
 
-              <div className="flex items-center justify-between pt-1">
+              {/* Title & Workout Header */}
+              <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-lg bg-purple/10 text-purple flex items-center justify-center">
-                      <FiActivity size={18} />
+                    <div className="w-9 h-9 rounded-xl bg-purple/10 text-purple flex items-center justify-center font-bold">
+                      <FiActivity size={20} />
                     </div>
                     <div>
-                      <h3 className="text-base font-bold text-text-primary">
+                      <h3 className="text-lg font-extrabold text-text-primary">
                         {weeklyPlan['Monday']?.title || 'Push Day'}
                       </h3>
-                      <p className="text-[10px] text-text-muted">
+                      <p className="text-xs font-medium text-purple">
                         {weeklyPlan['Monday']?.focus || 'Chest • Shoulders • Triceps'}
                       </p>
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-4 gap-2 pt-3 text-center">
-                    <div className="p-1.5 rounded-lg bg-background/50">
-                      <p className="text-[8px] text-text-muted">Exercises</p>
-                      <p className="text-xs font-bold font-mono text-text-primary">{weeklyPlan['Monday']?.exercises?.length || 3}</p>
-                    </div>
-                    <div className="p-1.5 rounded-lg bg-background/50">
-                      <p className="text-[8px] text-text-muted">Duration</p>
-                      <p className="text-xs font-bold font-mono text-text-primary">60 min</p>
-                    </div>
-                    <div className="p-1.5 rounded-lg bg-background/50">
-                      <p className="text-[8px] text-text-muted">Volume</p>
-                      <p className="text-xs font-bold font-mono text-text-primary">7,500 kg</p>
-                    </div>
-                    <div className="p-1.5 rounded-lg bg-background/50">
-                      <p className="text-[8px] text-text-muted">Calories</p>
-                      <p className="text-xs font-bold font-mono text-text-primary">550 kcal</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="w-48 h-44 flex items-center justify-center">
-                  <MuscleDiagram selectedExercise="bench press" side="front" />
+                  <p className="text-[11px] text-text-muted pt-1">
+                    Target Muscles highlighted below based on today's training plan ({weeklyPlan['Monday']?.exercises?.length || 3} exercises scheduled).
+                  </p>
                 </div>
               </div>
 
-              <div className="flex gap-2">
-                <button onClick={() => startLiveWorkout()} className="btn-primary text-xs flex-1 py-2 bg-purple hover:bg-purple/80 flex items-center justify-center gap-1.5 shadow-glow-primary">
-                  <FiPlay size={14} /> Start Live Workout
-                </button>
-                <button onClick={() => setActiveTab('workouts')} className="btn-outline text-xs flex-1 py-2">
-                  View Weekly Plan
+              {/* ENLARGED PROMINENT ANATOMICAL SVG (HIGHLIGHTS CURRENT DAY'S TARGET MUSCLES) */}
+              <div className="w-full h-64 flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-2 my-1">
+                <MuscleDiagram selectedExercise={todayExerciseFocus} className="w-full h-full" />
+              </div>
+
+              {/* View Weekly Plan Action */}
+              <div className="pt-1">
+                <button onClick={() => setActiveTab('workouts')} className="btn-outline text-xs w-full py-2.5 border-purple/50 text-purple hover:bg-purple/10 font-bold flex items-center justify-center gap-1.5">
+                  View Weekly Plan & Schedule <FiChevronRight size={14} />
                 </button>
               </div>
             </div>
 
-            <div className="col-span-4 card p-4 space-y-3 flex flex-col justify-between">
-              <div className="flex items-center justify-between">
-                <h3 className="section-title">Weekly Activity</h3>
-                <span onClick={() => setActiveTab('workouts')} className="section-link">View Calendar</span>
+            {/* IMPROVED WEEKLY ACTIVITY CARD */}
+            <div className="col-span-4 card p-5 space-y-4 flex flex-col justify-between bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-2">
+                <div>
+                  <h3 className="section-title text-sm">Weekly Activity</h3>
+                  <p className="text-[10px] text-text-muted">Training frequency for this week</p>
+                </div>
+                <span onClick={() => setActiveTab('workouts')} className="section-link text-xs">View Calendar</span>
               </div>
-              <div className="flex justify-between items-center px-1">
+
+              {/* Day Badges */}
+              <div className="flex justify-between items-center px-1 py-2">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                  <div key={day} className="flex flex-col items-center gap-1">
-                    <span className="text-[9px] text-text-muted font-mono">{day}</span>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${i <= 5 ? 'bg-success text-white' : 'bg-surface-elevated text-text-muted'}`}>
+                  <div key={day} className="flex flex-col items-center gap-1.5">
+                    <span className="text-[10px] text-text-muted font-mono uppercase">{day}</span>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                      i <= 4 ? 'bg-success text-white shadow-glow-success' : i === 5 ? 'bg-purple text-white shadow-glow-primary' : 'bg-surface-elevated text-text-muted border border-border-subtle'
+                    }`}>
                       {i <= 5 ? '✓' : '•'}
                     </div>
                   </div>
                 ))}
               </div>
-            </div>
 
-            <div className="col-span-3 card p-4 flex flex-col items-center justify-center text-center space-y-2">
-              <h3 className="section-title text-xs">Current Streak</h3>
-              <div className="relative w-28 h-28 my-1">
-                <svg className="w-28 h-28 -rotate-90" viewBox="0 0 112 112">
-                  <circle cx="56" cy="56" r="44" stroke="#161A2E" strokeWidth="10" fill="none" />
-                  <circle cx="56" cy="56" r="44" stroke="#22C55E" strokeWidth="10" strokeDasharray="240 276" fill="none" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-xl font-bold font-mono text-text-primary">{streak}</span>
-                  <span className="text-[9px] text-text-muted">Days</span>
+              {/* Stats Summary Bar */}
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-border-subtle text-center">
+                <div className="p-2 rounded-xl bg-surface-elevated/40">
+                  <p className="text-[9px] text-text-muted">Workouts Done</p>
+                  <p className="text-sm font-extrabold font-mono text-text-primary">5 / 6</p>
+                </div>
+                <div className="p-2 rounded-xl bg-surface-elevated/40">
+                  <p className="text-[9px] text-text-muted">Total Time</p>
+                  <p className="text-sm font-extrabold font-mono text-purple">6.4 hrs</p>
+                </div>
+                <div className="p-2 rounded-xl bg-surface-elevated/40">
+                  <p className="text-[9px] text-text-muted">Weekly Calories</p>
+                  <p className="text-sm font-extrabold font-mono text-warning">2,850 kcal</p>
                 </div>
               </div>
+            </div>
+
+            {/* IMPROVED CURRENT STREAK CARD */}
+            <div className="col-span-3 card p-5 flex flex-col items-center justify-between text-center space-y-3 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
+              <div className="w-full border-b border-border-subtle pb-2">
+                <h3 className="section-title text-xs">Current Streak</h3>
+                <p className="text-[10px] text-text-muted">Consistency Counter</p>
+              </div>
+
+              {/* Glowing Streak Dial */}
+              <div className="relative w-32 h-32 my-1 flex items-center justify-center">
+                <svg className="w-32 h-32 -rotate-90" viewBox="0 0 112 112">
+                  <circle cx="56" cy="56" r="44" stroke="#161A2E" strokeWidth="10" fill="none" />
+                  <circle cx="56" cy="56" r="44" stroke="#22C55E" strokeWidth="10" strokeDasharray="240 276" strokeLinecap="round" fill="none" className="filter drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-2xl font-extrabold font-mono text-text-primary">{streak}</span>
+                  <span className="text-[9px] font-bold text-success uppercase tracking-wider">Days Streak</span>
+                </div>
+              </div>
+
+              <div className="w-full p-2 rounded-xl bg-surface-elevated/50 text-[10px] text-text-muted flex justify-between items-center">
+                <span>Best Streak Record</span>
+                <strong className="text-text-primary font-mono text-xs">32 Days</strong>
+              </div>
+            </div>
+          </div>
+
+          {/* Middle Row (Workout History & PRs with CLEAN EMPTY STATES for Fresh Accounts) */}
+          <div className="grid grid-cols-12 gap-4">
+            {/* WORKOUT HISTORY CARD */}
+            <div className="col-span-4 card p-4 space-y-3">
+              <div className="section-header">
+                <h3 className="section-title text-xs">Workout History</h3>
+                <span onClick={() => setActiveTab('workouts')} className="section-link text-xs">View All</span>
+              </div>
+
+              {workoutsList.length > 0 ? (
+                <div className="space-y-2">
+                  {workoutsList.slice(0, 5).map((w, i) => (
+                    <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated/40 text-xs border border-border-subtle/50">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-purple/10 text-purple flex items-center justify-center font-bold">
+                          <FiActivity size={14} />
+                        </div>
+                        <div>
+                          <p className="font-bold text-text-primary leading-tight">{w.title}</p>
+                          <p className="text-[9px] text-text-muted">{w.time}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 font-mono text-[10px]">
+                        <span className="text-text-muted">{w.duration}</span>
+                        <span className="font-bold text-text-primary">{w.volume}</span>
+                        <FiCheckCircle className="text-success" size={12} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* CLEAN EMPTY STATE UNLESS DATA IS ADDED */
+                <div className="text-center py-10 px-4 rounded-xl border border-dashed border-border-subtle bg-surface-elevated/20 text-xs text-text-muted space-y-2">
+                  <p className="font-bold text-text-primary text-xs">No Workouts Recorded Yet</p>
+                  <p className="text-[10px]">Your completed workout sessions will appear here once logged.</p>
+                </div>
+              )}
+            </div>
+
+            {/* PROGRESS OVERVIEW CHART */}
+            <div className="col-span-5 card p-4 space-y-3">
+              <div className="section-header">
+                <h3 className="section-title text-xs">Progress Volume Overview</h3>
+                <span className="text-[10px] text-text-muted">Volume (kg) ▾</span>
+              </div>
+              <div className="h-36 flex items-end justify-between gap-1.5 px-1 pt-4 pb-2 border-b border-border-subtle relative">
+                {[40, 75, 50, 65, 55, 85, 45, 60, 90, 70, 80].map((h, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
+                    <div className={`w-full rounded-t-md ${i === 5 ? 'bg-purple shadow-glow-primary' : 'bg-primary/40'}`} style={{ height: `${workoutsList.length > 0 ? h : 10}%` }} />
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-[8px] text-text-muted font-mono">
+                <span>9 May</span><span>15 May</span><span>23 May</span><span>30 May</span><span>6 Jun</span><span>13 Jun</span>
+              </div>
+            </div>
+
+            {/* PERSONAL RECORDS CARD */}
+            <div className="col-span-3 card p-4 space-y-3">
+              <div className="section-header">
+                <h3 className="section-title text-xs">Personal Records</h3>
+                <span onClick={() => setActiveTab('progress')} className="section-link text-xs">View All</span>
+              </div>
+
+              {Object.keys(personalRecords).length > 0 ? (
+                <div className="space-y-2 text-xs">
+                  {Object.entries(personalRecords).map(([exName, record]) => (
+                    <div key={exName} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated/40 border border-border-subtle/50">
+                      <span className="font-bold text-text-primary flex items-center gap-1.5 text-[11px]">
+                        <span>🏋️</span> {exName}
+                      </span>
+                      <div className="flex items-center gap-1.5 font-mono">
+                        <span className="font-bold text-purple">{record.weight} {record.unit || 'kg'}</span>
+                        <span className="text-[8px] text-text-muted">{record.date}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* CLEAN EMPTY STATE UNLESS DATA IS ADDED */
+                <div className="text-center py-10 px-4 rounded-xl border border-dashed border-border-subtle bg-surface-elevated/20 text-xs text-text-muted space-y-2">
+                  <p className="font-bold text-text-primary text-xs">No Personal Records Yet</p>
+                  <p className="text-[10px]">Personal records logged during workouts will be saved here automatically.</p>
+                </div>
+              )}
             </div>
           </div>
         </motion.div>
       )}
 
-      {/* SUB TAB 2: WORKOUTS (WITH SAVED EXERCISES WEEKLY PLANNER) */}
+      {/* SUB TAB 2: WORKOUTS */}
       {activeTab === 'workouts' && (
         <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <div className="flex items-center justify-between">
@@ -821,7 +812,7 @@ export default function GymDashboard() {
         </motion.div>
       )}
 
-      {/* SUB TAB 4: EXERCISES (FULL CRUD WITH IMAGE & VIDEO URLS) */}
+      {/* SUB TAB 4: EXERCISES */}
       {activeTab === 'exercises' && (
         <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
           <div className="flex items-center justify-between">
@@ -834,7 +825,6 @@ export default function GymDashboard() {
             </button>
           </div>
 
-          {/* Filters Bar */}
           <div className="flex items-center gap-4">
             <div className="relative flex-1">
               <FiSearch className="absolute left-3 top-3 text-text-muted" size={16} />
@@ -861,7 +851,6 @@ export default function GymDashboard() {
             </select>
           </div>
 
-          {/* Main Layout (Categories Left, Exercises Table Center, Detail Right) */}
           <div className="grid grid-cols-12 gap-4">
             <div className="col-span-3 card p-2 space-y-1">
               {exerciseCategories.map(cat => (
@@ -919,7 +908,6 @@ export default function GymDashboard() {
               </table>
             </div>
 
-            {/* Right Exercise Detail View with Image & Video */}
             <div className="col-span-4 card p-4 space-y-4">
               <div className="flex items-center justify-between border-b border-border-subtle pb-3">
                 <h3 className="text-sm font-bold text-text-primary">{activeExerciseObj.name}</h3>
@@ -928,7 +916,6 @@ export default function GymDashboard() {
                 </button>
               </div>
 
-              {/* Image & Video Media Container */}
               <div className="relative w-full h-40 rounded-xl overflow-hidden bg-slate-900 border border-border-subtle flex items-center justify-center group">
                 {activeExerciseObj.image_url ? (
                   <img src={activeExerciseObj.image_url} alt={activeExerciseObj.name} className="w-full h-full object-cover" />
@@ -956,20 +943,6 @@ export default function GymDashboard() {
                 <p className="text-text-muted">Equipment: <strong className="text-text-primary">{activeExerciseObj.equipment}</strong></p>
                 <p className="text-text-muted">Difficulty: <strong className="text-text-primary">{activeExerciseObj.difficulty}</strong></p>
               </div>
-
-              {activeExerciseObj.instructions && (
-                <div className="space-y-1 text-xs border-t border-border-subtle pt-2">
-                  <h4 className="font-bold text-text-primary text-[11px]">Instructions</h4>
-                  <p className="text-[10px] text-text-muted leading-relaxed">{activeExerciseObj.instructions}</p>
-                </div>
-              )}
-
-              {activeExerciseObj.tips && (
-                <div className="space-y-1 text-xs border-t border-border-subtle pt-2">
-                  <h4 className="font-bold text-text-primary text-[11px]">Form Tips</h4>
-                  <p className="text-[10px] text-text-muted leading-relaxed">{activeExerciseObj.tips}</p>
-                </div>
-              )}
             </div>
           </div>
         </motion.div>
@@ -1004,15 +977,6 @@ export default function GymDashboard() {
               <p className="text-xs text-text-muted">Track your body composition and measurements.</p>
             </div>
           </div>
-
-          <div className="grid grid-cols-6 gap-3">
-            <div className="card p-3 space-y-1"><span className="text-[10px] text-text-muted">Weight</span><h3 className="text-xl font-bold font-mono text-text-primary">{userProfile.weight}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-[10px] text-text-muted">Body Fat</span><h3 className="text-xl font-bold font-mono text-text-primary">{isDemoAccount ? '16.2 %' : '--'}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-[10px] text-text-muted">Muscle Mass</span><h3 className="text-xl font-bold font-mono text-text-primary">{isDemoAccount ? '55.4 kg' : '--'}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-[10px] text-text-muted">BMI</span><h3 className="text-xl font-bold font-mono text-text-primary">{isDemoAccount ? '22.1' : '--'}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-[10px] text-text-muted">Body Water</span><h3 className="text-xl font-bold font-mono text-text-primary">{isDemoAccount ? '57.3 %' : '--'}</h3></div>
-            <div className="card p-3 space-y-1"><span className="text-[10px] text-text-muted">Visceral Fat</span><h3 className="text-xl font-bold font-mono text-text-primary">{isDemoAccount ? '6' : '--'}</h3></div>
-          </div>
         </motion.div>
       )}
 
@@ -1040,7 +1004,7 @@ export default function GymDashboard() {
         </motion.div>
       )}
 
-      {/* MODAL: CREATE / EDIT EXERCISE MODAL (WITH IMAGE & VIDEO URL) */}
+      {/* MODAL: CREATE / EDIT EXERCISE MODAL */}
       <AnimatePresence>
         {showExerciseModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -1141,49 +1105,16 @@ export default function GymDashboard() {
                   </div>
                 </div>
 
-                <div>
-                  <label className="block text-text-muted mb-1">Instructions</label>
-                  <textarea
-                    rows={2}
-                    value={exerciseForm.instructions}
-                    onChange={e => setExerciseForm({ ...exerciseForm, instructions: e.target.value })}
-                    placeholder="Step-by-step instructions for performing the exercise..."
-                    className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-text-muted mb-1">Form Tips & Cues</label>
-                  <input
-                    type="text"
-                    value={exerciseForm.tips}
-                    onChange={e => setExerciseForm({ ...exerciseForm, tips: e.target.value })}
-                    placeholder="e.g. Keep back flat, drive feet into floor"
-                    className="w-full p-2.5 rounded-xl bg-surface-elevated text-text-primary border border-border-subtle"
-                  />
-                </div>
-
-                <div className="flex gap-2 pt-2">
-                  {editingExerciseId && (
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteExercise(editingExerciseId)}
-                      className="px-4 py-2.5 rounded-xl bg-danger/20 text-danger font-bold hover:bg-danger/30 transition-all flex items-center gap-1"
-                    >
-                      <FiTrash2 size={14} /> Delete
-                    </button>
-                  )}
-                  <button type="submit" className="flex-1 py-2.5 rounded-xl bg-purple hover:bg-purple/80 text-white font-bold transition-all shadow-glow-primary">
-                    {editingExerciseId ? 'Save Changes' : 'Create Exercise'}
-                  </button>
-                </div>
+                <button type="submit" className="w-full py-2.5 rounded-xl bg-purple hover:bg-purple/80 text-white font-bold transition-all shadow-glow-primary">
+                  {editingExerciseId ? 'Save Changes' : 'Create Exercise'}
+                </button>
               </form>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* MODAL: WEEKLY PLAN BUILDER MODAL (STRICTLY SAVED EXERCISES) */}
+      {/* MODAL: WEEKLY PLAN BUILDER MODAL */}
       <AnimatePresence>
         {showWeeklyPlanModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">

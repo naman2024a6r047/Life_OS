@@ -207,7 +207,7 @@ exports.getPartnerTelemetry = async (req, res) => {
         const { friendId } = req.params;
 
         const partnerUser = await User.findByPk(friendId, {
-            attributes: ['id', 'username', 'avatar_url', 'level', 'xp', 'current_streak', 'discipline_score', 'bio', 'createdAt']
+            attributes: ['id', 'username', 'avatar_url', 'level', 'xp', 'current_streak', 'discipline_score', 'bio', 'createdAt', 'privacy_settings']
         });
 
         if (!partnerUser) {
@@ -361,6 +361,8 @@ exports.getPartnerTelemetry = async (req, res) => {
             });
         } catch (e) { /* table fallback */ }
 
+        const privacy = partnerUser.privacy_settings || { show_goals: true, show_tasks: true, show_workouts: true, show_analytics: true, show_achievements: true };
+
         // Calculate metrics
         const totalCompleted = allTasks.filter(t => t.completed).length;
         const completionRate = allTasks.length > 0 ? Math.round((totalCompleted / allTasks.length) * 100) : 0;
@@ -369,25 +371,25 @@ exports.getPartnerTelemetry = async (req, res) => {
         res.status(200).json({
             user: partnerUser,
             stats: {
-                totalChallenges: challenges.length,
-                activeChallengesCount,
-                totalTasks: allTasks.length,
-                completedTasksCount: totalCompleted,
-                completedTodayCount,
-                completedWeekCount,
-                completedMonthCount,
-                skippedTasksCount: skippedTasks.length,
-                skippedMilestonesCount: skippedMilestones.length,
-                completionRate,
-                totalStudyHours,
-                studyLogCount,
-                workoutPlanCount,
-                skillCount
+                totalChallenges: privacy.show_goals ? challenges.length : 0,
+                activeChallengesCount: privacy.show_goals ? activeChallengesCount : 0,
+                totalTasks: privacy.show_tasks ? allTasks.length : 0,
+                completedTasksCount: privacy.show_tasks ? totalCompleted : 0,
+                completedTodayCount: privacy.show_tasks ? completedTodayCount : 0,
+                completedWeekCount: privacy.show_tasks ? completedWeekCount : 0,
+                completedMonthCount: privacy.show_tasks ? completedMonthCount : 0,
+                skippedTasksCount: privacy.show_tasks ? skippedTasks.length : 0,
+                skippedMilestonesCount: privacy.show_goals ? skippedMilestones.length : 0,
+                completionRate: privacy.show_tasks ? completionRate : 0,
+                totalStudyHours: privacy.show_analytics ? totalStudyHours : '0.0',
+                studyLogCount: privacy.show_analytics ? studyLogCount : 0,
+                workoutPlanCount: privacy.show_workouts ? workoutPlanCount : 0,
+                skillCount: privacy.show_achievements ? skillCount : 0
             },
-            challenges,
-            skippedTasks,
-            skippedMilestones,
-            activityLogs,
+            challenges: privacy.show_goals ? challenges : [],
+            skippedTasks: privacy.show_tasks ? skippedTasks : [],
+            skippedMilestones: privacy.show_goals ? skippedMilestones : [],
+            activityLogs: privacy.show_analytics ? activityLogs : [],
             interventions
         });
     } catch (error) {
@@ -752,5 +754,71 @@ exports.markSentRead = async (req, res) => {
     }
 };
 
+exports.getFriendsFeed = async (req, res) => {
+    try {
+        const { ActivityLog } = require('../models');
+        
+        const friends = await Friend.findAll({
+            where: {
+                status: 'accepted',
+                [Op.or]: [
+                    { user_id: req.user.id },
+                    { friend_id: req.user.id }
+                ]
+            }
+        });
 
+        const friendIds = friends.map(f => f.user_id === req.user.id ? f.friend_id : f.user_id);
+        
+        if (friendIds.length === 0) {
+            return res.status(200).json([]);
+        }
 
+        const users = await User.findAll({
+            where: { id: { [Op.in]: friendIds } },
+            attributes: ['id', 'username', 'avatar_url', 'level', 'privacy_settings']
+        });
+        
+        // Filter out users who hide their feed/analytics
+        const visibleUserIds = users.filter(u => {
+            const p = u.privacy_settings || { show_analytics: true, show_achievements: true };
+            return p.show_analytics !== false || p.show_achievements !== false;
+        }).map(u => u.id);
+        
+        if (visibleUserIds.length === 0) {
+            return res.status(200).json([]);
+        }
+
+        const feed = await ActivityLog.findAll({
+            where: { user_id: { [Op.in]: visibleUserIds } },
+            include: [{ model: User, attributes: ['id', 'username', 'avatar_url', 'level'] }],
+            order: [['createdAt', 'DESC']],
+            limit: 50
+        });
+
+        res.status(200).json(feed);
+    } catch (error) {
+        console.error('Error fetching friends feed:', error);
+        res.status(500).json({ message: 'Error fetching feed' });
+    }
+};
+
+exports.updatePrivacySettings = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+        if (!user) return res.status(404).json({ message: "User not found" });
+
+        const currentSettings = user.privacy_settings || { 
+            show_goals: true, show_tasks: true, show_workouts: true, 
+            show_analytics: true, show_achievements: true 
+        };
+        
+        user.privacy_settings = { ...currentSettings, ...req.body };
+        await user.save();
+        
+        res.status(200).json({ message: 'Privacy settings updated', privacy_settings: user.privacy_settings });
+    } catch (error) {
+        console.error('Error updating privacy:', error);
+        res.status(500).json({ message: 'Error updating privacy' });
+    }
+};

@@ -15,7 +15,9 @@ const {
     respondIntervention,
     markSentRead,
     resetMilestoneToDayOne,
-    resetMilestoneFromIntervention
+    resetMilestoneFromIntervention,
+    getFriendsFeed,
+    updatePrivacySettings
 } = require('../controllers/friendController');
 const authMiddleware = require('../middlewares/authMiddleware');
 
@@ -39,5 +41,8 @@ router.post('/intervention/:id/reset-milestone', resetMilestoneFromIntervention)
 router.post('/milestone/reset-day-one', resetMilestoneToDayOne);
 router.post('/interventions/mark-read', markSentRead);
 
-module.exports = router;
+// Feed & Privacy
+router.get('/feed', getFriendsFeed);
+router.put('/privacy', updatePrivacySettings);
 
+module.exports = router;

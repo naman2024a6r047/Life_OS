@@ -24,7 +24,7 @@ const PartnerIntervention = sequelize.define('PartnerIntervention', {
         allowNull: true
     },
     type: {
-        type: DataTypes.ENUM('inquiry', 'punishment'),
+        type: DataTypes.ENUM('inquiry', 'punishment', 'cheer', 'message', 'reminder'),
         defaultValue: 'inquiry'
     },
     message: {

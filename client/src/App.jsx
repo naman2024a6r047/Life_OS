@@ -10,6 +10,7 @@ import CreateChallenge from './pages/CreateChallenge';
 import ChallengeDetail from './pages/ChallengeDetail';
 import Friends from './pages/Friends';
 import ReviewDashboard from './pages/ReviewDashboard';
+import AccountabilityDashboard from './pages/AccountabilityDashboard';
 import ExamDashboard from './pages/ExamDashboard';
 import GymDashboard from './pages/GymDashboard';
 import DevDashboard from './pages/DevDashboard';
@@ -77,6 +78,7 @@ function AppRoutes() {
         <Route path="/challenges/:id" element={<ProtectedRoute><ChallengeDetail /></ProtectedRoute>} />
         <Route path="/friends" element={<ProtectedRoute><Friends /></ProtectedRoute>} />
         <Route path="/friends/:friendId" element={<ProtectedRoute><PartnerDashboard /></ProtectedRoute>} />
+        <Route path="/accountability" element={<ProtectedRoute><AccountabilityDashboard /></ProtectedRoute>} />
         <Route path="/reviews" element={<ProtectedRoute><ReviewDashboard /></ProtectedRoute>} />
         <Route path="/exams" element={<ProtectedRoute><ExamDashboard /></ProtectedRoute>} />
         <Route path="/gym" element={<ProtectedRoute><GymDashboard /></ProtectedRoute>} />

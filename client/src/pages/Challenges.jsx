@@ -672,28 +672,35 @@ function TaskRow({ task, onToggle, onOpenDetail }) {
       animate={{ opacity: 1, y: 0 }}
       className={`flex items-center gap-4 px-4 py-3 hover:bg-surface-elevated/60 transition-all ${isCompleted ? 'opacity-65' : ''}`}
     >
-      <button
-        onClick={() => onToggle(task)}
-        className={`w-5 h-5 rounded flex-shrink-0 flex items-center justify-center border transition-all cursor-pointer ${
-          isCompleted 
-            ? 'bg-success border-success text-white' 
-            : 'bg-transparent border-border-subtle hover:border-primary'
-        }`}
-      >
-        {isCompleted && <FiCheck size={14} strokeWidth={3} />}
-      </button>
+      <div className="w-24 text-center flex-shrink-0">
+        <button
+          onClick={() => onToggle(task)}
+          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-1 w-full cursor-pointer ${
+            isCompleted
+              ? 'bg-success/15 text-success border border-success/30'
+              : 'bg-surface-elevated text-text-muted border border-border-subtle hover:border-primary hover:text-primary'
+          }`}
+        >
+          {isCompleted ? <><FiCheckCircle size={12} /> Done</> : <><div className="w-2.5 h-2.5 rounded-full border border-text-muted" /> Pending</>}
+        </button>
+      </div>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-xs font-semibold ${isCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
+        <p className={`text-[13px] font-semibold ${isCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
           {displayTitle}
         </p>
       </div>
-      <span className={`badge-${tag.color} text-[9px] hidden sm:inline-block`}>{tag.label}</span>
-      <span className="text-[10px] font-mono text-text-muted w-8 text-center hidden sm:inline-block">{task.priority || 'P1'}</span>
       
+      <span className={`badge-${tag.color} text-[9px]`}>{tag.label}</span>
+      <span className="text-[10px] font-mono text-text-muted w-12 text-center">{task.priority || 'P1'}</span>
+      
+      <span className="text-[10px] text-text-muted w-24 text-center font-mono">
+        {isCompleted ? new Date(task.updatedAt || new Date()).toLocaleDateString() : 'Today'}
+      </span>
+
       <button
         onClick={() => onOpenDetail(task)}
-        className="p-1 text-text-muted hover:text-primary transition-colors ml-auto"
+        className="p-1 text-text-muted hover:text-primary transition-colors flex-shrink-0"
         title="View Task Details & Notes"
       >
         <FiEye size={14} />
@@ -804,17 +811,30 @@ export default function Challenges() {
 
   const groupedTasks = useMemo(() => {
     const groups = {};
+    if (!tasks || tasks.length === 0) return groups;
+
+    let challengeStart = selectedChallenge?.start_date ? new Date(selectedChallenge.start_date) : null;
+    if (challengeStart) challengeStart.setHours(0, 0, 0, 0);
+
     tasks.forEach((task) => {
-      let dayNum = dayOffset + 1;
-      const match = task.title?.match(/Day[\s\-]*(\d+)/i);
-      if (match) {
-        dayNum = parseInt(match[1], 10);
+      let dayNum = dayOffset + 1; // Default fallback
+
+      if (task.date && challengeStart) {
+        const tDate = new Date(task.date);
+        tDate.setHours(0, 0, 0, 0);
+        const diffDays = Math.round((tDate - challengeStart) / (1000 * 60 * 60 * 24));
+        dayNum = diffDays + 1;
+      } else {
+        // Ultimate fallback if dates are missing for some reason
+        const match = task.title?.match(/Day[\s\-]*(\d+)/i);
+        if (match) dayNum = parseInt(match[1], 10);
       }
+
       if (!groups[dayNum]) groups[dayNum] = [];
       groups[dayNum].push(task);
     });
     return groups;
-  }, [tasks, dayOffset]);
+  }, [tasks, dayOffset, selectedChallenge?.start_date]);
 
   const totalDays = selectedChallenge ? calcTotalDays(selectedChallenge.start_date, selectedChallenge.end_date) : 30;
   const currentDay = selectedChallenge ? calcCurrentDay(selectedChallenge.start_date, selectedChallenge.end_date) : 1;

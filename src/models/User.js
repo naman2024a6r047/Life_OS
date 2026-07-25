@@ -52,6 +52,16 @@ const User = sequelize.define('User', {
     avatar_url: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    privacy_settings: {
+        type: DataTypes.JSON,
+        defaultValue: { 
+            show_goals: true, 
+            show_tasks: true, 
+            show_workouts: true, 
+            show_analytics: true, 
+            show_achievements: true 
+        }
     }
 }, {
     timestamps: true

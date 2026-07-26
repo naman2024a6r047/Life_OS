@@ -1,6 +1,9 @@
 const { Sequelize } = require('sequelize');
 
-const dbUrl = process.env.CUSTOM_DATABASE_URL || process.env.DATABASE_URL;
+let dbUrl = process.env.CUSTOM_DATABASE_URL || process.env.DATABASE_URL;
+if (dbUrl) {
+    dbUrl = dbUrl.replace(/^["']|["']$/g, '');
+}
 
 const sequelize = dbUrl 
   ? new Sequelize(dbUrl, {

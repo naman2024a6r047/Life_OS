@@ -32,7 +32,7 @@ function PartnerCard({ partner, isSelected, onClick }) {
           </p>
         </div>
       </div>
-      <p className="text-[10px] text-text-muted mt-1.5">Life Score: {partner.lifeScore || 82}</p>
+      <p className="text-[10px] text-text-muted mt-1.5">Life Score: {partner.discipline_score || 0}</p>
     </div>
   );
 }
@@ -52,34 +52,84 @@ function ProgressBar({ label, current, total, color = 'primary' }) {
   );
 }
 
-function ActivityCalendar() {
+function ActivityCalendar({ telemetry }) {
   const weekDays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   
   const calendarWeeks = useMemo(() => {
-    const weeks = [];
-    for (let w = 0; w < 5; w++) {
-      const days = [];
-      for (let d = 0; d < 7; d++) {
-        const dayNum = w * 7 + d + 1;
-        if (dayNum > 31) {
-          days.push({ num: dayNum - 31, status: 'future' });
-        } else {
-          const rand = Math.random();
-          let status = 'future';
-          if (dayNum < new Date().getDate()) {
-            if (rand > 0.7) status = 'completed';
-            else if (rand > 0.5) status = 'missed';
-            else status = 'pending';
-          } else if (dayNum === new Date().getDate()) {
-            status = 'today';
-          }
-          days.push({ num: dayNum, status });
-        }
-      }
-      weeks.push(days);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
+    const todayStr = now.toISOString().split('T')[0];
+    
+    const dateStatusMap = {};
+    if (telemetry) {
+        (telemetry.skippedTasks || []).forEach(t => {
+            if (t.date) dateStatusMap[t.date.split('T')[0]] = 'missed';
+        });
+        (telemetry.activityLogs || []).forEach(log => {
+            if (log.action_type === 'milestone_completed' || log.action_type === 'daily_task_completed' || log.action_type === 'level_up') {
+                const dateStr = new Date(log.createdAt).toISOString().split('T')[0];
+                if (!dateStatusMap[dateStr] || dateStatusMap[dateStr] === 'missed') {
+                    dateStatusMap[dateStr] = 'completed'; 
+                }
+            }
+        });
     }
-    return weeks;
-  }, []);
+
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    
+    let startDayOfWeek = firstDay.getDay() - 1;
+    if (startDayOfWeek === -1) startDayOfWeek = 6;
+    
+    const weeks = [];
+    let currentWeek = [];
+    
+    for (let i = 0; i < startDayOfWeek; i++) {
+        const prevMonthDay = new Date(year, month, -startDayOfWeek + i + 1);
+        currentWeek.push({ num: prevMonthDay.getDate(), status: 'future', disabled: true });
+    }
+    
+    for (let i = 1; i <= daysInMonth; i++) {
+        const d = new Date(year, month, i);
+        const dateStr = d.toISOString().split('T')[0];
+        
+        let status = 'future';
+        if (dateStr === todayStr) {
+            status = 'today';
+        } else if (dateStr < todayStr) {
+            status = dateStatusMap[dateStr] || 'pending';
+        }
+        
+        currentWeek.push({ num: i, status, disabled: false });
+        
+        if (currentWeek.length === 7) {
+            weeks.push(currentWeek);
+            currentWeek = [];
+        }
+    }
+    
+    if (currentWeek.length > 0) {
+        let nextMonthDay = 1;
+        while (currentWeek.length < 7) {
+            currentWeek.push({ num: nextMonthDay++, status: 'future', disabled: true });
+        }
+        weeks.push(currentWeek);
+    }
+    
+    while (weeks.length < 5) {
+        let nextMonthDay = currentWeek.length > 0 ? currentWeek[currentWeek.length - 1].num + 1 : 1;
+        if (weeks.length > 0 && weeks[weeks.length-1][6].disabled) nextMonthDay = weeks[weeks.length-1][6].num + 1;
+        const extraWeek = [];
+        for(let i=0; i<7; i++) {
+            extraWeek.push({ num: nextMonthDay++, status: 'future', disabled: true });
+        }
+        weeks.push(extraWeek);
+    }
+    
+    return weeks.slice(0, 5);
+  }, [telemetry]);
 
   const statusColors = {
     completed: 'bg-success text-white',
@@ -101,7 +151,7 @@ function ActivityCalendar() {
       {calendarWeeks.map((week, wi) => (
         <div key={wi} className="grid grid-cols-7 gap-1 mb-1">
           {week.map((day, di) => (
-            <div key={di} className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-medium ${statusColors[day.status]}`}>
+            <div key={di} className={`w-8 h-8 rounded-lg flex items-center justify-center text-[11px] font-medium ${statusColors[day.status]} ${day.disabled ? 'opacity-30' : ''}`}>
               {day.num}
             </div>
           ))}
@@ -131,14 +181,20 @@ export default function Friends() {
   const [selectedId, setSelectedId] = useState(null);
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
-  const [unreadCount, setUnreadCount] = useState(2);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const [feed, setFeed] = useState([]);
+  const [interventions, setInterventions] = useState([]);
+  const [telemetry, setTelemetry] = useState(null);
 
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const [friendsRes, unreadRes] = await Promise.allSettled([
+        const [friendsRes, unreadRes, feedRes, interventionsRes] = await Promise.allSettled([
           axios.get('/api/friends'),
           axios.get('/api/friends/interventions/unread-count'),
+          axios.get('/api/friends/feed'),
+          axios.get('/api/friends/interventions')
         ]);
         
         let friendsList = [];
@@ -146,19 +202,12 @@ export default function Friends() {
           friendsList = friendsRes.value.data || [];
         }
         
-        // Ensure we always have demo partners to display
-        if (friendsList.length === 0) {
-          friendsList = [
-            { id: 'p1', username: 'Arjun Verma', level: 5, xp: 2400, current_streak: 28, isOnline: true, lifeScore: 82 },
-            { id: 'p2', username: 'Priya Sharma', level: 4, xp: 1850, current_streak: 14, isOnline: true, lifeScore: 75 },
-            { id: 'p3', username: 'Rohit Singh', level: 3, xp: 1200, current_streak: 7, isOnline: false, lifeScore: 68 },
-            { id: 'p4', username: 'Ananya Patel', level: 3, xp: 1100, current_streak: 5, isOnline: false, lifeScore: 71 },
-          ];
-        }
-        
         setFriends(friendsList);
         if (friendsList.length > 0) setSelectedId(friendsList[0].id);
-        if (unreadRes.status === 'fulfilled') setUnreadCount(unreadRes.value.data?.count || 2);
+        
+        if (unreadRes.status === 'fulfilled') setUnreadCount(unreadRes.value.data?.count || 0);
+        if (feedRes.status === 'fulfilled') setFeed(feedRes.value.data || []);
+        if (interventionsRes.status === 'fulfilled') setInterventions(interventionsRes.value.data || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -167,6 +216,20 @@ export default function Friends() {
     };
     fetchFriends();
   }, []);
+
+  useEffect(() => {
+    if (!selectedId) return;
+    const fetchTelemetry = async () => {
+      try {
+        const res = await axios.get(`/api/friends/telemetry/${selectedId}`);
+        setTelemetry(res.data);
+      } catch (err) {
+        console.error(err);
+        setTelemetry(null);
+      }
+    };
+    fetchTelemetry();
+  }, [selectedId]);
 
   const selectedPartner = friends.find(f => f.id === selectedId) || friends[0];
   const streak = user?.current_streak || 0;
@@ -348,11 +411,11 @@ export default function Friends() {
                 {/* Partner Stats Row */}
                 <div className="grid grid-cols-5 gap-3 mt-5">
                   {[
-                    { icon: <FiStar size={14} />, label: 'Life Score', value: selectedPartner.lifeScore || 82, sub: '/100', color: 'warning' },
-                    { icon: <FiTarget size={14} />, label: 'Goals Completed', value: 12, sub: 'This Month', color: 'primary' },
-                    { icon: <FiCheckCircle size={14} />, label: 'Tasks Completed', value: 75, sub: 'This Month', color: 'success' },
-                    { icon: <FiZap size={14} />, label: 'Current Streak', value: selectedPartner.current_streak || 28, sub: 'Days', color: 'warning' },
-                    { icon: <FiHeart size={14} />, label: 'Grace Tokens', value: 2, sub: 'Available', color: 'success' },
+                    { icon: <FiStar size={14} />, label: 'Life Score', value: selectedPartner.discipline_score || 0, sub: '/100', color: 'warning' },
+                    { icon: <FiTarget size={14} />, label: 'Active Goals', value: telemetry?.stats?.activeChallengesCount || 0, sub: 'Right Now', color: 'primary' },
+                    { icon: <FiCheckCircle size={14} />, label: 'Tasks Completed', value: telemetry?.stats?.completedTasksCount || 0, sub: 'Total', color: 'success' },
+                    { icon: <FiZap size={14} />, label: 'Current Streak', value: selectedPartner.current_streak || 0, sub: 'Days', color: 'warning' },
+                    { icon: <FiHeart size={14} />, label: 'Skipped Tasks', value: telemetry?.stats?.skippedTasksCount || 0, sub: 'Total', color: 'danger' },
                   ].map((stat, i) => (
                     <div key={i} className="text-center">
                       <div className={`w-8 h-8 rounded-lg bg-${stat.color}/10 text-${stat.color} flex items-center justify-center mx-auto mb-1`}>
@@ -374,10 +437,15 @@ export default function Friends() {
                 </div>
                 <p className="text-[10px] text-text-muted mb-3">Milestone Progress (This Week)</p>
                 <div className="grid grid-cols-4 gap-3">
-                  <ProgressBar label="Full Stack Dev" current={6} total={10} color="primary" />
-                  <ProgressBar label="Gym Consistency" current={7} total={10} color="success" />
-                  <ProgressBar label="DSA Practice" current={5} total={10} color="info" />
-                  <ProgressBar label="Study 6 Hrs Daily" current={8} total={10} color="warning" />
+                  {(telemetry?.challenges || []).slice(0, 4).map((c, i) => {
+                    const colors = ['primary', 'success', 'info', 'warning'];
+                    const current = c.milestones?.filter(m => m.status === 'completed').length || 0;
+                    const total = c.milestones?.length || 0;
+                    return <ProgressBar key={c.id} label={c.title} current={current} total={total} color={colors[i % colors.length]} />;
+                  })}
+                  {(!telemetry?.challenges || telemetry.challenges.length === 0) && (
+                    <p className="text-[10px] text-text-muted col-span-4">No active challenges.</p>
+                  )}
                 </div>
               </div>
 
@@ -388,15 +456,15 @@ export default function Friends() {
                 </div>
                 <div className="grid grid-cols-12 gap-4">
                   <div className="col-span-7">
-                    <ActivityCalendar />
+                    <ActivityCalendar telemetry={telemetry} />
                   </div>
                   <div className="col-span-5 space-y-3">
                     <h4 className="text-xs font-bold text-text-primary">This Week Summary</h4>
                     <div className="space-y-2">
                       {[
-                        { icon: '🟢', label: 'Tasks Completed', value: '6 / 10' },
-                        { icon: '🔴', label: 'Tasks Missed', value: '1' },
-                        { icon: '🟡', label: 'Pending', value: '3' },
+                        { icon: '🟢', label: 'Tasks Completed', value: telemetry?.stats?.completedWeekCount || 0 },
+                        { icon: '🔴', label: 'Tasks Missed', value: telemetry?.stats?.skippedTasksCount || 0 },
+                        { icon: '🟡', label: 'Pending', value: telemetry?.stats?.activeChallengesCount || 0 },
                       ].map((item, i) => (
                         <div key={i} className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -410,7 +478,7 @@ export default function Friends() {
                     <div className="pt-2 border-t border-border-subtle">
                       <div className="flex items-center justify-between">
                         <span className="text-[11px] text-text-secondary">Completion Rate</span>
-                        <span className="text-xs font-bold font-mono text-primary">60%</span>
+                        <span className="text-xs font-bold font-mono text-primary">{telemetry?.stats?.completionRate || 0}%</span>
                       </div>
                     </div>
                   </div>
@@ -433,27 +501,31 @@ export default function Friends() {
             <div className="section-header">
               <div className="flex items-center gap-2">
                 <h3 className="section-title">Pending Inquiries</h3>
-                <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">2</span>
+                {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').length > 0 && (
+                    <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">
+                      {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').length}
+                    </span>
+                )}
               </div>
               <span className="section-link">View All</span>
             </div>
-            {[
-              { name: 'Priya Sharma', task: 'Day 7', milestone: 'DSA Practice', time: '2h ago' },
-              { name: 'Rohit Singh', task: 'Day 5', milestone: 'Gym Consistency', time: '1d ago' },
-            ].map((inq, i) => (
-              <div key={i} className="py-3 border-b border-border-subtle last:border-0">
+            {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').length === 0 && (
+                <p className="text-[10px] text-text-muted py-2">No pending inquiries.</p>
+            )}
+            {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').map((inq, i) => (
+              <div key={inq.id} className="py-3 border-b border-border-subtle last:border-0">
                 <div className="flex items-start gap-2.5">
                   <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
-                    {inq.name[0]}
+                    {(inq.sender?.username || 'U')[0].toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <p className="text-[11px] text-text-secondary">
-                      <span className="font-semibold text-text-primary">{inq.name}</span> asked you
+                      <span className="font-semibold text-text-primary">{inq.sender?.username || 'User'}</span> asked you
                     </p>
                     <p className="text-[11px] text-warning mt-0.5">
-                      Why did you skip your task on <span className="font-bold">{inq.task}</span> of "{inq.milestone}"?
+                      {inq.message || `Why did you skip your task on "${inq.item_title}"?`}
                     </p>
-                    <p className="text-[9px] text-text-muted mt-1">{inq.time}</p>
+                    <p className="text-[9px] text-text-muted mt-1">{new Date(inq.createdAt).toLocaleDateString()}</p>
                     <div className="flex items-center gap-2 mt-2">
                       <button className="btn-primary text-[10px] px-3 py-1">Respond</button>
                       <button className="btn-outline text-[10px] px-3 py-1">View</button>
@@ -470,22 +542,21 @@ export default function Friends() {
               <h3 className="section-title">Recent Punishments</h3>
               <span className="section-link">View All</span>
             </div>
-            {[
-              { type: 'Milestone Reset', by: 'Arjun', goal: '100 Days of Code', reason: 'Inactivity for 3 consecutive days', time: '2 days ago', icon: '⚡' },
-              { type: 'XP Deduction', by: null, amount: '-100 XP', reason: 'Missed inquiry response', time: '5 days ago', icon: '💀' },
-            ].map((pun, i) => (
-              <div key={i} className="flex items-start gap-2.5 py-2.5 border-b border-border-subtle last:border-0">
-                <span className="text-sm flex-shrink-0">{pun.icon}</span>
+            {interventions.filter(i => i.type === 'punishment').length === 0 && (
+                <p className="text-[10px] text-text-muted py-2">No recent punishments.</p>
+            )}
+            {interventions.filter(i => i.type === 'punishment').map((pun, i) => (
+              <div key={pun.id} className="flex items-start gap-2.5 py-2.5 border-b border-border-subtle last:border-0">
+                <span className="text-sm flex-shrink-0">⚡</span>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-[11px] font-semibold text-text-primary">{pun.type}</p>
-                    {pun.by && <span className="text-[9px] text-danger">Forced by {pun.by}</span>}
+                    <p className="text-[11px] font-semibold text-text-primary">Milestone Reset</p>
+                    {pun.sender && <span className="text-[9px] text-danger">Forced by {pun.sender.username}</span>}
                   </div>
-                  {pun.goal && <p className="text-[10px] text-text-muted">Goal: {pun.goal}</p>}
-                  <p className="text-[10px] text-text-muted">Reason: {pun.reason}</p>
-                  <p className="text-[9px] text-text-muted">{pun.time}</p>
+                  <p className="text-[10px] text-text-muted">Goal: {pun.item_title}</p>
+                  <p className="text-[10px] text-text-muted">Reason: {pun.punishment || pun.message}</p>
+                  <p className="text-[9px] text-text-muted">{new Date(pun.createdAt).toLocaleDateString()}</p>
                 </div>
-                {pun.amount && <span className="text-xs font-bold font-mono text-danger">{pun.amount}</span>}
               </div>
             ))}
           </div>
@@ -496,17 +567,15 @@ export default function Friends() {
               <h3 className="section-title">Recent Activity</h3>
               <span className="section-link">View All</span>
             </div>
-            {[
-              { icon: '🟢', text: 'Arjun completed Day 8 of "Full Stack Dev"', time: '3h ago' },
-              { icon: '🔴', text: 'Arjun missed Day 6 of "Study 6 Hrs Daily"', time: '1d ago' },
-              { icon: '🟡', text: 'You inquired Priya about skipped task', time: '2d ago' },
-              { icon: '⚡', text: 'Rohit reset your milestone "DSA Practice"', time: '3d ago' },
-            ].map((act, i) => (
-              <div key={i} className="flex items-start gap-2.5 py-2 border-b border-border-subtle last:border-0">
-                <span className="text-xs flex-shrink-0 mt-0.5">{act.icon}</span>
+            {feed.length === 0 && (
+                <p className="text-[10px] text-text-muted py-2">No recent activity.</p>
+            )}
+            {feed.map((act, i) => (
+              <div key={act.id} className="flex items-start gap-2.5 py-2 border-b border-border-subtle last:border-0">
+                <span className="text-xs flex-shrink-0 mt-0.5">🟢</span>
                 <div className="flex-1">
-                  <p className="text-[11px] text-text-secondary">{act.text}</p>
-                  <p className="text-[9px] text-text-muted">{act.time}</p>
+                  <p className="text-[11px] text-text-secondary">{act.User?.username || 'A partner'} completed a task</p>
+                  <p className="text-[9px] text-text-muted">{new Date(act.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
             ))}

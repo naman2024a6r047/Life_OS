@@ -11,22 +11,7 @@ exports.toggleTask = async (req, res) => {
         }
 
         if (!task.is_completed) {
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
 
-            const completedToday = await MilestoneTask.findOne({
-                where: {
-                    milestone_id: task.milestone_id,
-                    is_completed: true,
-                    updatedAt: {
-                        [Op.gte]: today
-                    }
-                }
-            });
-
-            if (completedToday) {
-                return res.status(400).json({ message: 'You can only complete one task per day for this milestone.' });
-            }
         }
 
         task.is_completed = !task.is_completed;

@@ -103,3 +103,31 @@ exports.getPendingReviews = async (req, res) => {
         res.status(500).json({ message: 'Error fetching pending reviews' });
     }
 };
+
+exports.getMyReviews = async (req, res) => {
+    try {
+        const { Op } = require('sequelize');
+        const requests = await ApprovalRequest.findAll({
+            where: { requester_id: req.user.id, status: { [Op.ne]: 'pending' } },
+            include: ['reviewer', { model: Milestone, include: ['tasks', { model: Challenge }] }, { model: Review }]
+        });
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching my reviews' });
+    }
+};
+
+exports.getReviewHistory = async (req, res) => {
+    try {
+        const { Op } = require('sequelize');
+        const requests = await ApprovalRequest.findAll({
+            where: { reviewer_id: req.user.id, status: { [Op.ne]: 'pending' } },
+            include: ['requester', { model: Milestone, include: ['tasks', { model: Challenge }] }, { model: Review }]
+        });
+        res.status(200).json(requests);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching review history' });
+    }
+};

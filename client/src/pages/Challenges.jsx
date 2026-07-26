@@ -414,10 +414,10 @@ function ReviewRequestModal({ isOpen, onClose, milestoneId, onSubmitSuccess }) {
 
   useEffect(() => {
     if (isOpen) {
-      axios.get('/api/friends').then(res => {
+      axios.get('/api/friends/search').then(res => {
         setFriends(res.data || []);
         if (res.data?.length > 0) setSelectedFriend(res.data[0].id);
-      }).catch(err => console.error("Failed to fetch friends", err));
+      }).catch(err => console.error("Failed to fetch users", err));
     }
   }, [isOpen]);
 
@@ -471,7 +471,7 @@ function ReviewRequestModal({ isOpen, onClose, milestoneId, onSubmitSuccess }) {
             >
               <option value="" disabled>Choose a friend...</option>
               {friends.map(f => (
-                <option key={f.id} value={f.friend_id || f.id}>{f.friend?.username || 'Unknown User'}</option>
+                <option key={f.id} value={f.id}>{f.username || f.email || 'Unknown User'}</option>
               ))}
             </select>
           </div>
@@ -859,6 +859,40 @@ export default function Challenges() {
       }
     } catch (err) {
       console.error('Failed to toggle task:', err);
+      fetchChallenges();
+    }
+  };
+
+  const handleToggleDay = async (dayTasks, isAllDone) => {
+    try {
+      const newStatus = !isAllDone;
+      const tasksToUpdate = dayTasks.filter(t => (!!t.is_completed) !== newStatus);
+      if (tasksToUpdate.length === 0) return;
+
+      setChallenges(prev => prev.map(c => {
+        if (c.id !== selectedChallenge?.id) return c;
+        const updatedMilestones = (c.milestones || c.Milestones || []).map(m => {
+          if (m.id !== activeMilestone?.id) return m;
+          const updatedTasks = (m.tasks || m.MilestoneTasks || []).map(t => {
+            if (tasksToUpdate.some(tu => tu.id === t.id)) {
+              return { ...t, is_completed: newStatus, updatedAt: new Date().toISOString() };
+            }
+            return t;
+          });
+          return { ...m, tasks: updatedTasks, MilestoneTasks: updatedTasks };
+        });
+        return { ...c, milestones: updatedMilestones, Milestones: updatedMilestones };
+      }));
+
+      await Promise.all(tasksToUpdate.map(t => axios.put(`/api/tasks/${t.id}/toggle`)));
+
+      if (newStatus) {
+        addToast(`Day Completed! +${25 * tasksToUpdate.length} XP Earned 🎉`, 'success', '⚡');
+      } else {
+        addToast('Day tasks set back to pending', 'info', 'ℹ️');
+      }
+    } catch (err) {
+      console.error('Failed to toggle day tasks:', err);
       fetchChallenges();
     }
   };
@@ -1307,11 +1341,22 @@ export default function Challenges() {
                         return (
                           <div key={dayKey} className={`border rounded-xl overflow-hidden shadow-lg transition-all ${isAllDone ? 'border-success/30 bg-success/5' : 'border-border-subtle bg-surface'}`}>
                             <div className={`px-4 py-3 flex items-center justify-between border-b ${isAllDone ? 'bg-success/10 border-success/20' : 'bg-surface-elevated border-border-subtle'}`}>
-                              <h4 className={`font-bold text-sm flex items-center gap-2 ${isAllDone ? 'text-success' : 'text-text-primary'}`}>
-                                {isAllDone && <FiCheckCircle size={14} />}
-                                Day {dayKey} Checklist
-                                <span className="text-text-muted text-[10px] font-normal uppercase tracking-wider">({dayTasks.length} Tasks)</span>
-                              </h4>
+                              <div className="flex items-center gap-2">
+                                <button 
+                                  onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleToggleDay(dayTasks, isAllDone);
+                                  }}
+                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all cursor-pointer ${isAllDone ? 'bg-success border-success text-white' : 'border-border-subtle hover:border-primary text-transparent'}`}
+                                  title="Check/Uncheck all tasks for this day"
+                                >
+                                  <FiCheck size={12} strokeWidth={3} />
+                                </button>
+                                <h4 className={`font-bold text-sm ${isAllDone ? 'text-success' : 'text-text-primary'}`}>
+                                  Day {dayKey} Checklist
+                                  <span className="text-text-muted text-[10px] font-normal uppercase tracking-wider ml-2">({dayTasks.length} Tasks)</span>
+                                </h4>
+                              </div>
                               <span className="text-[10px] font-mono font-bold text-text-muted">
                                 {dayCompleted} / {dayTasks.length} Done
                               </span>

@@ -1,4 +1,5 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
+import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import { motion } from 'framer-motion';
 import {
@@ -22,20 +23,49 @@ export default function ReviewDashboard() {
   const [feedback, setFeedback] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [sidebarHistory, setSidebarHistory] = useState([]);
+  const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
-    fetchPendingReviews();
+    fetchSidebarData();
   }, []);
 
-  const fetchPendingReviews = async () => {
+  const fetchSidebarData = async () => {
+    try {
+      const [historyRes, pendingRes] = await Promise.all([
+        axios.get('/api/reviews/history'),
+        axios.get('/api/reviews/pending')
+      ]);
+      setSidebarHistory(historyRes.data || []);
+      setPendingCount((pendingRes.data || []).length);
+    } catch (err) {
+      console.error('Error fetching sidebar data:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchReviews();
+  }, [activeTab]);
+
+  const fetchReviews = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/reviews/pending');
+      let endpoint = '';
+      if (activeTab === 'to-do') endpoint = '/api/reviews/pending';
+      else if (activeTab === 'my-reviews') endpoint = '/api/reviews/mine';
+      else if (activeTab === 'history') endpoint = '/api/reviews/history';
+      else {
+        setReviewsToDo([]);
+        return;
+      }
+      
+      const res = await axios.get(endpoint);
       const data = res.data || [];
       setReviewsToDo(data);
       if (data.length > 0) setSelectedReviewId(data[0].id);
+      else setSelectedReviewId(null);
     } catch (err) {
-      console.error('Error fetching pending reviews:', err);
+      console.error('Error fetching reviews:', err);
     } finally {
       setLoading(false);
     }
@@ -47,17 +77,18 @@ export default function ReviewDashboard() {
 
   const selectedReview = reviewsToDo.find(r => r.id === selectedReviewId) || reviewsToDo[0];
 
-  const recentlyReviewed = [
-    { title: 'DSA Practice – Arrays', status: 'Approved', author: 'Arjun Verma', time: '2 days ago' },
-    { title: 'Complete Python Course', status: 'Needs Work', author: 'Priya Sharma', time: '5 days ago' },
-    { title: 'Morning Consistency Habit', status: 'Approved', author: 'Rohit Singh', time: '1 week ago' },
-  ];
+  const formattedHistory = sidebarHistory.map(r => ({
+    title: r.Milestone?.title || 'Unknown Milestone',
+    status: r.status === 'approved' ? 'Approved' : 'Needs Work',
+    author: r.requester?.username || 'Unknown',
+    time: new Date(r.createdAt).toLocaleDateString()
+  }));
 
-  const reviewHistory = [
-    { title: 'Build Portfolio Website', status: 'Approved', author: 'Arjun Verma', time: '1 week ago' },
-    { title: 'Learn Data Structures', status: 'Needs Work', author: 'Priya Sharma', time: '2 weeks ago' },
-    { title: '5K Running Challenge', status: 'Approved', author: 'Rohit Singh', time: '3 weeks ago' },
-  ];
+  const recentlyReviewed = formattedHistory.slice(0, 3);
+  const reviewHistoryList = formattedHistory;
+
+  const impactGiven = sidebarHistory.filter(r => new Date(r.createdAt) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length;
+  const impactLeveledUp = sidebarHistory.filter(r => r.status === 'approved').length;
 
   const handleStarClick = (category, rating) => {
     setRatings(prev => ({ ...prev, [category]: rating }));
@@ -80,7 +111,7 @@ export default function ReviewDashboard() {
     if (!selectedReview) return;
     try {
       setSubmitting(true);
-      await axios.post(`/api/reviews/evaluate/${selectedReview.id}`, {
+      await axios.post(`/api/reviews/evaluate/${selectedReview?.id}`, {
         is_approved: isApproved,
         rating_understanding: ratings.quality,
         rating_consistency: ratings.consistency,
@@ -89,7 +120,8 @@ export default function ReviewDashboard() {
         comment: feedback
       });
       alert(`Milestone ${isApproved ? 'Approved' : 'Rejected'}!`);
-      fetchPendingReviews();
+      fetchReviews();
+      fetchSidebarData();
       setFeedback('');
     } catch (err) {
       console.error(err);
@@ -153,7 +185,7 @@ export default function ReviewDashboard() {
         {[
           { id: 'overview', label: 'Overview' },
           { id: 'my-reviews', label: 'My Reviews' },
-          { id: 'to-do', label: 'Reviews to Do', badge: 3 },
+          { id: 'to-do', label: 'Reviews to Do', badge: pendingCount > 0 ? pendingCount : null },
           { id: 'history', label: 'Review History' },
           { id: 'friends', label: "Friends' Reviews" },
         ].map(tab => (
@@ -181,7 +213,7 @@ export default function ReviewDashboard() {
           {/* Reviews to Do Search & List */}
           <div className="card p-4">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="text-xs font-bold text-text-primary">Reviews to Do ({reviewsToDo.length})</h3>
+              <h3 className="text-xs font-bold text-text-primary capitalize">{activeTab.replace('-', ' ')} ({reviewsToDo.length})</h3>
               <FiFilter className="text-text-muted text-xs cursor-pointer hover:text-text-primary" />
             </div>
             <div className="relative mb-3">
@@ -218,7 +250,9 @@ export default function ReviewDashboard() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-xs font-bold text-text-primary truncate">{title}</p>
-                          <p className="text-[10px] text-text-muted">By {authorName}</p>
+                          <p className="text-[10px] text-text-muted">
+                            {activeTab === 'my-reviews' ? `Reviewer: ${r.reviewer?.username || '-'}` : `By ${authorName}`}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -235,25 +269,29 @@ export default function ReviewDashboard() {
               <span className="section-link">View All</span>
             </div>
             <div className="space-y-2.5">
-              {recentlyReviewed.map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0">
-                  <div className="flex items-center gap-2">
-                    <div className="w-7 h-7 rounded-full bg-surface-elevated flex items-center justify-center text-xs text-text-primary font-bold">
-                      {item.author[0]}
+              {recentlyReviewed.length === 0 ? (
+                <div className="text-center text-text-muted text-[10px] py-4 border border-dashed border-border-subtle rounded-xl">No recent reviews</div>
+              ) : (
+                recentlyReviewed.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-full bg-surface-elevated flex items-center justify-center text-xs text-text-primary font-bold">
+                        {item.author[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-text-primary leading-tight">{item.title}</p>
+                        <p className="text-[9px] text-text-muted">By {item.author}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[11px] font-semibold text-text-primary leading-tight">{item.title}</p>
-                      <p className="text-[9px] text-text-muted">By {item.author}</p>
+                    <div className="text-right">
+                      <span className={item.status === 'Approved' ? 'badge-success text-[8px]' : 'badge-warning text-[8px]'}>
+                        {item.status}
+                      </span>
+                      <p className="text-[8px] text-text-muted mt-0.5">{item.time}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={item.status === 'Approved' ? 'badge-success text-[8px]' : 'badge-warning text-[8px]'}>
-                      {item.status}
-                    </span>
-                    <p className="text-[8px] text-text-muted mt-0.5">{item.time}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -297,7 +335,7 @@ export default function ReviewDashboard() {
             {/* Description */}
             <div>
               <h4 className="text-xs font-bold text-text-primary mb-1">Milestone Description</h4>
-              <p className="text-xs text-text-secondary">{selectedReview.description}</p>
+              <p className="text-xs text-text-secondary">{selectedReview?.description}</p>
             </div>
 
             {/* Submitted Work Link */}
@@ -305,37 +343,37 @@ export default function ReviewDashboard() {
               <div className="p-3 rounded-xl bg-surface-elevated flex items-center justify-between">
                 <div>
                   <p className="text-[10px] text-text-muted">Submitted Work</p>
-                  <a href={selectedReview.evidence_url} target="_blank" rel="noreferrer" className="text-xs text-info font-mono hover:underline flex items-center gap-1">
-                    {selectedReview.evidence_url} <FiExternalLink size={11} />
+                  <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="text-xs text-info font-mono hover:underline flex items-center gap-1">
+                    {selectedReview?.evidence_url} <FiExternalLink size={11} />
                   </a>
                 </div>
-                <a href={selectedReview.evidence_url} target="_blank" rel="noreferrer" className="btn-outline text-xs px-3 py-1.5">
+                <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="btn-outline text-xs px-3 py-1.5">
                   View Submission
                 </a>
               </div>
             )}
 
-            {/* Progress Evidence */}
-            <div>
-              <h4 className="text-xs font-bold text-text-primary mb-2">Progress Evidence</h4>
-              <div className="grid grid-cols-4 gap-2">
-                {selectedReview.evidence?.slice(0, 3).map((img, i) => (
-                  <div key={i} className="h-20 rounded-lg overflow-hidden border border-border-subtle relative group">
-                    <img src={img} alt="Evidence" className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                  </div>
-                ))}
-                <div className="h-20 rounded-lg bg-surface-elevated border border-border-subtle flex items-center justify-center text-xs font-bold text-text-muted">
-                  +3 More
+            {/* Reviewer Feedback (If completed) */}
+            {selectedReview?.Review && (
+              <div>
+                <h4 className="text-xs font-bold text-text-primary mb-1.5">Reviewer Feedback</h4>
+                <div className="p-3 rounded-xl bg-surface-elevated/70 border-l-2 border-success text-xs text-text-secondary italic">
+                  "{selectedReview?.Review.comment}"
+                </div>
+                <div className="flex gap-4 mt-2 text-[10px] text-text-muted">
+                   <span>Quality: {selectedReview?.Review.rating_quality}/5</span>
+                   <span>Consistency: {selectedReview?.Review.rating_consistency}/5</span>
+                   <span>Overall: {selectedReview?.Review.rating_overall}/5</span>
                 </div>
               </div>
-            </div>
+            )}
 
             {/* Peer Notes */}
             {selectedReview?.reflection && (
               <div>
                 <h4 className="text-xs font-bold text-text-primary mb-1.5">{selectedReview?.requester?.username || 'Peer'}'s Reflection</h4>
                 <div className="p-3 rounded-xl bg-surface-elevated/70 border-l-2 border-purple text-xs text-text-secondary italic">
-                  "{selectedReview.reflection}"
+                  "{selectedReview?.reflection}"
                 </div>
               </div>
             )}
@@ -346,61 +384,64 @@ export default function ReviewDashboard() {
         {/* Right Column (3 cols) */}
         <div className="col-span-3 space-y-4">
           {/* Submit Your Review Form */}
-          <div className="card p-4 space-y-4">
-            <div>
-              <h3 className="text-sm font-bold text-text-primary">Submit Your Review</h3>
-              <p className="text-[10px] text-text-muted">Rate across 4 dimensions</p>
-            </div>
+          {activeTab === 'to-do' ? (
+            <div className="card p-4 space-y-4">
+              <div>
+                <h3 className="text-sm font-bold text-text-primary">Submit Your Review</h3>
+                <p className="text-[10px] text-text-muted">Rate across 4 dimensions</p>
+              </div>
 
-            {/* 4 Rating Dimensions */}
-            <div className="space-y-3">
-              {[
-                { key: 'quality', label: 'Quality', sub: 'How good is the quality?' },
-                { key: 'completeness', label: 'Completeness', sub: 'How complete is the work?' },
-                { key: 'consistency', label: 'Consistency', sub: 'Is the work consistent?' },
-                { key: 'creativity', label: 'Creativity', sub: 'How creative is the approach?' },
-              ].map(dim => (
-                <div key={dim.key} className="space-y-0.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-text-primary">{dim.label}</span>
-                    {renderStars(dim.key, ratings[dim.key])}
+              <div className="space-y-3">
+                {[
+                  { key: 'quality', label: 'Quality', sub: 'How good is the quality?' },
+                  { key: 'completeness', label: 'Completeness', sub: 'How complete is the work?' },
+                  { key: 'consistency', label: 'Consistency', sub: 'Is the work consistent?' },
+                  { key: 'creativity', label: 'Creativity', sub: 'How creative is the approach?' },
+                ].map(dim => (
+                  <div key={dim.key} className="space-y-0.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-text-primary">{dim.label}</span>
+                      {renderStars(dim.key, ratings[dim.key])}
+                    </div>
+                    <p className="text-[9px] text-text-muted">{dim.sub}</p>
                   </div>
-                  <p className="text-[9px] text-text-muted">{dim.sub}</p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Feedback Input */}
-            <div>
-              <label className="block text-xs font-bold text-text-primary mb-1">Overall Feedback</label>
-              <textarea
-                rows={3}
-                value={feedback}
-                onChange={e => setFeedback(e.target.value)}
-                placeholder="Write your detailed feedback..."
-                className="w-full p-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary placeholder-text-muted focus:border-purple focus:outline-none resize-none"
-              />
-              <span className="text-[9px] text-text-muted text-right block mt-0.5">0/1000</span>
-            </div>
+              <div>
+                <label className="block text-xs font-bold text-text-primary mb-1">Overall Feedback</label>
+                <textarea
+                  rows={3}
+                  value={feedback}
+                  onChange={e => setFeedback(e.target.value)}
+                  placeholder="Write your detailed feedback..."
+                  className="w-full p-2.5 rounded-xl bg-surface-elevated border border-border-subtle text-xs text-text-primary placeholder-text-muted focus:border-purple focus:outline-none resize-none"
+                />
+              </div>
 
-            {/* Buttons */}
-            <div className="grid grid-cols-2 gap-2 pt-1">
-              <button 
-                onClick={() => handleEvaluate(false)}
-                disabled={submitting || !selectedReview}
-                className="py-2 rounded-xl border border-danger/40 text-danger hover:bg-danger/10 text-xs font-semibold transition-all disabled:opacity-50"
-              >
-                {submitting ? '...' : 'Request Changes'}
-              </button>
-              <button 
-                onClick={() => handleEvaluate(true)}
-                disabled={submitting || !selectedReview}
-                className="py-2 rounded-xl bg-success hover:bg-success/90 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-glow-success disabled:opacity-50"
-              >
-                <FiCheck size={14} /> {submitting ? '...' : 'Approve Milestone'}
-              </button>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button 
+                  onClick={() => handleEvaluate(false)}
+                  disabled={submitting || !selectedReview}
+                  className="py-2 rounded-xl border border-danger/40 text-danger hover:bg-danger/10 text-xs font-semibold transition-all disabled:opacity-50"
+                >
+                  {submitting ? '...' : 'Request Changes'}
+                </button>
+                <button 
+                  onClick={() => handleEvaluate(true)}
+                  disabled={submitting || !selectedReview}
+                  className="py-2 rounded-xl bg-success hover:bg-success/90 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-glow-success disabled:opacity-50"
+                >
+                  <FiCheck size={14} /> {submitting ? '...' : 'Approve Milestone'}
+                </button>
+              </div>
             </div>
-          </div>
+          ) : (
+             <div className="card p-4 space-y-2 bg-success/10 border border-success/30">
+                <h3 className="text-sm font-bold text-success flex items-center gap-2"><FiCheckCircle /> Review Completed</h3>
+                <p className="text-xs text-text-secondary">This review has already been evaluated.</p>
+             </div>
+          )}
 
           {/* Review History */}
           <div className="card p-4">
@@ -409,25 +450,29 @@ export default function ReviewDashboard() {
               <span className="section-link">View All</span>
             </div>
             <div className="space-y-2">
-              {reviewHistory.map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-surface-elevated text-xs font-bold flex items-center justify-center text-text-primary">
-                      {item.author[0]}
+              {reviewHistoryList.length === 0 ? (
+                <div className="text-center text-text-muted text-[10px] py-4 border border-dashed border-border-subtle rounded-xl">No review history</div>
+              ) : (
+                reviewHistoryList.map((item, i) => (
+                  <div key={i} className="flex items-center justify-between py-1.5 border-b border-border-subtle last:border-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-surface-elevated text-xs font-bold flex items-center justify-center text-text-primary">
+                        {item.author[0]?.toUpperCase()}
+                      </div>
+                      <div>
+                        <p className="text-[11px] font-semibold text-text-primary leading-tight">{item.title}</p>
+                        <p className="text-[9px] text-text-muted">By {item.author}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[11px] font-semibold text-text-primary leading-tight">{item.title}</p>
-                      <p className="text-[9px] text-text-muted">By {item.author}</p>
+                    <div className="text-right">
+                      <span className={item.status === 'Approved' ? 'badge-success text-[8px]' : 'badge-warning text-[8px]'}>
+                        {item.status}
+                      </span>
+                      <p className="text-[8px] text-text-muted mt-0.5">{item.time}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <span className={item.status === 'Approved' ? 'badge-success text-[8px]' : 'badge-warning text-[8px]'}>
-                      {item.status}
-                    </span>
-                    <p className="text-[8px] text-text-muted mt-0.5">{item.time}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
 
@@ -437,11 +482,11 @@ export default function ReviewDashboard() {
             <div className="grid grid-cols-2 gap-2 text-center">
               <div className="p-2.5 rounded-xl bg-surface-elevated">
                 <p className="text-[9px] text-text-muted">Reviews given this month</p>
-                <p className="text-lg font-bold font-mono text-purple mt-0.5">12</p>
+                <p className="text-lg font-bold font-mono text-purple mt-0.5">{impactGiven}</p>
               </div>
               <div className="p-2.5 rounded-xl bg-surface-elevated">
                 <p className="text-[9px] text-text-muted">Helped friends level up</p>
-                <p className="text-lg font-bold font-mono text-success mt-0.5">8</p>
+                <p className="text-lg font-bold font-mono text-success mt-0.5">{impactLeveledUp}</p>
               </div>
             </div>
           </div>

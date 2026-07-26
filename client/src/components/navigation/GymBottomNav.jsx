@@ -1,5 +1,5 @@
 import React from 'react';
-import { FiHome, FiActivity, FiBarChart2, FiUser, FiPlus } from 'react-icons/fi';
+import { FiHome, FiActivity, FiBarChart2, FiUser, FiPlus, FiTrendingUp } from 'react-icons/fi';
 
 export default function GymBottomNav({ activeTab, setActiveTab, onAddClick }) {
   return (
@@ -20,15 +20,13 @@ export default function GymBottomNav({ activeTab, setActiveTab, onAddClick }) {
         <span className="text-[10px] font-bold">Workouts</span>
       </button>
 
-      {/* FAB Center Button */}
-      <div className="relative flex-1 flex justify-center mt-[-32px]">
-        <button 
-          onClick={onAddClick}
-          className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-purple text-white shadow-glow-primary flex items-center justify-center transform active:scale-95 transition-transform"
-        >
-          <FiPlus size={28} />
-        </button>
-      </div>
+      <button 
+        onClick={() => setActiveTab('body-stats')}
+        className={`flex flex-col items-center gap-1 flex-1 ${activeTab === 'body-stats' ? 'text-purple' : 'text-text-muted hover:text-text-primary'}`}
+      >
+        <FiTrendingUp size={22} className={activeTab === 'body-stats' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
+        <span className="text-[10px] font-bold">Body Stats</span>
+      </button>
 
       <button 
         onClick={() => setActiveTab('progress')}

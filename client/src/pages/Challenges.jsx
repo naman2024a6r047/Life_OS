@@ -318,7 +318,7 @@ function ToastContainer({ toasts, removeToast }) {
 }
 
 // --- Import Curriculum Modal ---
-function ImportCurriculumModal({ isOpen, onClose, challengeId, onImportSuccess }) {
+function ImportCurriculumModal({ isOpen, onClose, challengeId, milestoneIndex, onImportSuccess }) {
   const [curriculumText, setCurriculumText] = useState('');
   const [importing, setImporting] = useState(false);
 
@@ -336,7 +336,8 @@ function ImportCurriculumModal({ isOpen, onClose, challengeId, onImportSuccess }
     setImporting(true);
     try {
       const res = await axios.post(`/api/challenges/${challengeId}/import-curriculum`, {
-        raw_curriculum: curriculumText
+        raw_curriculum: curriculumText,
+        milestone_index: milestoneIndex
       });
       onImportSuccess(res.data.taskCount || 0);
       onClose();
@@ -937,7 +938,8 @@ export default function Challenges() {
     try {
       addToast('Generating 10-day syllabus checklist...', 'info', '⚡');
       await axios.post(`/api/challenges/${selectedChallenge.id}/import-curriculum`, {
-        raw_curriculum: SAMPLE_10_DAY_SYLLABUS
+        raw_curriculum: SAMPLE_10_DAY_SYLLABUS,
+        milestone_index: activeMilestoneIdx
       });
       addToast('10-Day Syllabus imported successfully!', 'success', '🎉');
       fetchChallenges();
@@ -960,6 +962,7 @@ export default function Challenges() {
         isOpen={isImportModalOpen}
         onClose={() => setIsImportModalOpen(false)}
         challengeId={selectedChallenge?.id}
+        milestoneIndex={activeMilestoneIdx}
         onImportSuccess={handleImportSuccess}
       />
       <ReviewRequestModal

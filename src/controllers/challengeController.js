@@ -121,7 +121,7 @@ exports.createChallenge = async (req, res) => {
         const createdMilestones = await Milestone.bulkCreate(milestones);
 
         // Populate tasks across all created milestones
-        const allTasks = [];
+        const allTasks = []; console.log('parsedDays:', JSON.stringify(parsedDays)); console.log('milestones length:', milestones.length);
 
         createdMilestones.forEach((milestone, idx) => {
             const milestoneStartDay = idx * 10 + 1;
@@ -298,33 +298,48 @@ exports.deleteMilestone = async (req, res) => {
 exports.importCurriculum = async (req, res) => {
     try {
         const { id } = req.params;
-        const { raw_curriculum } = req.body;
+        const { raw_curriculum, milestone_index } = req.body;
 
         const challenge = await Challenge.findOne({
             where: { id, user_id: req.user.id },
-            include: [{ model: Milestone, as: 'milestones' }]
+            include: [{ model: Milestone, as: 'milestones' }],
+            order: [
+                [{ model: Milestone, as: 'milestones' }, 'start_date', 'ASC']
+            ]
         });
 
         if (!challenge) {
             return res.status(404).json({ message: 'Challenge not found' });
         }
 
-        const parsedDays = parseRawCurriculum(raw_curriculum);
+        let parsedDays = parseRawCurriculum(raw_curriculum);
         if (parsedDays.length === 0) {
             return res.status(400).json({ message: 'No valid day data detected in text' });
         }
 
         let milestones = challenge.milestones || [];
 
-        // If challenge has no milestones, create them automatically
-        if (milestones.length === 0) {
-            const startDate = new Date(challenge.start_date || new Date());
-            const milestoneCount = Math.ceil(parsedDays.length / 10) || 1;
-            const newMilestones = [];
+        // Apply offset if importing to a specific milestone but the text starts from Day 1
+        const offsetDays = (milestone_index !== undefined ? milestone_index : 0) * 10;
+        const isPastedFromDay1 = parsedDays.some(pd => pd.dayNum <= 10);
+        if (milestone_index !== undefined && isPastedFromDay1 && offsetDays > 0) {
+            parsedDays = parsedDays.map(pd => ({
+                ...pd,
+                dayNum: pd.dayNum + offsetDays
+            }));
+        }
 
-            for (let i = 0; i < milestoneCount; i++) {
+        // Determine how many milestones we need based on the max dayNum
+        const maxDayNum = Math.max(...parsedDays.map(pd => pd.dayNum));
+        const requiredMilestoneCount = Math.max(milestones.length, Math.ceil(maxDayNum / 10));
+
+        // Create any missing milestones automatically
+        if (requiredMilestoneCount > milestones.length) {
+            const startDate = new Date(challenge.start_date || new Date());
+            const newMilestones = [];
+            for (let i = milestones.length; i < requiredMilestoneCount; i++) {
                 const mStart = addDays(startDate, i * 10);
-                let mEnd = addDays(startDate, (i * 10) + 9);
+                const mEnd = addDays(startDate, (i * 10) + 9);
                 newMilestones.push({
                     challenge_id: challenge.id,
                     title: `Milestone ${i + 1}`,
@@ -333,36 +348,43 @@ exports.importCurriculum = async (req, res) => {
                     status: i === 0 ? 'unlocked' : 'locked'
                 });
             }
-            milestones = await Milestone.bulkCreate(newMilestones);
+            if (newMilestones.length > 0) {
+                const createdMilestones = await Milestone.bulkCreate(newMilestones);
+                milestones = [...milestones, ...createdMilestones];
+            }
         }
 
-        const milestoneIds = milestones.map(m => m.id);
-        if (milestoneIds.length > 0) {
-            await MilestoneTask.destroy({ where: { milestone_id: milestoneIds } });
+        let targetMilestone = null;
+        if (milestone_index !== undefined && milestones[milestone_index]) {
+            targetMilestone = milestones[milestone_index];
+            await MilestoneTask.destroy({ where: { milestone_id: targetMilestone.id } });
+        } else {
+            const milestoneIds = milestones.map(m => m.id);
+            if (milestoneIds.length > 0) {
+                await MilestoneTask.destroy({ where: { milestone_id: milestoneIds } });
+            }
         }
 
         const startDate = new Date(challenge.start_date || new Date());
         const allTasks = [];
 
-        milestones.forEach((milestone, idx) => {
-            const milestoneStartDay = idx * 10 + 1;
-            const milestoneEndDay = (idx + 1) * 10;
-
-            for (let dNum = milestoneStartDay; dNum <= Math.min(parsedDays.length, milestoneEndDay); dNum++) {
-                const dayOffsetIndex = dNum - 1;
+        // Universal parsing: just iterate over parsed days, find their milestone, and add them
+        parsedDays.forEach(dayData => {
+            const targetMilestoneIdx = Math.floor((dayData.dayNum - 1) / 10);
+            const targetMs = milestones[targetMilestoneIdx];
+            
+            if (targetMs && dayData.tasks.length > 0) {
+                const dayOffsetIndex = dayData.dayNum - 1;
                 const taskDate = addDays(startDate, dayOffsetIndex);
-                const dayData = parsedDays.find(pd => pd.dayNum === dNum);
 
-                if (dayData && dayData.tasks.length > 0) {
-                    dayData.tasks.forEach((t, tIdx) => {
-                        allTasks.push({
-                            milestone_id: milestone.id,
-                            title: t.title,
-                            priority: tIdx < 3 ? 'P1' : 'P2',
-                            date: taskDate
-                        });
+                dayData.tasks.forEach((t, tIdx) => {
+                    allTasks.push({
+                        milestone_id: targetMs.id,
+                        title: t.title,
+                        priority: tIdx < 3 ? 'P1' : 'P2',
+                        date: taskDate
                     });
-                }
+                });
             }
         });
 

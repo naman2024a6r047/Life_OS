@@ -38,14 +38,14 @@ export function initGoogleDriveApi(onAuthSuccess, onAuthError) {
         if (response && response.code) {
           try {
             // Send auth code to backend
-            const tokenStr = localStorage.getItem('lifeos_token');
+            const tokenStr = localStorage.getItem('token');
             const res = await fetch('http://localhost:5000/api/auth/google-auth', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${tokenStr}`
               },
-              body: JSON.stringify({ code: response.code, redirect_uri: window.location.origin })
+              body: JSON.stringify({ code: response.code, redirect_uri: 'postmessage' })
             });
             const data = await res.json();
             if (res.ok && data.access_token) {

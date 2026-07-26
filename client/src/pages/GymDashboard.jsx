@@ -27,7 +27,7 @@ export default function GymDashboard() {
   useEffect(() => {
     const fetchToken = async () => {
       try {
-        const tokenStr = localStorage.getItem('lifeos_token');
+        const tokenStr = localStorage.getItem('token');
         if (!tokenStr) return;
         const res = await fetch('http://localhost:5000/api/auth/google-token', {
           headers: { 'Authorization': `Bearer ${tokenStr}` }
@@ -1210,7 +1210,7 @@ export default function GymDashboard() {
                       <button 
                         onClick={() => {
                           setLinkSaved(true);
-                          const tokenStr = localStorage.getItem('lifeos_token');
+                          const tokenStr = localStorage.getItem('token');
                           if(tokenStr) {
                             fetch('http://localhost:5000/api/auth/profile', {
                               method: 'PUT',

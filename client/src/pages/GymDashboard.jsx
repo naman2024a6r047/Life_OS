@@ -29,7 +29,7 @@ export default function GymDashboard() {
       try {
         const tokenStr = localStorage.getItem('token');
         if (!tokenStr) return;
-        const res = await fetch('http://localhost:5000/api/auth/google-token', {
+        const res = await fetch('/api/auth/google-token', {
           headers: { 'Authorization': `Bearer ${tokenStr}` }
         });
         const data = await res.json();
@@ -1228,7 +1228,7 @@ export default function GymDashboard() {
                           setLinkSaved(true);
                           const tokenStr = localStorage.getItem('token');
                           if(tokenStr) {
-                            fetch('http://localhost:5000/api/auth/profile', {
+                            fetch('/api/auth/profile', {
                               method: 'PUT',
                               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenStr}` },
                               body: JSON.stringify({ google_drive_folder_link: userProfile.googleDriveFolderLink })

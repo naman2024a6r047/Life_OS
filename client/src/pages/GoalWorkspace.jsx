@@ -22,7 +22,7 @@ export default function GoalWorkspace() {
     useEffect(() => {
         const fetchWorkspace = async () => {
             try {
-                const res = await fetch(`http://localhost:5000/api/goals/workspace/${goalId || 'default-1'}`, {
+                const res = await fetch(`/api/goals/workspace/${goalId || 'default-1'}`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {

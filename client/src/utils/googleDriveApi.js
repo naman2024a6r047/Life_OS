@@ -39,7 +39,7 @@ export function initGoogleDriveApi(onAuthSuccess, onAuthError) {
           try {
             // Send auth code to backend
             const tokenStr = localStorage.getItem('token');
-            const res = await fetch('http://localhost:5000/api/auth/google-auth', {
+            const res = await fetch('/api/auth/google-auth', {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',

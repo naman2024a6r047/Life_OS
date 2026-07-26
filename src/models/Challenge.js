@@ -39,6 +39,10 @@ const Challenge = sequelize.define('Challenge', {
         type: DataTypes.ENUM('easy', 'medium', 'hard', 'iron'),
         defaultValue: 'medium'
     },
+    penalty_mode: {
+        type: DataTypes.ENUM('easy', 'medium', 'hard'),
+        defaultValue: 'easy'
+    },
     penalty_rule: {
         type: DataTypes.STRING,
         allowNull: true

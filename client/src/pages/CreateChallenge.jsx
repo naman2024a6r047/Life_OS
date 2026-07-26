@@ -13,7 +13,7 @@ export default function CreateChallenge() {
         category: 'Learning',
         duration_days: 30,
         difficulty: 'medium',
-        penalty_rule: 'restart_milestone',
+        penalty_mode: 'easy',
         raw_curriculum: ''
     });
     const [submitting, setSubmitting] = useState(false);
@@ -109,6 +109,19 @@ export default function CreateChallenge() {
                                 <option value="iron" className="bg-surface">Iron Mode (No Skips)</option>
                             </select>
                         </div>
+                        
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-textSecondary flex items-center gap-2"><FiAlertTriangle /> Penalty Mode</label>
+                            <select 
+                                value={formData.penalty_mode}
+                                onChange={e => setFormData({...formData, penalty_mode: e.target.value})}
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-accent text-white appearance-none"
+                            >
+                                <option value="easy" className="bg-surface">Easy (No Restart Penalty)</option>
+                                <option value="medium" className="bg-surface">Medium (Restart Milestone on 2 Skips)</option>
+                                <option value="hard" className="bg-surface">Hard (Restart Milestone on 1 Skip)</option>
+                            </select>
+                        </div>
                     </div>
 
                     {/* Optional Custom Curriculum Box toggle */}
@@ -137,8 +150,13 @@ export default function CreateChallenge() {
                         <div className="flex items-start gap-3">
                             <FiAlertTriangle className="text-accent mt-1 flex-shrink-0" />
                             <div>
-                                <h4 className="text-accent font-bold mb-1">Penalty Rule</h4>
-                                <p className="text-sm text-textSecondary">Missing 2 consecutive days will automatically restart the current milestone. You cannot change this later.</p>
+                                <h4 className="text-accent font-bold mb-1">Penalty Mode: {formData.penalty_mode === 'easy' ? 'Easy' : formData.penalty_mode === 'medium' ? 'Medium' : 'Hard'}</h4>
+                                <p className="text-sm text-textSecondary">
+                                    {formData.penalty_mode === 'easy' && "No penalties. Missed tasks are simply marked overdue."}
+                                    {formData.penalty_mode === 'medium' && "Missing 2 consecutive days will automatically restart the current milestone from Day 1."}
+                                    {formData.penalty_mode === 'hard' && "Missing 1 day will automatically restart the current milestone from Day 1. No mercy."}
+                                    {' '}You cannot change this later.
+                                </p>
                             </div>
                         </div>
                     </div>

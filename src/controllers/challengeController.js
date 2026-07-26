@@ -1,4 +1,4 @@
-const { Challenge, Milestone, MilestoneTask } = require('../models');
+const { Challenge, Milestone, MilestoneTask, ActivityLog } = require('../models');
 
 // Helper to add days
 const addDays = (date, days) => {
@@ -6,6 +6,114 @@ const addDays = (date, days) => {
     result.setDate(result.getDate() + days);
     return result;
 };
+
+const evaluateChallengePenalty = async (challenge) => {
+    if (!challenge || challenge.status !== 'active') return { warning: false, applied: false };
+    if (!challenge.penalty_mode || challenge.penalty_mode === 'easy') return { warning: false, applied: false };
+    if (!challenge.milestones || challenge.milestones.length === 0) return { warning: false, applied: false };
+
+    let activeMilestone = null;
+    let activeMilestoneIndex = -1;
+    for (let i = 0; i < challenge.milestones.length; i++) {
+        if (challenge.milestones[i].status === 'in_progress' || challenge.milestones[i].status === 'pending') {
+            activeMilestone = challenge.milestones[i];
+            activeMilestoneIndex = i;
+            break;
+        }
+    }
+    
+    if (!activeMilestone || !activeMilestone.tasks || activeMilestone.tasks.length === 0) return { warning: false, applied: false };
+
+    const tasksByDate = {};
+    activeMilestone.tasks.forEach(task => {
+        if (task.date) {
+            if (!tasksByDate[task.date]) tasksByDate[task.date] = [];
+            tasksByDate[task.date].push(task);
+        }
+    });
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+
+    const sortedDates = Object.keys(tasksByDate).sort((a,b) => new Date(b) - new Date(a));
+    const pastDates = sortedDates.filter(d => {
+        const [y, m, day] = d.split('-');
+        const tDate = new Date(y, m - 1, day);
+        return tDate < today;
+    });
+
+    let consecutiveMisses = 0;
+    for (const d of pastDates) {
+        const dayTasks = tasksByDate[d];
+        const allCompleted = dayTasks.every(t => t.is_completed);
+        if (!allCompleted) {
+            consecutiveMisses++;
+        } else {
+            break;
+        }
+    }
+
+    const threshold = challenge.penalty_mode === 'hard' ? 1 : 2;
+    let applied = false;
+    let warning = false;
+
+    if (consecutiveMisses >= threshold) {
+        const activeTasksSorted = activeMilestone.tasks.filter(t=>t.date).sort((a,b) => new Date(a.date) - new Date(b.date));
+        if (activeTasksSorted.length > 0) {
+            const firstDateStr = activeTasksSorted[0].date;
+            const [y, m, d] = firstDateStr.split('-');
+            const originalStartDate = new Date(y, m - 1, d);
+            const diffDays = Math.round((today - originalStartDate) / (1000 * 60 * 60 * 24));
+
+            for (const task of activeMilestone.tasks) {
+                const updates = { is_completed: false };
+                if (diffDays !== 0 && task.date) {
+                    const [ty, tm, td] = task.date.split('-');
+                    const tDate = new Date(ty, tm - 1, td);
+                    tDate.setDate(tDate.getDate() + diffDays);
+                    // format YYYY-MM-DD local
+                    const yy = tDate.getFullYear();
+                    const mm = String(tDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(tDate.getDate()).padStart(2, '0');
+                    updates.date = `${yy}-${mm}-${dd}`;
+                }
+                await require('../models/MilestoneTask').update(updates, { where: { id: task.id } });
+            }
+
+            for (let i = activeMilestoneIndex + 1; i < challenge.milestones.length; i++) {
+                const ms = challenge.milestones[i];
+                if (ms.tasks && diffDays !== 0) {
+                    for (const task of ms.tasks) {
+                        if (task.date) {
+                            const [ty, tm, td] = task.date.split('-');
+                            const tDate = new Date(ty, tm - 1, td);
+                            tDate.setDate(tDate.getDate() + diffDays);
+                            const yy = tDate.getFullYear();
+                            const mm = String(tDate.getMonth() + 1).padStart(2, '0');
+                            const dd = String(tDate.getDate()).padStart(2, '0');
+                            await require('../models/MilestoneTask').update({ date: `${yy}-${mm}-${dd}` }, { where: { id: task.id } });
+                        }
+                    }
+                }
+            }
+
+            try {
+                await require('../models/ActivityLog').create({
+                    user_id: challenge.user_id,
+                    action_type: 'PENALTY_TRIGGERED',
+                    xp_awarded: 0
+                });
+            } catch (e) {}
+            
+            applied = true;
+        }
+    } else if (consecutiveMisses === threshold - 1 && threshold > 1) {
+        warning = true;
+    }
+
+    return { warning, applied };
+};
+
 
 // Helper to parse multi-day raw curriculum text into structured day & task objects
 const cleanChecklistPrefix = (str) => {

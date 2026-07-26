@@ -1434,7 +1434,17 @@ export default function Challenges() {
         <div className="col-span-12 lg:col-span-3 space-y-4">
           {selectedChallenge ? (
             <>
-              {/* Detailed Goal Overview */}
+             
+              {selectedChallenge?.penalty_warning && (
+                <div className="card p-4 space-y-2 border-warning/30 bg-warning/5 mb-4">
+                  <h3 className="text-sm font-bold text-warning flex items-center gap-2">
+                    <FiAlertTriangle /> Penalty Risk!
+                  </h3>
+                  <p className="text-xs text-text-muted">You missed your tasks recently. If you miss today's tasks, your current milestone will be completely reset to Day 1!</p>
+                </div>
+              )}
+
+ {/* Detailed Goal Overview */}
               <div className="card p-4 space-y-4 border-border-subtle">
                 <h3 className="section-title text-xs font-bold text-text-primary uppercase tracking-wider border-b border-border-subtle pb-2">
                   Goal Overview
@@ -1447,7 +1457,7 @@ export default function Challenges() {
                     { icon: '⭐', label: 'Reward Pool', value: `${totalDays * 50} XP` },
                     { icon: '🔥', label: 'Active Streak', value: `${streak} Days` },
                     { icon: '✅', label: 'Milestone Progress', value: `${completedTasks} / ${totalTasks || totalDays} Tasks` },
-                    { icon: '🛡️', label: 'Penalty Rule', value: selectedChallenge.penalty_rule === 'restart_milestone' ? 'Restart Milestone on 2 Skips' : 'Standard' },
+                    { icon: '🛡️', label: 'Penalty Mode', value: selectedChallenge.penalty_mode === 'hard' ? 'Hard (1 Skip Restart)' : selectedChallenge.penalty_mode === 'medium' ? 'Medium (2 Skips Restart)' : 'Easy (No Restart)' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 py-1">
                       <span className="text-base">{item.icon}</span>

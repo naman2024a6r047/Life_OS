@@ -26,6 +26,14 @@ const CodingProfile = sequelize.define('CodingProfile', {
     total_hours_coded: {
         type: DataTypes.FLOAT,
         defaultValue: 0
+    },
+    portfolio_links: {
+        type: DataTypes.JSON,
+        defaultValue: []
+    },
+    developer_info: {
+        type: DataTypes.JSON,
+        defaultValue: {}
     }
 }, {
     timestamps: true

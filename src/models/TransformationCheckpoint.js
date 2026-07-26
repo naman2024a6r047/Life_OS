@@ -39,6 +39,30 @@ const TransformationCheckpoint = sequelize.define('TransformationCheckpoint', {
         type: DataTypes.DECIMAL(5, 1),
         allowNull: true
     },
+    muscle_mass_kg: {
+        type: DataTypes.DECIMAL(5, 2),
+        allowNull: true
+    },
+    bmi: {
+        type: DataTypes.DECIMAL(4, 1),
+        allowNull: true
+    },
+    body_water_pct: {
+        type: DataTypes.DECIMAL(4, 1),
+        allowNull: true
+    },
+    visceral_fat: {
+        type: DataTypes.DECIMAL(4, 1),
+        allowNull: true
+    },
+    measurements: {
+        type: DataTypes.JSON,
+        defaultValue: {}
+    },
+    health_metrics: {
+        type: DataTypes.JSON,
+        defaultValue: {}
+    },
     photo_front_url: {
         type: DataTypes.TEXT,
         allowNull: true

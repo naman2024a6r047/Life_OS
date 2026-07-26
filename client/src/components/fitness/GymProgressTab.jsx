@@ -132,34 +132,62 @@ export default function GymProgressTab({ workoutsList = [], googleAccessToken, g
                           <stop offset="100%" stopColor="rgba(168, 85, 247, 0)" />
                         </linearGradient>
                       </defs>
-                      <path d={hasData ? "M 0 70 L 20 60 L 40 50 L 60 40 L 80 30 L 100 40 L 100 100 L 0 100 Z" : "M 0 100 L 20 100 L 40 100 L 60 100 L 80 100 L 100 100 L 100 100 L 0 100 Z"} fill="url(#freqGrad)" />
-                      <polyline points={hasData ? "0,70 20,60 40,50 60,40 80,30 100,40" : "0,100 20,100 40,100 60,100 80,100 100,100"} fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      
-                      {/* Data Points */}
-                      {(hasData ? [
-                        {x: 0, y: 70, v: 3}, {x: 20, y: 60, v: 4}, {x: 40, y: 50, v: 5}, 
-                        {x: 60, y: 40, v: 6}, {x: 80, y: 30, v: 7}, {x: 100, y: 40, v: 6}
-                      ] : [
-                        {x: 0, y: 100, v: 0}, {x: 20, y: 100, v: 0}, {x: 40, y: 100, v: 0}, 
-                        {x: 60, y: 100, v: 0}, {x: 80, y: 100, v: 0}, {x: 100, y: 100, v: 0}
-                      ]).map((pt, i) => (
-                        <g key={i}>
-                          <circle cx={pt.x} cy={pt.y} r="3" fill="#a855f7" stroke="#13111a" strokeWidth="1.5" />
-                          <text x={pt.x} y={pt.y - 8} fill="#fff" fontSize="5" textAnchor="middle" fontWeight="bold">{pt.v}</text>
-                        </g>
-                      ))}
+                      {(() => {
+                        if (!hasData) {
+                          return (
+                            <>
+                              <path d="M 0 100 L 20 100 L 40 100 L 60 100 L 80 100 L 100 100 L 100 100 L 0 100 Z" fill="url(#freqGrad)" />
+                              <polyline points="0,100 20,100 40,100 60,100 80,100 100,100" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </>
+                          );
+                        }
+
+                        // Aggregate by week for the last 6 weeks
+                        const weeks = [0,0,0,0,0,0];
+                        const now = Date.now();
+                        workoutsList.forEach(w => {
+                          const wDate = new Date(w.id || w.date).getTime();
+                          const diffTime = Math.abs(now - wDate);
+                          const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+                          if (diffWeeks < 6) {
+                            weeks[5 - diffWeeks]++; // weeks[5] is current week, weeks[0] is 5 weeks ago
+                          }
+                        });
+
+                        const pts = weeks.map((count, i) => {
+                          const x = (i / 5) * 100;
+                          const y = 100 - (Math.min(count, 10) / 10) * 100;
+                          return { x, y, v: count };
+                        });
+                        
+                        const pathD = `M 0 ${pts[0].y} ` + pts.map(p => `L ${p.x} ${p.y}`).join(' ') + ` L 100 ${pts[5].y} L 100 100 L 0 100 Z`;
+                        const polylinePts = pts.map(p => `${p.x},${p.y}`).join(' ');
+
+                        return (
+                          <>
+                            <path d={pathD} fill="url(#freqGrad)" />
+                            <polyline points={polylinePts} fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            {pts.map((pt, i) => (
+                              <g key={i}>
+                                <circle cx={pt.x} cy={pt.y} r="3" fill="#a855f7" stroke="#13111a" strokeWidth="1.5" />
+                                <text x={pt.x} y={pt.y - 8} fill="#fff" fontSize="5" textAnchor="middle" fontWeight="bold">{pt.v}</text>
+                              </g>
+                            ))}
+                          </>
+                        );
+                      })()}
                     </svg>
                   </div>
                 </div>
                 
                 {/* X Axis Labels */}
                 <div className="absolute left-5 right-0 bottom-0 flex justify-between text-[9px] text-text-muted">
-                  <span>Apr 13-19</span>
-                  <span>Apr 20-26</span>
-                  <span>Apr 27-May 3</span>
-                  <span>May 4-10</span>
-                  <span>May 11-17</span>
-                  <span>May 18-24</span>
+                  <span>-5W</span>
+                  <span>-4W</span>
+                  <span>-3W</span>
+                  <span>-2W</span>
+                  <span>-1W</span>
+                  <span>This Wk</span>
                 </div>
               </div>
             </div>
@@ -206,34 +234,64 @@ export default function GymProgressTab({ workoutsList = [], googleAccessToken, g
                           <stop offset="100%" stopColor="rgba(34, 197, 94, 0)" />
                         </linearGradient>
                       </defs>
-                      <path d={hasData ? "M 0 60 L 20 50 L 40 40 L 60 25 L 80 15 L 100 20 L 100 100 L 0 100 Z" : "M 0 100 L 20 100 L 40 100 L 60 100 L 80 100 L 100 100 L 100 100 L 0 100 Z"} fill="url(#volGrad)" />
-                      <polyline points={hasData ? "0,60 20,50 40,40 60,25 80,15 100,20" : "0,100 20,100 40,100 60,100 80,100 100,100"} fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      
-                      {/* Data Points */}
-                      {(hasData ? [
-                        {x: 0, y: 60, v: '120m'}, {x: 20, y: 50, v: '150m'}, {x: 40, y: 40, v: '180m'}, 
-                        {x: 60, y: 25, v: '225m'}, {x: 80, y: 15, v: '255m'}, {x: 100, y: 20, v: '240m'}
-                      ] : [
-                        {x: 0, y: 100, v: '0m'}, {x: 20, y: 100, v: '0m'}, {x: 40, y: 100, v: '0m'}, 
-                        {x: 60, y: 100, v: '0m'}, {x: 80, y: 100, v: '0m'}, {x: 100, y: 100, v: '0m'}
-                      ]).map((pt, i) => (
-                        <g key={i}>
-                          <circle cx={pt.x} cy={pt.y} r="3" fill="#22c55e" stroke="#13111a" strokeWidth="1.5" />
-                          <text x={pt.x} y={pt.y - 8} fill="#fff" fontSize="5" textAnchor="middle" fontWeight="bold">{pt.v}</text>
-                        </g>
-                      ))}
+                      {(() => {
+                        if (!hasData) {
+                          return (
+                            <>
+                              <path d="M 0 100 L 20 100 L 40 100 L 60 100 L 80 100 L 100 100 L 100 100 L 0 100 Z" fill="url(#volGrad)" />
+                              <polyline points="0,100 20,100 40,100 60,100 80,100 100,100" fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </>
+                          );
+                        }
+
+                        // Aggregate active minutes by week for the last 6 weeks
+                        const weeksMins = [0,0,0,0,0,0];
+                        const now = Date.now();
+                        workoutsList.forEach(w => {
+                          const wDate = new Date(w.id || w.date).getTime();
+                          const diffTime = Math.abs(now - wDate);
+                          const diffWeeks = Math.floor(diffTime / (1000 * 60 * 60 * 24 * 7));
+                          if (diffWeeks < 6) {
+                            const durationMatch = String(w.duration).match(/(\d+)/);
+                            const duration = durationMatch ? parseInt(durationMatch[1], 10) : 0;
+                            weeksMins[5 - diffWeeks] += duration;
+                          }
+                        });
+
+                        const pts = weeksMins.map((mins, i) => {
+                          const x = (i / 5) * 100;
+                          const y = 100 - (Math.min(mins, 300) / 300) * 100; // max 300 mins
+                          return { x, y, v: `${mins}m` };
+                        });
+                        
+                        const pathD = `M 0 ${pts[0].y} ` + pts.map(p => `L ${p.x} ${p.y}`).join(' ') + ` L 100 ${pts[5].y} L 100 100 L 0 100 Z`;
+                        const polylinePts = pts.map(p => `${p.x},${p.y}`).join(' ');
+
+                        return (
+                          <>
+                            <path d={pathD} fill="url(#volGrad)" />
+                            <polyline points={polylinePts} fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            {pts.map((pt, i) => (
+                              <g key={i}>
+                                <circle cx={pt.x} cy={pt.y} r="3" fill="#22c55e" stroke="#13111a" strokeWidth="1.5" />
+                                <text x={pt.x} y={pt.y - 8} fill="#fff" fontSize="5" textAnchor="middle" fontWeight="bold">{pt.v}</text>
+                              </g>
+                            ))}
+                          </>
+                        );
+                      })()}
                     </svg>
                   </div>
                 </div>
                 
                 {/* X Axis Labels */}
                 <div className="absolute left-5 right-0 bottom-0 flex justify-between text-[9px] text-text-muted">
-                  <span>Apr 13</span>
-                  <span>Apr 20</span>
-                  <span>Apr 27</span>
-                  <span>May 4</span>
-                  <span>May 11</span>
-                  <span>May 18</span>
+                  <span>-5W</span>
+                  <span>-4W</span>
+                  <span>-3W</span>
+                  <span>-2W</span>
+                  <span>-1W</span>
+                  <span>This Wk</span>
                 </div>
               </div>
             </div>

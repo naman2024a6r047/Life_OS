@@ -947,6 +947,22 @@ export default function GymDashboard() {
                         <p className="text-[9px] text-text-muted">Best PR</p>
                         <p className="font-bold text-purple">{personalRecords[ex.name]?.weight || ex.targetWeight} kg</p>
                       </div>
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setWeeklyPlan(prev => ({
+                            ...prev,
+                            [selectedPlanDay]: {
+                              ...prev[selectedPlanDay],
+                              exercises: prev[selectedPlanDay].exercises.filter(exercise => exercise.id !== ex.id)
+                            }
+                          }));
+                        }}
+                        className="p-1.5 text-text-muted hover:text-danger hover:bg-danger/10 rounded-lg transition-colors ml-1"
+                        title="Remove Exercise"
+                      >
+                        <FiTrash2 size={14} />
+                      </button>
                     </div>
                   </div>
                 ))}

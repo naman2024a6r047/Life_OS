@@ -1,37 +1,34 @@
-const http = require('http');
+require('dotenv').config();
+const { sequelize } = require('./src/models');
+const User = require('./src/models/User');
+const jwt = require('jsonwebtoken');
+const axios = require('axios');
 
-const testData = JSON.stringify({
-    email: 'testwarrior@lifeos.dev',
-    password: 'warrior2026!'
-});
-
-const opts = {
-    hostname: 'localhost',
-    port: 5000,
-    path: '/api/auth/login',
-    method: 'POST',
-    headers: {
-        'Content-Type': 'application/json',
-        'Content-Length': Buffer.byteLength(testData)
+async function test() {
+    try {
+        await sequelize.authenticate();
+        // find user aabe55fe-921a-4c61-a319-375b9905ce1b
+        const user = await User.findByPk('aabe55fe-921a-4c61-a319-375b9905ce1b');
+        if (!user) return console.log('User not found');
+        
+        // generate token
+        const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        
+        // hit the endpoint
+        const res = await axios.put('http://localhost:5000/api/dev/profile', {
+            developer_info: { test: 'API Call Worked' },
+            portfolio_links: []
+        }, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        console.log('Status:', res.status);
+        console.log('Response:', res.data.developer_info);
+        
+        process.exit(0);
+    } catch (e) {
+        console.error(e.response ? e.response.data : e.message);
+        process.exit(1);
     }
-};
-
-console.log('Testing Supabase Auth login...\n');
-
-const req = http.request(opts, res => {
-    let body = '';
-    res.on('data', c => body += c);
-    res.on('end', () => {
-        console.log('Status:', res.statusCode);
-        try {
-            const j = JSON.parse(body);
-            console.log('Response:', JSON.stringify(j, null, 2));
-        } catch (e) {
-            console.log('Raw body:', body);
-        }
-    });
-});
-
-req.on('error', e => console.error('Connection Error:', e.message));
-req.write(testData);
-req.end();
+}
+test();

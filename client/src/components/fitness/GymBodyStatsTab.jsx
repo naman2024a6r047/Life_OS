@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiCalendar, FiChevronDown, FiActivity, FiDroplet, FiHeart, FiCamera, FiPlus,
@@ -8,10 +9,7 @@ import MuscleDiagram from './MuscleDiagram';
 import ProgressPhotos from './ProgressPhotos';
 
 export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLink }) {
-  const [bodyStats, setBodyStats] = useState(() => {
-    const saved = localStorage.getItem('lifeos_user_body_stats');
-    if (saved) return JSON.parse(saved);
-    return {
+  const [bodyStats, setBodyStats] = useState({
       weight: 0,
       bodyFat: 0,
       muscleMass: 0,
@@ -34,15 +32,99 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
         back: null,
         left: null
       }
-    };
   });
 
-  useEffect(() => {
-    localStorage.setItem('lifeos_user_body_stats', JSON.stringify(bodyStats));
-  }, [bodyStats]);
+  const [checkpointsList, setCheckpointsList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
+  useEffect(() => {
+    const fetchCheckpoints = async () => {
+      try {
+        const token = localStorage.getItem('lifeos_token');
+        const res = await axios.get('/api/fitness/checkpoints', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.data && res.data.length > 0) {
+          setCheckpointsList(res.data);
+          const latest = res.data[0];
+          setBodyStats({
+            weight: latest.weight_kg || 0,
+            bodyFat: latest.body_fat_pct || 0,
+            muscleMass: latest.muscle_mass_kg || 0,
+            bmi: latest.bmi || 0,
+            bodyWater: latest.body_water_pct || 0,
+            visceralFat: latest.visceral_fat || 0,
+            measurements: {
+              Neck: latest.measurements?.Neck || 0,
+              Chest: latest.chest_cm || latest.measurements?.Chest || 0,
+              Waist: latest.waist_cm || latest.measurements?.Waist || 0,
+              Hips: latest.measurements?.Hips || 0,
+              'Right Arm': latest.measurements?.['Right Arm'] || 0,
+              'Left Arm': latest.arms_cm || latest.measurements?.['Left Arm'] || 0,
+              'Right Thigh': latest.measurements?.['Right Thigh'] || 0,
+              'Left Thigh': latest.measurements?.['Left Thigh'] || 0
+            },
+            health: latest.health_metrics || {
+              'Resting Heart Rate': 0,
+              'Blood Pressure': '0/0',
+              'Sleep (Avg)': 0,
+              'Stress Level (Avg)': 'Low',
+              'Recovery Score (Avg)': 0
+            },
+            photos: {
+              front: latest.photo_front_url || null,
+              right: latest.photo_right_url || null,
+              back: latest.photo_back_url || null,
+              left: latest.photo_left_url || null
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching body stats:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCheckpoints();
+  }, []);
+
+  const saveStatsToBackend = async (statsToSave) => {
+    try {
+      const token = localStorage.getItem('lifeos_token');
+      await axios.post('/api/fitness/checkpoint', {
+        weight_kg: statsToSave.weight,
+        body_fat_pct: statsToSave.bodyFat,
+        muscle_mass_kg: statsToSave.muscleMass,
+        bmi: statsToSave.bmi,
+        body_water_pct: statsToSave.bodyWater,
+        visceral_fat: statsToSave.visceralFat,
+        waist_cm: statsToSave.measurements.Waist,
+        chest_cm: statsToSave.measurements.Chest,
+        arms_cm: statsToSave.measurements['Left Arm'], // Simplification
+        measurements: statsToSave.measurements,
+        health_metrics: statsToSave.health,
+        photo_front_url: statsToSave.photos.front,
+        photo_right_url: statsToSave.photos.right,
+        photo_back_url: statsToSave.photos.back,
+        photo_left_url: statsToSave.photos.left
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (error) {
+      console.error('Error saving stats:', error);
+    }
+  };
+
+  const [isEditingMainStats, setIsEditingMainStats] = useState(false);
   const [isEditingMeasurements, setIsEditingMeasurements] = useState(false);
   const [isEditingHealth, setIsEditingHealth] = useState(false);
+
+  const handleMainStatChange = (key, value) => {
+    setBodyStats(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
   const handleMeasurementChange = (key, value) => {
     setBodyStats(prev => ({
@@ -58,13 +140,27 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
     }));
   };
 
+  if (isLoading) {
+    return <div className="text-center py-20 text-text-muted">Loading Body Stats...</div>;
+  }
+
   return (
     <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-text-primary">Body Status</h2>
-          <p className="text-xs text-text-muted">Track your body composition, measurements and overall fitness status.</p>
+          <div className="flex items-center gap-3">
+            <h2 className="text-xl font-bold text-text-primary">Body Status</h2>
+            <button onClick={() => {
+              if (isEditingMainStats) {
+                saveStatsToBackend(bodyStats);
+              }
+              setIsEditingMainStats(!isEditingMainStats);
+            }} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1 bg-surface-elevated px-2 py-1 rounded-lg border border-border-subtle">
+              {isEditingMainStats ? <><FiCheck size={12}/> Save</> : <><FiEdit2 size={12}/> Edit</>}
+            </button>
+          </div>
+          <p className="text-xs text-text-muted mt-1">Track your body composition, measurements and overall fitness status.</p>
         </div>
         <div className="flex items-center gap-3">
           <button className="flex items-center gap-2 px-4 py-2 bg-surface-elevated border border-border-subtle rounded-xl text-xs font-bold text-text-primary hover:border-purple/50 transition-colors">
@@ -88,7 +184,16 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
             <div>
               <p className="text-[10px] text-text-muted font-bold">Weight</p>
-              <h3 className="text-lg font-black text-text-primary">{bodyStats.weight > 0 ? bodyStats.weight : 0} kg</h3>
+              {isEditingMainStats ? (
+                <input 
+                  type="number" 
+                  value={bodyStats.weight} 
+                  onChange={(e) => handleMainStatChange('weight', e.target.value)}
+                  className="w-16 bg-surface border border-border-subtle rounded px-1 text-sm outline-none text-text-primary"
+                />
+              ) : (
+                <h3 className="text-lg font-black text-text-primary">{bodyStats.weight > 0 ? bodyStats.weight : 0} kg</h3>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-bold text-success flex items-center gap-1">
@@ -104,7 +209,16 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
             <div>
               <p className="text-[10px] text-text-muted font-bold">Body Fat</p>
-              <h3 className="text-lg font-black text-text-primary">{bodyStats.bodyFat > 0 ? bodyStats.bodyFat : 0} %</h3>
+              {isEditingMainStats ? (
+                <input 
+                  type="number" 
+                  value={bodyStats.bodyFat} 
+                  onChange={(e) => handleMainStatChange('bodyFat', e.target.value)}
+                  className="w-16 bg-surface border border-border-subtle rounded px-1 text-sm outline-none text-text-primary"
+                />
+              ) : (
+                <h3 className="text-lg font-black text-text-primary">{bodyStats.bodyFat > 0 ? bodyStats.bodyFat : 0} %</h3>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-bold text-success flex items-center gap-1">
@@ -120,7 +234,16 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
             <div>
               <p className="text-[10px] text-text-muted font-bold whitespace-nowrap">Muscle Mass</p>
-              <h3 className="text-lg font-black text-text-primary">{bodyStats.muscleMass > 0 ? bodyStats.muscleMass : 0} kg</h3>
+              {isEditingMainStats ? (
+                <input 
+                  type="number" 
+                  value={bodyStats.muscleMass} 
+                  onChange={(e) => handleMainStatChange('muscleMass', e.target.value)}
+                  className="w-16 bg-surface border border-border-subtle rounded px-1 text-sm outline-none text-text-primary"
+                />
+              ) : (
+                <h3 className="text-lg font-black text-text-primary">{bodyStats.muscleMass > 0 ? bodyStats.muscleMass : 0} kg</h3>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-bold text-success flex items-center gap-1">
@@ -136,7 +259,16 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
             <div>
               <p className="text-[10px] text-text-muted font-bold">BMI</p>
-              <h3 className="text-lg font-black text-text-primary">{bodyStats.bmi > 0 ? bodyStats.bmi : 0}</h3>
+              {isEditingMainStats ? (
+                <input 
+                  type="number" 
+                  value={bodyStats.bmi} 
+                  onChange={(e) => handleMainStatChange('bmi', e.target.value)}
+                  className="w-16 bg-surface border border-border-subtle rounded px-1 text-sm outline-none text-text-primary"
+                />
+              ) : (
+                <h3 className="text-lg font-black text-text-primary">{bodyStats.bmi > 0 ? bodyStats.bmi : 0}</h3>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-bold text-text-muted flex items-center gap-1">
@@ -152,7 +284,16 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
             <div>
               <p className="text-[10px] text-text-muted font-bold">Body Water</p>
-              <h3 className="text-lg font-black text-text-primary">{bodyStats.bodyWater > 0 ? bodyStats.bodyWater : 0} %</h3>
+              {isEditingMainStats ? (
+                <input 
+                  type="number" 
+                  value={bodyStats.bodyWater} 
+                  onChange={(e) => handleMainStatChange('bodyWater', e.target.value)}
+                  className="w-16 bg-surface border border-border-subtle rounded px-1 text-sm outline-none text-text-primary"
+                />
+              ) : (
+                <h3 className="text-lg font-black text-text-primary">{bodyStats.bodyWater > 0 ? bodyStats.bodyWater : 0} %</h3>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-bold text-text-muted flex items-center gap-1">
@@ -168,7 +309,16 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
             <div>
               <p className="text-[10px] text-text-muted font-bold whitespace-nowrap">Visceral Fat</p>
-              <h3 className="text-lg font-black text-text-primary">{bodyStats.visceralFat > 0 ? bodyStats.visceralFat : 0}</h3>
+              {isEditingMainStats ? (
+                <input 
+                  type="number" 
+                  value={bodyStats.visceralFat} 
+                  onChange={(e) => handleMainStatChange('visceralFat', e.target.value)}
+                  className="w-16 bg-surface border border-border-subtle rounded px-1 text-sm outline-none text-text-primary"
+                />
+              ) : (
+                <h3 className="text-lg font-black text-text-primary">{bodyStats.visceralFat > 0 ? bodyStats.visceralFat : 0}</h3>
+              )}
             </div>
           </div>
           <p className="text-[9px] font-bold text-text-muted flex items-center gap-1">
@@ -212,19 +362,51 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
                 ))}
                 
                 <svg className="absolute inset-0 w-full h-full z-10 overflow-visible" preserveAspectRatio="none" viewBox="0 0 100 100">
-                  {/* Empty Graph */}
-                  <polyline points="0,95 20,95 40,95 60,95 80,95 100,95" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  {checkpointsList.length > 0 ? (
+                    <>
+                      {/* Weight Line */}
+                      <polyline 
+                        points={[...checkpointsList].reverse().map((cp, i, arr) => {
+                          const x = (i / Math.max(1, arr.length - 1)) * 100;
+                          const y = 100 - (Math.min(cp.weight_kg || 0, 80) / 80) * 100;
+                          return `${x},${y}`;
+                        }).join(' ')} 
+                        fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                      />
+                      {/* Body Fat Line */}
+                      <polyline 
+                        points={[...checkpointsList].reverse().map((cp, i, arr) => {
+                          const x = (i / Math.max(1, arr.length - 1)) * 100;
+                          const y = 100 - (Math.min(cp.body_fat_pct || 0, 80) / 80) * 100;
+                          return `${x},${y}`;
+                        }).join(' ')} 
+                        fill="none" stroke="#eab308" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                      />
+                      {/* Muscle Mass Line */}
+                      <polyline 
+                        points={[...checkpointsList].reverse().map((cp, i, arr) => {
+                          const x = (i / Math.max(1, arr.length - 1)) * 100;
+                          const y = 100 - (Math.min(cp.muscle_mass_kg || 0, 80) / 80) * 100;
+                          return `${x},${y}`;
+                        }).join(' ')} 
+                        fill="none" stroke="#22c55e" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" 
+                      />
+                    </>
+                  ) : (
+                    <polyline points="0,95 100,95" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                  )}
                 </svg>
               </div>
             </div>
             
             <div className="absolute left-6 right-0 bottom-0 flex justify-between text-[9px] text-text-muted">
-              <span>Apr 13</span>
-              <span>Apr 20</span>
-              <span>Apr 27</span>
-              <span>May 4</span>
-              <span>May 11</span>
-              <span>May 18</span>
+              {checkpointsList.length > 0 ? (
+                [...checkpointsList].reverse().slice(-5).map((cp, i) => (
+                  <span key={i}>{new Date(cp.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+                ))
+              ) : (
+                <span>No Data</span>
+              )}
             </div>
           </div>
         </div>
@@ -319,7 +501,12 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
               <FiDroplet size={14} className="text-text-muted" /> Body Measurements
             </h3>
-            <button onClick={() => setIsEditingMeasurements(!isEditingMeasurements)} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1">
+            <button onClick={() => {
+              if (isEditingMeasurements) {
+                saveStatsToBackend(bodyStats);
+              }
+              setIsEditingMeasurements(!isEditingMeasurements);
+            }} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1">
               {isEditingMeasurements ? <><FiCheck size={12}/> Save</> : <><FiEdit2 size={12}/> Edit</>}
             </button>
           </div>
@@ -363,7 +550,12 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
               <h3 className="text-sm font-bold text-text-primary flex items-center gap-1.5">
                 <FiActivity size={14} className="text-text-muted" /> Health Indicators
               </h3>
-              <button onClick={() => setIsEditingHealth(!isEditingHealth)} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1">
+              <button onClick={() => {
+                if (isEditingHealth) {
+                  saveStatsToBackend(bodyStats);
+                }
+                setIsEditingHealth(!isEditingHealth);
+              }} className="text-[10px] text-purple font-bold hover:underline flex items-center gap-1">
                 {isEditingHealth ? <><FiCheck size={12}/> Save</> : <><FiEdit2 size={12}/> Edit</>}
               </button>
             </div>

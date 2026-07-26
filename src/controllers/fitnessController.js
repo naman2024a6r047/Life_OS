@@ -130,33 +130,71 @@ exports.getCheckpoints = async (req, res) => {
 
 exports.createCheckpoint = async (req, res) => {
     try {
-        const { weight_kg, body_fat_pct, waist_cm, chest_cm, arms_cm, photo_front_url, photo_left_url, photo_right_url, photo_back_url, notes } = req.body;
+        const { 
+            weight_kg, body_fat_pct, waist_cm, chest_cm, arms_cm, 
+            muscle_mass_kg, bmi, body_water_pct, visceral_fat, 
+            measurements, health_metrics,
+            photo_front_url, photo_left_url, photo_right_url, photo_back_url, notes 
+        } = req.body;
         
         if (!weight_kg) {
             return res.status(400).json({ message: 'Body weight is required' });
         }
 
-        const count = await TransformationCheckpoint.count({ where: { user_id: req.user.id } });
-
-        const cp = await TransformationCheckpoint.create({
-            user_id: req.user.id,
-            checkpoint_number: count + 1,
-            date: new Date().toISOString().split('T')[0],
-            weight_kg,
-            body_fat_pct: body_fat_pct || null,
-            waist_cm: waist_cm || null,
-            chest_cm: chest_cm || null,
-            arms_cm: arms_cm || null,
-            photo_front_url: photo_front_url || null,
-            photo_left_url: photo_left_url || null,
-            photo_right_url: photo_right_url || null,
-            photo_back_url: photo_back_url || null,
-            notes: notes || ''
+        const today = new Date().toISOString().split('T')[0];
+        let cp = await TransformationCheckpoint.findOne({
+            where: { user_id: req.user.id, date: today }
         });
 
-        res.status(201).json(cp);
+        if (cp) {
+            // Update existing checkpoint for today
+            cp.weight_kg = weight_kg;
+            if (body_fat_pct !== undefined) cp.body_fat_pct = body_fat_pct;
+            if (waist_cm !== undefined) cp.waist_cm = waist_cm;
+            if (chest_cm !== undefined) cp.chest_cm = chest_cm;
+            if (arms_cm !== undefined) cp.arms_cm = arms_cm;
+            if (muscle_mass_kg !== undefined) cp.muscle_mass_kg = muscle_mass_kg;
+            if (bmi !== undefined) cp.bmi = bmi;
+            if (body_water_pct !== undefined) cp.body_water_pct = body_water_pct;
+            if (visceral_fat !== undefined) cp.visceral_fat = visceral_fat;
+            if (measurements !== undefined) cp.measurements = measurements;
+            if (health_metrics !== undefined) cp.health_metrics = health_metrics;
+            if (photo_front_url !== undefined) cp.photo_front_url = photo_front_url;
+            if (photo_left_url !== undefined) cp.photo_left_url = photo_left_url;
+            if (photo_right_url !== undefined) cp.photo_right_url = photo_right_url;
+            if (photo_back_url !== undefined) cp.photo_back_url = photo_back_url;
+            if (notes !== undefined) cp.notes = notes;
+            
+            await cp.save();
+            return res.status(200).json(cp);
+        } else {
+            // Create new checkpoint
+            const count = await TransformationCheckpoint.count({ where: { user_id: req.user.id } });
+            cp = await TransformationCheckpoint.create({
+                user_id: req.user.id,
+                checkpoint_number: count + 1,
+                date: today,
+                weight_kg,
+                body_fat_pct: body_fat_pct || null,
+                waist_cm: waist_cm || null,
+                chest_cm: chest_cm || null,
+                arms_cm: arms_cm || null,
+                muscle_mass_kg: muscle_mass_kg || null,
+                bmi: bmi || null,
+                body_water_pct: body_water_pct || null,
+                visceral_fat: visceral_fat || null,
+                measurements: measurements || {},
+                health_metrics: health_metrics || {},
+                photo_front_url: photo_front_url || null,
+                photo_left_url: photo_left_url || null,
+                photo_right_url: photo_right_url || null,
+                photo_back_url: photo_back_url || null,
+                notes: notes || ''
+            });
+            return res.status(201).json(cp);
+        }
     } catch (error) {
-        console.error('Create checkpoint error:', error);
+        console.error('Create/Update checkpoint error:', error);
         res.status(500).json({ message: 'Error saving checkpoint' });
     }
 };

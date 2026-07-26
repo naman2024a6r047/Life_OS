@@ -17,8 +17,10 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { github_username, leetcode_username, daily_coding_goal_hours } = req.body;
+        const { github_username, leetcode_username, daily_coding_goal_hours, portfolio_links, developer_info } = req.body;
         
+        require('fs').appendFileSync('update_log.txt', JSON.stringify({ body: req.body, user: req.user.id }) + '\n');
+
         let profile = await CodingProfile.findOne({ where: { user_id: req.user.id } });
         if (!profile) {
             profile = await CodingProfile.create({ user_id: req.user.id });
@@ -27,6 +29,14 @@ exports.updateProfile = async (req, res) => {
         profile.github_username = github_username || profile.github_username;
         profile.leetcode_username = leetcode_username || profile.leetcode_username;
         profile.daily_coding_goal_hours = daily_coding_goal_hours || profile.daily_coding_goal_hours;
+        if (portfolio_links !== undefined) {
+            profile.portfolio_links = portfolio_links;
+            profile.changed('portfolio_links', true);
+        }
+        if (developer_info !== undefined) {
+            profile.developer_info = developer_info;
+            profile.changed('developer_info', true);
+        }
         
         await profile.save();
         res.status(200).json(profile);

@@ -1074,7 +1074,7 @@ export default function GymDashboard() {
         </motion.div>
       )}
 
-      {/* SUB TAB 3: PROGRESS */}
+      {/* SUB TAB 5: PROGRESS */}
       {activeTab === 'progress' && (
         <GymProgressTab 
           workoutsList={workoutsList} 

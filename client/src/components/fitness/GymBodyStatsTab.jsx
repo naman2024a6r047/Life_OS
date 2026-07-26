@@ -5,7 +5,7 @@ import {
   FiInfo, FiTrendingUp, FiTrendingDown, FiShield, FiMoon, FiEdit2, FiCheck, FiX, FiUploadCloud
 } from 'react-icons/fi';
 import MuscleDiagram from './MuscleDiagram';
-import { uploadPhotoToDrive, extractFolderId } from '../../utils/googleDriveApi';
+import ProgressPhotos from './ProgressPhotos';
 
 export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLink }) {
   const [bodyStats, setBodyStats] = useState(() => {
@@ -44,14 +44,6 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
   const [isEditingMeasurements, setIsEditingMeasurements] = useState(false);
   const [isEditingHealth, setIsEditingHealth] = useState(false);
 
-  const [uploadModalOpen, setUploadModalOpen] = useState(false);
-  const [uploadView, setUploadView] = useState('front');
-  const [isUploading, setIsUploading] = useState(false);
-
-  const [historyModalOpen, setHistoryModalOpen] = useState(false);
-  const [photoHistory, setPhotoHistory] = useState([]);
-  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-
   const handleMeasurementChange = (key, value) => {
     setBodyStats(prev => ({
       ...prev,
@@ -64,97 +56,6 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
       ...prev,
       health: { ...prev.health, [key]: value }
     }));
-  };
-
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    setIsUploading(true);
-    
-    // Optimistically update the UI with a local blob URL
-    const localUrl = URL.createObjectURL(file);
-    setBodyStats(prev => ({
-      ...prev,
-      photos: { ...prev.photos, [uploadView]: localUrl }
-    }));
-    
-    try {
-      const folderId = extractFolderId(googleDriveFolderLink);
-      
-      if (!googleAccessToken) {
-        console.warn("No Google Access Token found. Prompting user or skipping upload.");
-        alert("Please sign in to Google Drive in the Settings tab to save your photos online!");
-      } else if (!folderId) {
-        console.warn("No valid Google Drive Folder ID found.");
-        alert("Please paste a valid Google Drive Folder Link in the Settings tab!");
-      } else {
-        const dateStr = new Date().toISOString().split('T')[0];
-        const ext = file.name.split('.').pop() || 'jpg';
-        const customFileName = `${uploadView}_${dateStr}.${ext}`;
-        
-        const response = await uploadPhotoToDrive(file, folderId, googleAccessToken, customFileName);
-        if (response && response.webViewLink) {
-          console.log("Uploaded successfully to Drive: ", response.webViewLink);
-        }
-      }
-      setUploadModalOpen(false);
-    } catch (err) {
-      console.error('Error uploading file:', err);
-      alert('Failed to upload photo to Google Drive.');
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  // Fetch photos from Google Drive for the History Modal
-  const loadPhotoHistory = async () => {
-    if (!googleAccessToken) {
-      alert("Please sign in to Google Drive in the Settings tab first.");
-      return;
-    }
-    const folderId = extractFolderId(googleDriveFolderLink);
-    if (!folderId) {
-      alert("Please paste a valid Google Drive Folder Link in the Settings tab first.");
-      return;
-    }
-
-    setIsLoadingHistory(true);
-    setHistoryModalOpen(true);
-    try {
-      // Import dynamically or ensure it's imported at the top
-      const { fetchPhotosFromDrive } = await import('../../utils/googleDriveApi');
-      const files = await fetchPhotosFromDrive(folderId, googleAccessToken);
-      
-      // Group by date
-      const grouped = {};
-      files.forEach(file => {
-        // Filename format: {view}_{YYYY-MM-DD}.jpg
-        // Fallback to createdTime if it doesn't match
-        let dateStr = file.createdTime.split('T')[0];
-        let viewName = 'Unknown';
-        
-        const match = file.name.match(/^([a-z]+)_(\d{4}-\d{2}-\d{2})/i);
-        if (match) {
-          viewName = match[1];
-          dateStr = match[2];
-        } else if (file.name.includes('_')) {
-          viewName = file.name.split('_')[0];
-        }
-
-        if (!grouped[dateStr]) grouped[dateStr] = [];
-        grouped[dateStr].push({ ...file, viewName });
-      });
-
-      // Sort dates descending
-      const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b) - new Date(a));
-      setPhotoHistory(sortedDates.map(date => ({ date, photos: grouped[date] })));
-    } catch (err) {
-      console.error('Failed to load photo history', err);
-      alert('Failed to load photo history.');
-    } finally {
-      setIsLoadingHistory(false);
-    }
   };
 
   return (
@@ -454,48 +355,8 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
           </div>
         </div>
 
-        {/* Progress Photos */}
-        <div className="lg:col-span-3 card p-5 border border-border-subtle bg-surface flex flex-col">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-sm font-bold text-text-primary">Progress Photos</h3>
-          </div>
-          
-          <div className="flex gap-2 mb-4 justify-between">
-            {['Front', 'Right', 'Back', 'Left'].map((view, i) => {
-              const v = view.toLowerCase().replace(' ', '');
-              return (
-              <div key={i} className="flex-1 aspect-[1/2] rounded-lg overflow-hidden bg-surface-elevated border border-border-subtle relative group cursor-pointer"
-                onClick={() => { setUploadView(v); setUploadModalOpen(true); }}
-              >
-                {bodyStats.photos?.[v] ? (
-                  <img src={bodyStats.photos[v]} alt={view} className="w-full h-full object-cover" />
-                ) : (
-                  <>
-                    <div className="absolute inset-0 bg-gradient-to-b from-slate-700 to-slate-900"></div>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center opacity-30 text-white">
-                      <svg width="40" height="80" viewBox="0 0 100 200"><circle cx="50" cy="30" r="20" fill="currentColor"/><path d="M 20 70 L 80 70 L 70 180 L 30 180 Z" fill="currentColor"/></svg>
-                    </div>
-                  </>
-                )}
-                <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur text-center py-1 group-hover:bg-purple/80 transition-colors">
-                  <p className="text-[7px] text-white font-bold uppercase">{bodyStats.photos?.[v] ? 'Update' : view}</p>
-                </div>
-              </div>
-            )})}
-          </div>
-          
-          <div className="mt-auto space-y-2">
-            <button onClick={() => { setUploadView('front'); setUploadModalOpen(true); }} className="w-full py-2.5 rounded-lg bg-purple/10 text-purple border border-purple/30 text-xs font-bold hover:bg-purple hover:text-white transition-colors flex items-center justify-center gap-1">
-              <FiPlus size={14} /> Add New Photos
-            </button>
-            <button onClick={loadPhotoHistory} className="w-full py-2.5 rounded-lg bg-surface-elevated text-text-muted border border-border-subtle text-xs font-bold hover:bg-surface transition-colors flex items-center justify-center gap-1">
-              <FiCamera size={14} /> View Photo History
-            </button>
-          </div>
-        </div>
-
         {/* Health Indicators & Summary */}
-        <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
           {/* Indicators List */}
           <div className="card p-5 border border-border-subtle bg-surface flex flex-col">
             <div className="flex justify-between items-center mb-4">
@@ -567,79 +428,7 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
 
       </div>
 
-      {/* Upload Modal */}
-      <AnimatePresence>
-        {uploadModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-md w-full space-y-4 bg-surface">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
-                <h3 className="text-base font-extrabold text-text-primary capitalize">Upload {uploadView} Photo</h3>
-                <button onClick={() => setUploadModalOpen(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
-              </div>
-              
-              <div className="p-8 border-2 border-dashed border-border-subtle rounded-xl flex flex-col items-center justify-center text-center">
-                <FiUploadCloud size={48} className="text-purple mb-4" />
-                <p className="text-sm font-bold text-text-primary mb-1">Select Image to Upload</p>
-                <p className="text-xs text-text-muted mb-6">Image will be saved securely as {uploadView}_{new Date().toISOString().split('T')[0]}</p>
-                
-                <label className="px-6 py-2.5 rounded-xl bg-purple text-white font-bold text-xs cursor-pointer hover:bg-purple-accent transition-colors">
-                  {isUploading ? 'Uploading...' : 'Browse Files'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
-                </label>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* History Modal */}
-      <AnimatePresence>
-        {historyModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-2xl w-full max-h-[80vh] flex flex-col bg-surface">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3 mb-4">
-                <h3 className="text-base font-extrabold text-text-primary">Photo History</h3>
-                <button onClick={() => setHistoryModalOpen(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
-              </div>
-              
-              <div className="flex-1 overflow-y-auto space-y-8 pr-2">
-                {isLoadingHistory ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-text-muted">
-                    <div className="w-8 h-8 border-4 border-purple border-t-transparent rounded-full animate-spin mb-4"></div>
-                    <p className="text-xs font-bold">Loading from Google Drive...</p>
-                  </div>
-                ) : photoHistory.length === 0 ? (
-                  <div className="text-center py-12 text-text-muted">
-                    <FiCamera size={48} className="mx-auto mb-4 opacity-50" />
-                    <p className="text-sm font-bold">No history found</p>
-                    <p className="text-xs mt-1">Upload some photos to see them here.</p>
-                  </div>
-                ) : (
-                  photoHistory.map((group, idx) => (
-                    <div key={idx} className="space-y-3">
-                      <h4 className="text-xs font-bold text-text-muted uppercase tracking-wider">{new Date(group.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</h4>
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        {group.photos.map((photo, pIdx) => (
-                          <a key={pIdx} href={photo.webContentLink || photo.webViewLink} target="_blank" rel="noreferrer" className="block relative aspect-[1/2] rounded-lg overflow-hidden bg-surface-elevated border border-border-subtle group hover:border-purple/50 transition-colors">
-                            {photo.thumbnailLink ? (
-                              <img src={photo.thumbnailLink.replace('=s220', '=s600')} alt={photo.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="absolute inset-0 flex items-center justify-center text-text-muted">No Preview</div>
-                            )}
-                            <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur text-center py-1 group-hover:bg-purple/80 transition-colors">
-                              <p className="text-[7px] text-white font-bold uppercase">{photo.viewName}</p>
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <ProgressPhotos googleAccessToken={googleAccessToken} googleDriveFolderLink={googleDriveFolderLink} />
     </motion.div>
   );
 }

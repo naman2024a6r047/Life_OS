@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiCamera, FiClock, FiChevronRight, FiTrendingUp, FiCalendar, FiUploadCloud, FiPlus, FiAward, FiX } from 'react-icons/fi';
 import { extractFolderId, uploadPhotoToDrive, fetchPhotosFromDrive } from '../../utils/googleDriveApi';
+import DriveImage from './DriveImage';
 
 export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLink }) {
   const [photoHistory, setPhotoHistory] = useState([]);
@@ -62,7 +63,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
           for (const photo of grouped[date]) {
             const vIndex = views.indexOf(photo.viewName.toLowerCase());
             if (vIndex !== -1 && !latest[vIndex]) {
-              latest[vIndex] = photo.thumbnailLink ? photo.thumbnailLink.replace('=s220', '=s600') : photo.webContentLink;
+              latest[vIndex] = photo;
               filled++;
             }
           }
@@ -157,7 +158,13 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
             className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[#1A1C29] border border-border-subtle flex flex-col items-center justify-center group"
           >
             {latestPhotos[idx] ? (
-              <img src={latestPhotos[idx]} alt={label} className="w-full h-full object-cover" />
+              <DriveImage 
+                fileId={latestPhotos[idx].id} 
+                thumbnailLink={latestPhotos[idx].thumbnailLink} 
+                accessToken={googleAccessToken} 
+                alt={label} 
+                className="w-full h-full object-cover" 
+              />
             ) : (
               <div className="text-text-muted/30 mb-4 group-hover:text-purple/40 transition-colors">
                 <FiCamera size={48} />
@@ -268,11 +275,16 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                         {group.photos.map((photo, pIdx) => (
                           <a key={pIdx} href={photo.webContentLink || photo.webViewLink} target="_blank" rel="noreferrer" className="block relative aspect-[4/3] rounded-xl overflow-hidden bg-[#1A1C29] border border-border-subtle group hover:border-purple/50 transition-colors">
-                            {photo.thumbnailLink ? (
-                              <img src={photo.thumbnailLink.replace('=s220', '=s600')} alt={photo.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="absolute inset-0 flex items-center justify-center text-text-muted">No Preview</div>
-                            )}
+                            <DriveImage 
+                              fileId={photo.id} 
+                              thumbnailLink={photo.thumbnailLink} 
+                              accessToken={googleAccessToken} 
+                              alt={photo.name} 
+                              className="w-full h-full object-cover" 
+                            />
+                            <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur text-center py-1 group-hover:bg-purple/80 transition-colors">
+                              <p className="text-[10px] text-white font-bold uppercase">{photo.viewName}</p>
+                            </div>
                           </a>
                         ))}
                         <div className="block relative aspect-[4/3] rounded-xl bg-[#141520] border border-border-subtle flex flex-col items-center justify-center text-purple cursor-pointer hover:bg-purple/5 transition-colors">

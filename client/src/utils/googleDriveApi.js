@@ -8,7 +8,7 @@
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const SCOPES = 'https://www.googleapis.com/auth/drive.file';
 
-let tokenClient = null;
+let codeClient = null;
 
 /**
  * Extract Folder ID from a Google Drive URL
@@ -21,7 +21,7 @@ export function extractFolderId(url) {
 }
 
 /**
- * Initializes Google Identity Services (GIS).
+ * Initializes Google Identity Services (GIS) for offline access.
  */
 export function initGoogleDriveApi(onAuthSuccess, onAuthError) {
   if (!CLIENT_ID) {
@@ -29,49 +29,62 @@ export function initGoogleDriveApi(onAuthSuccess, onAuthError) {
     return;
   }
 
+  const initClient = () => {
+    codeClient = window.google.accounts.oauth2.initCodeClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      ux_mode: 'popup',
+      callback: async (response) => {
+        if (response && response.code) {
+          try {
+            // Send auth code to backend
+            const tokenStr = localStorage.getItem('lifeos_token');
+            const res = await fetch('http://localhost:5000/api/auth/google-auth', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${tokenStr}`
+              },
+              body: JSON.stringify({ code: response.code, redirect_uri: window.location.origin })
+            });
+            const data = await res.json();
+            if (res.ok && data.access_token) {
+              onAuthSuccess(data.access_token);
+            } else {
+              if (onAuthError) onAuthError('Failed to exchange code');
+            }
+          } catch (err) {
+            console.error(err);
+            if (onAuthError) onAuthError('Error during token exchange');
+          }
+        } else {
+          if (onAuthError) onAuthError('Failed to retrieve auth code');
+        }
+      },
+    });
+  };
+
   if (!document.getElementById('google-gsi-script')) {
     const script = document.createElement('script');
     script.id = 'google-gsi-script';
     script.src = 'https://accounts.google.com/gsi/client';
     script.async = true;
     script.defer = true;
-    script.onload = () => {
-      tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (tokenResponse) => {
-          if (tokenResponse && tokenResponse.access_token) {
-            onAuthSuccess(tokenResponse.access_token);
-          } else {
-            if (onAuthError) onAuthError('Failed to retrieve access token');
-          }
-        },
-      });
-    };
+    script.onload = initClient;
     script.onerror = () => {
       if (onAuthError) onAuthError('Failed to load Google Identity Services');
     };
     document.body.appendChild(script);
   } else {
     if (window.google?.accounts?.oauth2) {
-      tokenClient = window.google.accounts.oauth2.initTokenClient({
-        client_id: CLIENT_ID,
-        scope: SCOPES,
-        callback: (tokenResponse) => {
-          if (tokenResponse && tokenResponse.access_token) {
-            onAuthSuccess(tokenResponse.access_token);
-          } else {
-            if (onAuthError) onAuthError('Failed to retrieve access token');
-          }
-        },
-      });
+      initClient();
     }
   }
 }
 
 export function requestGoogleDriveAccess() {
-  if (tokenClient) {
-    tokenClient.requestAccessToken();
+  if (codeClient) {
+    codeClient.requestCode();
   } else if (!CLIENT_ID) {
     console.warn("Google Drive API: Mocking OAuth request.");
   } else {

@@ -62,6 +62,14 @@ const User = sequelize.define('User', {
             show_analytics: true, 
             show_achievements: true 
         }
+    },
+    google_refresh_token: {
+        type: DataTypes.TEXT,
+        allowNull: true
+    },
+    google_drive_folder_link: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     timestamps: true

@@ -177,9 +177,118 @@ const syncProfile = async (req, res) => {
     }
 };
 
+const googleAuthExchange = async (req, res) => {
+    try {
+        const { code, redirect_uri } = req.body;
+        if (!code) {
+            return res.status(400).json({ message: 'Authorization code is required' });
+        }
+
+        const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET; // Must add this to .env
+
+        if (!clientId || !clientSecret) {
+            return res.status(500).json({ message: 'Google Client ID or Secret not configured on backend' });
+        }
+
+        const response = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                code,
+                client_id: clientId,
+                client_secret: clientSecret,
+                redirect_uri: redirect_uri || 'postmessage',
+                grant_type: 'authorization_code'
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            console.error('Google token exchange error:', data);
+            return res.status(400).json({ message: 'Failed to exchange token', details: data });
+        }
+
+        const { access_token, refresh_token } = data;
+        
+        // Save refresh token to user
+        const user = await User.findByPk(req.user.id);
+        if (refresh_token) {
+            user.google_refresh_token = refresh_token;
+            await user.save();
+        }
+
+        res.status(200).json({ access_token, message: 'Google Auth successful' });
+    } catch (error) {
+        console.error('googleAuthExchange error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+const getGoogleToken = async (req, res) => {
+    try {
+        const user = await User.findByPk(req.user.id);
+        if (!user || !user.google_refresh_token) {
+            return res.status(404).json({ message: 'No Google Refresh Token found for user' });
+        }
+
+        const clientId = process.env.VITE_GOOGLE_CLIENT_ID;
+        const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+
+        const response = await fetch('https://oauth2.googleapis.com/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+                client_id: clientId,
+                client_secret: clientSecret,
+                refresh_token: user.google_refresh_token,
+                grant_type: 'refresh_token'
+            })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+            // Refresh token might be revoked or invalid
+            return res.status(400).json({ message: 'Failed to refresh token', details: data });
+        }
+
+        res.status(200).json({ access_token: data.access_token });
+    } catch (error) {
+        console.error('getGoogleToken error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+const updateProfile = async (req, res) => {
+    try {
+        const { google_drive_folder_link } = req.body;
+        const user = await User.findByPk(req.user.id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        
+        if (google_drive_folder_link !== undefined) {
+            user.google_drive_folder_link = google_drive_folder_link;
+        }
+
+        await user.save();
+        res.status(200).json({ message: 'Profile updated', user });
+    } catch (error) {
+        console.error('updateProfile error:', error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
 module.exports = {
     register,
     login,
     getProfile,
-    syncProfile
+    syncProfile,
+    googleAuthExchange,
+    getGoogleToken,
+    updateProfile
 };

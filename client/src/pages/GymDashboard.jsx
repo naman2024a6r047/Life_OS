@@ -25,6 +25,23 @@ export default function GymDashboard() {
   const [googleAccessToken, setGoogleAccessToken] = useState(null);
 
   useEffect(() => {
+    const fetchToken = async () => {
+      try {
+        const tokenStr = localStorage.getItem('lifeos_token');
+        if (!tokenStr) return;
+        const res = await fetch('http://localhost:5000/api/auth/google-token', {
+          headers: { 'Authorization': `Bearer ${tokenStr}` }
+        });
+        const data = await res.json();
+        if (data.access_token) {
+          setGoogleAccessToken(data.access_token);
+        }
+      } catch (err) {
+        console.error("Failed to fetch google token automatically", err);
+      }
+    };
+    fetchToken();
+
     initGoogleDriveApi(
       (token) => setGoogleAccessToken(token),
       (error) => console.error("Google Drive Auth Error:", error)
@@ -249,6 +266,13 @@ export default function GymDashboard() {
       localStorage.setItem(profileStorageKey, JSON.stringify(userProfile));
     }
   }, [userProfile, isDemoAccount, user?.id, profileStorageKey]);
+
+  // Load googleDriveFolderLink from backend on init
+  useEffect(() => {
+    if (user && user.google_drive_folder_link && !userProfile.googleDriveFolderLink) {
+      setUserProfile(prev => ({ ...prev, googleDriveFolderLink: user.google_drive_folder_link }));
+    }
+  }, [user]);
 
   // Open Create Exercise Modal
   const openCreateExerciseModal = () => {
@@ -1184,7 +1208,17 @@ export default function GymDashboard() {
                         }}
                       />
                       <button 
-                        onClick={() => setLinkSaved(true)} 
+                        onClick={() => {
+                          setLinkSaved(true);
+                          const tokenStr = localStorage.getItem('lifeos_token');
+                          if(tokenStr) {
+                            fetch('http://localhost:5000/api/auth/profile', {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${tokenStr}` },
+                              body: JSON.stringify({ google_drive_folder_link: userProfile.googleDriveFolderLink })
+                            }).catch(console.error);
+                          }
+                        }} 
                         className={`px-4 py-2 text-xs font-bold rounded-lg transition-colors flex items-center gap-2 ${linkSaved ? 'bg-success/10 text-success border border-success/30' : 'bg-surface-elevated text-text-primary hover:bg-surface border border-border-subtle'}`}
                       >
                         {linkSaved ? <><FiCheck /> Saved</> : 'Save Link'}

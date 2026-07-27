@@ -183,7 +183,7 @@ const parseRawCurriculum = (text) => {
 
 exports.createChallenge = async (req, res) => {
     try {
-        const { title, description, category, start_date, end_date, visibility, difficulty, penalty_rule, color, icon, raw_curriculum } = req.body;
+        const { title, description, category, start_date, end_date, visibility, difficulty, penalty_mode, penalty_rule, color, icon, raw_curriculum } = req.body;
         
         let parsedDays = [];
         if (raw_curriculum) {
@@ -203,6 +203,7 @@ exports.createChallenge = async (req, res) => {
             end_date: endDate,
             visibility,
             difficulty,
+            penalty_mode: penalty_mode || 'easy',
             penalty_rule,
             color: color || '#6366F1',
             icon

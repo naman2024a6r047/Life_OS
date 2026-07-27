@@ -146,18 +146,31 @@ export default function CreateChallenge() {
                         )}
                     </div>
 
-                    <div className="p-4 bg-accent/10 border border-accent/20 rounded-xl mt-6">
-                        <div className="flex items-start gap-3">
-                            <FiAlertTriangle className="text-accent mt-1 flex-shrink-0" />
-                            <div>
-                                <h4 className="text-accent font-bold mb-1">Penalty Mode: {formData.penalty_mode === 'easy' ? 'Easy' : formData.penalty_mode === 'medium' ? 'Medium' : 'Hard'}</h4>
-                                <p className="text-sm text-textSecondary">
-                                    {formData.penalty_mode === 'easy' && "No penalties. Missed tasks are simply marked overdue."}
-                                    {formData.penalty_mode === 'medium' && "Missing 2 consecutive days will automatically restart the current milestone from Day 1."}
-                                    {formData.penalty_mode === 'hard' && "Missing 1 day will automatically restart the current milestone from Day 1. No mercy."}
-                                    {' '}You cannot change this later.
-                                </p>
+                    <div className="mt-6 space-y-3">
+                        <h4 className="text-sm font-bold text-textSecondary flex items-center gap-2"><FiAlertTriangle /> Penalty Rules</h4>
+                        
+                        <div className={`p-4 rounded-xl border transition-all ${formData.penalty_mode === 'easy' ? 'bg-success/10 border-success/30' : 'bg-surface border-white/5 opacity-50 cursor-pointer hover:opacity-100'}`} onClick={() => setFormData({...formData, penalty_mode: 'easy'})}>
+                            <div className="flex items-center justify-between mb-1">
+                                <h5 className={`font-bold text-sm ${formData.penalty_mode === 'easy' ? 'text-success' : 'text-white'}`}>Easy Mode</h5>
+                                {formData.penalty_mode === 'easy' && <span className="badge-success text-[10px]">Selected</span>}
                             </div>
+                            <p className="text-xs text-textSecondary">No restart penalties. Missed tasks are simply marked as overdue.</p>
+                        </div>
+
+                        <div className={`p-4 rounded-xl border transition-all ${formData.penalty_mode === 'medium' ? 'bg-warning/10 border-warning/30' : 'bg-surface border-white/5 opacity-50 cursor-pointer hover:opacity-100'}`} onClick={() => setFormData({...formData, penalty_mode: 'medium'})}>
+                            <div className="flex items-center justify-between mb-1">
+                                <h5 className={`font-bold text-sm ${formData.penalty_mode === 'medium' ? 'text-warning' : 'text-white'}`}>Medium Mode</h5>
+                                {formData.penalty_mode === 'medium' && <span className="badge-warning text-[10px]">Selected</span>}
+                            </div>
+                            <p className="text-xs text-textSecondary">Missing 2 consecutive days will automatically restart the current milestone from Day 1 and deduct 50 XP.</p>
+                        </div>
+
+                        <div className={`p-4 rounded-xl border transition-all ${formData.penalty_mode === 'hard' ? 'bg-danger/10 border-danger/30' : 'bg-surface border-white/5 opacity-50 cursor-pointer hover:opacity-100'}`} onClick={() => setFormData({...formData, penalty_mode: 'hard'})}>
+                            <div className="flex items-center justify-between mb-1">
+                                <h5 className={`font-bold text-sm ${formData.penalty_mode === 'hard' ? 'text-danger' : 'text-white'}`}>Hard Mode</h5>
+                                {formData.penalty_mode === 'hard' && <span className="badge-danger text-[10px]">Selected</span>}
+                            </div>
+                            <p className="text-xs text-textSecondary">Missing 1 day will automatically restart the current milestone from Day 1 and deduct 100 XP. No mercy.</p>
                         </div>
                     </div>
 

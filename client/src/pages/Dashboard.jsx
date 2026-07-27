@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 // --- Sub Components ---
 
@@ -58,7 +59,7 @@ function LifeScoreCircle({ score }) {
 
 function ActivityHeatmap({ heatmapData = [] }) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
-  const days = ['Mon', '', 'Wed', '', 'Fri', '', ''];
+  const days = ['', 'Mon', '', 'Wed', '', 'Fri', '']; // Sunday-aligned
   
   const cells = useMemo(() => {
     const result = [];
@@ -71,23 +72,34 @@ function ActivityHeatmap({ heatmapData = [] }) {
 
     const today = new Date();
     today.setHours(0,0,0,0);
-    const startDate = new Date(today);
-    startDate.setDate(today.getDate() - (32 * 7) + 1); // 32 weeks ago
+    // Find the Sunday of the current week
+    const currentDayOfWeek = today.getDay(); // 0 is Sunday
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + (6 - currentDayOfWeek)); // Next Saturday
+
+    const startDate = new Date(endOfWeek);
+    startDate.setDate(endOfWeek.getDate() - (32 * 7) + 1); // 32 weeks ago, starting on a Sunday
 
     for (let week = 0; week < 32; week++) {
       for (let day = 0; day < 7; day++) {
         const cellDate = new Date(startDate);
         cellDate.setDate(startDate.getDate() + (week * 7) + day);
-        const dateStr = cellDate.toISOString().split('T')[0];
+        // Ensure local YYYY-MM-DD instead of UTC offset shifting
+        const dateStr = [
+          cellDate.getFullYear(),
+          String(cellDate.getMonth() + 1).padStart(2, '0'),
+          String(cellDate.getDate()).padStart(2, '0')
+        ].join('-');
         
         const intensity = countMap[dateStr] || 0;
         let color = 'bg-surface-elevated';
-        if (intensity >= 5) color = 'bg-primary';
-        else if (intensity >= 3) color = 'bg-primary/70';
-        else if (intensity >= 2) color = 'bg-primary/40';
-        else if (intensity === 1) color = 'bg-primary/20';
+        if (intensity >= 4) color = 'bg-primary';
+        else if (intensity >= 3) color = 'bg-indigo-400';
+        else if (intensity >= 2) color = 'bg-indigo-600';
+        else if (intensity === 1) color = 'bg-indigo-800';
         
-        result.push({ week, day, color });
+        const title = intensity === 0 ? `No activity on ${dateStr}` : `${intensity} activities on ${dateStr}`;
+        result.push({ week, day, color, title });
       }
     }
     return result;
@@ -112,7 +124,7 @@ function ActivityHeatmap({ heatmapData = [] }) {
           </div>
           <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
             {cells.map((cell, i) => (
-              <div key={i} className={`w-[12px] h-[12px] rounded-[2px] ${cell.color}`} />
+              <div key={i} title={cell.title} className={`w-[12px] h-[12px] rounded-[2px] transition-all cursor-pointer hover:ring-1 hover:ring-white/40 ${cell.color}`} />
             ))}
           </div>
         </div>
@@ -123,56 +135,36 @@ function ActivityHeatmap({ heatmapData = [] }) {
 }
 
 function ActivityTrend({ trendData = [] }) {
-  const data = trendData.length > 0 ? trendData.slice(-5) : [
+  const data = trendData.length > 0 ? trendData.slice(-7) : [
     { date: 'Start', xp: 0 }, { date: 'Now', xp: 0 }
   ];
   
-  const maxVal = Math.max(...data.map(d => d.xp || 10), 100);
-  const points = data.map((d, i) => ({
-    x: (i / (data.length - 1)) * 100,
-    y: 100 - ((d.xp || 0) / maxVal) * 100
-  }));
-  const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-  const areaD = pathD + ` L 100 100 L 0 100 Z`;
-
   return (
     <div className="card p-4">
       <div className="section-header">
         <h3 className="section-title">Activity XP Trend</h3>
-        <span className="text-[10px] text-text-muted font-medium">Monthly ▾</span>
+        <span className="text-[10px] font-medium text-text-muted bg-surface-elevated px-2 py-1 rounded">Daily</span>
       </div>
-      <div className="relative h-36">
-        {/* Y axis labels */}
-        <div className="absolute left-0 top-0 bottom-0 flex flex-col justify-between text-[9px] text-text-muted font-mono pr-2">
-          <span>100</span><span>75</span><span>50</span><span>25</span><span>0</span>
-        </div>
-        <div className="ml-7 h-full relative">
-          <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
-            {/* Grid lines */}
-            {[0, 25, 50, 75, 100].map(v => (
-              <line key={v} x1="0" y1={v} x2="100" y2={v} stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-            ))}
-            {/* Area fill */}
-            <path d={areaD} fill="url(#trendGradient)" />
-            {/* Line */}
-            <path d={pathD} fill="none" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-            {/* Dots */}
-            {points.map((p, i) => (
-              <circle key={i} cx={p.x} cy={p.y} r="2.5" fill="#6366F1" stroke="#0B0D18" strokeWidth="1.5" />
-            ))}
+      <div className="h-36 mt-4 -ml-4">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
-              <linearGradient id="trendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366F1" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#6366F1" stopOpacity="0" />
+              <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
               </linearGradient>
             </defs>
-          </svg>
-        </div>
-      </div>
-      <div className="flex justify-between ml-7 mt-1">
-        {data.map((d, i) => (
-          <span key={i} className="text-[9px] text-text-muted font-mono">{d.date.substring(5)}</span>
-        ))}
+            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+            <XAxis dataKey="date" stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => v.slice(-2)} />
+            <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+            <Tooltip 
+              contentStyle={{ backgroundColor: '#161A2E', borderColor: 'rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '12px', color: '#F1F5F9' }}
+              itemStyle={{ color: '#818CF8' }}
+              labelStyle={{ color: '#64748B', marginBottom: '4px' }}
+            />
+            <Area type="monotone" dataKey="xp" stroke="#6366F1" strokeWidth={3} fillOpacity={1} fill="url(#colorXp)" />
+          </AreaChart>
+        </ResponsiveContainer>
       </div>
     </div>
   );
@@ -254,7 +246,7 @@ export default function Dashboard() {
           axios.get('/api/dashboard/inquiries'),
           axios.get('/api/dashboard/achievements'),
           axios.get('/api/analytics/heatmap'),
-          axios.get('/api/analytics/timeseries?horizon=monthly'),
+          axios.get('/api/analytics/timeseries?horizon=daily'),
           axios.get('/api/dashboard/stats')
         ]);
         let fetched = [];

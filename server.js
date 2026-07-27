@@ -170,6 +170,9 @@ async function startServer() {
         }
     }
 
+    const { startPenaltyWorker } = require('./src/services/penaltyWorker');
+    startPenaltyWorker();
+
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });

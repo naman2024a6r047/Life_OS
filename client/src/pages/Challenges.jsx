@@ -674,8 +674,9 @@ function TaskRow({ task, onToggle, onOpenDetail, isLocked }) {
       className={`flex items-center gap-3 px-4 py-3 hover:bg-surface-elevated/60 transition-all border-b border-border-subtle/30 last:border-0 ${isCompleted ? 'opacity-60' : ''}`}
     >
       <button
+        title={isLocked ? "Historical milestones are locked" : "Toggle task"}
         onClick={() => !isLocked && onToggle(task)}
-        className={`w-5 h-5 rounded-[4px] border-2 flex flex-shrink-0 items-center justify-center transition-all ${isLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'} ${
+        className={`w-5 h-5 rounded-[4px] border-2 flex flex-shrink-0 items-center justify-center transition-all ${isLocked ? 'cursor-default opacity-90' : 'cursor-pointer'} ${
           isCompleted 
             ? 'bg-primary border-primary text-white' 
             : 'bg-transparent border-border-subtle hover:border-primary/50'
@@ -1354,8 +1355,8 @@ export default function Challenges() {
                                       e.stopPropagation();
                                       if (!isMilestoneLocked) handleToggleDay(dayTasks, isAllDone);
                                   }}
-                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isMilestoneLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'} ${isAllDone ? 'bg-success border-success text-white' : 'border-border-subtle hover:border-primary text-transparent'}`}
-                                  title="Check/Uncheck all tasks for this day"
+                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isMilestoneLocked ? 'cursor-default opacity-90' : 'cursor-pointer'} ${isAllDone ? 'bg-success border-success text-white' : 'border-border-subtle hover:border-primary text-transparent'}`}
+                                  title={isMilestoneLocked ? "Historical milestones are locked" : "Check/Uncheck all tasks for this day"}
                                 >
                                   <FiCheck size={12} strokeWidth={3} />
                                 </button>

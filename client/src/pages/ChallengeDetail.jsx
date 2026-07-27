@@ -501,7 +501,8 @@ export default function ChallengeDetail() {
                                                                         onClick={() => !isMilestoneLocked && handleToggleTask(task.id)}
                                                                         className={`p-3 rounded-xl border transition-all flex items-center justify-between group ${
                                                                             isDone ? 'bg-emerald-950/20 border-emerald-500/20 opacity-70' : 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/40'
-                                                                        } ${isMilestoneLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                                                                        } ${isMilestoneLocked ? 'cursor-default opacity-90' : 'cursor-pointer'}`}
+                                                                        title={isMilestoneLocked ? "Historical milestones are locked" : ""}
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${

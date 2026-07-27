@@ -1,55 +1,68 @@
-const { ActivityLog, User, Challenge, Milestone } = require('../models');
-
-// Penalties & Wall of Shame store
-let wallOfShameStore = [
-    {
-        id: '1',
-        user_id: 'user-1',
-        username: 'Alex',
-        reason: 'Missed 2 consecutive daily tasks in Milestone 1',
-        penalty_type: 'Streak Reset & XP Penalty (-100 XP)',
-        date: new Date().toISOString().split('T')[0]
-    }
-];
+const { Penalty, User } = require('../models');
 
 exports.getPenaltyAuditLog = async (req, res) => {
     try {
-        res.status(200).json(wallOfShameStore);
+        const penalties = await Penalty.findAll({
+            where: { user_id: req.user.id },
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(penalties);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching penalty audit log' });
     }
 };
 
-exports.triggerMissPenalty = async (req, res) => {
+exports.getActivePenalties = async (req, res) => {
     try {
-        const { challenge_id, reason } = req.body;
+        const penalties = await Penalty.findAll({
+            where: { user_id: req.user.id, status: 'Active' },
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(penalties);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching active penalties' });
+    }
+};
+
+exports.acknowledgePenalty = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const penalty = await Penalty.findOne({ where: { id, user_id: req.user.id } });
+        if (!penalty) {
+            return res.status(404).json({ message: 'Penalty not found' });
+        }
+        await penalty.update({ status: 'Acknowledged' });
+        res.status(200).json({ message: 'Penalty acknowledged', penalty });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error acknowledging penalty' });
+    }
+};
+
+exports.triggerMissPenalty = async (req, res) => {
+    // Kept for backward compatibility if manual trigger is needed via API
+    try {
+        const { reason } = req.body;
         const user = await User.findByPk(req.user.id);
         
-        // Reset streak and deduct 100 XP
         const newStreak = 0;
         const newXP = Math.max(0, (user.xp || 0) - 100);
         await user.update({ current_streak: newStreak, xp: newXP });
 
-        const penaltyRecord = {
-            id: Date.now().toString(),
-            user_id: req.user.id,
-            username: user.username,
-            reason: reason || 'Missed 2 consecutive daily milestone tasks',
-            penalty_type: 'Streak Reset to 0 & -100 XP Penalty',
-            date: new Date().toISOString().split('T')[0]
-        };
-        wallOfShameStore.unshift(penaltyRecord);
-
-        await ActivityLog.create({
-            user_id: req.user.id,
-            action_type: 'penalty_triggered',
-            xp_awarded: -100
+        const penalty = await Penalty.create({
+            user_id: user.id,
+            title: 'Manual Penalty Trigger',
+            description: reason || 'Manual deduction',
+            severity: 'High',
+            penalty_type: 'Streak Reset & XP Penalty (-100 XP)',
+            xp_deducted: 100
         });
 
         res.status(200).json({ 
             message: 'Penalty applied successfully. Streak reset to 0.',
-            penaltyRecord,
+            penaltyRecord: penalty,
             user: { current_streak: newStreak, xp: newXP }
         });
     } catch (error) {
@@ -60,7 +73,6 @@ exports.triggerMissPenalty = async (req, res) => {
 
 exports.applyGraceDayToken = async (req, res) => {
     try {
-        // Protect streak using a Grace Token
         res.status(200).json({ 
             message: 'Grace Token applied! Streak protected for 24 hours.' 
         });

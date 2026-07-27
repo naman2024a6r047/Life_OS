@@ -22,7 +22,12 @@ const ActivityLog = require('./ActivityLog');
 const Badge = require('./Badge');
 const UserBadge = require('./UserBadge');
 const PartnerIntervention = require('./PartnerIntervention');
+const Penalty = require('./Penalty');
 const sequelize = require('../config/db');
+
+// User & Penalty
+User.hasMany(Penalty, { foreignKey: 'user_id' });
+Penalty.belongsTo(User, { foreignKey: 'user_id' });
 
 // User & Challenge
 User.hasMany(Challenge, { foreignKey: 'user_id' });
@@ -147,5 +152,6 @@ module.exports = {
     PartnerIntervention,
     DailyReflection,
     TaskAttachment,
-    TransformationCheckpoint
+    TransformationCheckpoint,
+    Penalty
 };

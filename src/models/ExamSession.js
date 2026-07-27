@@ -11,12 +11,16 @@ const ExamSession = sequelize.define('ExamSession', {
         type: DataTypes.UUID,
         allowNull: false
     },
+    exam_name: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     reason: {
         type: DataTypes.STRING,
         allowNull: false
     },
     exam_type: {
-        type: DataTypes.ENUM('Semester', 'Competitive', 'School', 'Custom'),
+        type: DataTypes.STRING,
         allowNull: false
     },
     start_date: {
@@ -38,6 +42,10 @@ const ExamSession = sequelize.define('ExamSession', {
     completion_percentage: {
         type: DataTypes.INTEGER,
         defaultValue: 0
+    },
+    daily_study_target_hours: {
+        type: DataTypes.FLOAT,
+        defaultValue: 4.0
     }
 }, {
     timestamps: true

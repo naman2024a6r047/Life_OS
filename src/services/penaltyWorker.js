@@ -13,6 +13,11 @@ const startPenaltyWorker = () => {
                 where: { status: 'active' },
                 include: [
                     {
+                        model: User,
+                        where: { is_in_exam_mode: false },
+                        attributes: ['id', 'is_in_exam_mode']
+                    },
+                    {
                         model: Milestone,
                         as: 'milestones',
                         where: { status: 'unlocked' },

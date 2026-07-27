@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../../context/AuthContext';
 import { FiBook, FiClock, FiShield, FiTarget, FiXCircle, FiCalendar, FiPlay, FiBarChart2, FiPlus } from 'react-icons/fi';
@@ -8,7 +9,8 @@ import FocusMode from './FocusMode';
 import ExamAnalytics from './ExamAnalytics';
 
 export default function ExamDashboard() {
-    const { user } = useContext(AuthContext);
+    const { user, setUser } = useContext(AuthContext);
+    const navigate = useNavigate();
     const [examData, setExamData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState('dashboard'); // 'dashboard', 'planner', 'focus', 'analytics'
@@ -48,7 +50,9 @@ export default function ExamDashboard() {
                 await axios.post('/api/exams/deactivate', {}, {
                     headers: token ? { Authorization: `Bearer ${token}` } : {}
                 });
-                window.location.href = '/'; 
+                
+                setUser({ ...user, is_in_exam_mode: false });
+                navigate('/');
             } catch (error) {
                 console.error(error);
                 alert("Failed to deactivate Exam Mode.");
@@ -183,27 +187,34 @@ export default function ExamDashboard() {
                         </div>
 
                         {/* Dashboard Stats */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
                             <div className="glass-card p-6 rounded-2xl">
                                 <div className="flex items-center gap-3 mb-4 text-slate-400">
                                     <FiClock className="w-5 h-5 text-indigo-400" />
                                     <h3 className="font-semibold uppercase tracking-wider text-xs">Total Study Hours</h3>
                                 </div>
-                                <p className="text-3xl font-extrabold">{examData.total_study_hours.toFixed(1)} <span className="text-sm font-medium text-slate-500">hrs</span></p>
+                                <p className="text-3xl font-extrabold">{examData.total_study_hours?.toFixed(1) || '0.0'} <span className="text-sm font-medium text-slate-500">hrs</span></p>
                             </div>
                             <div className="glass-card p-6 rounded-2xl">
                                 <div className="flex items-center gap-3 mb-4 text-slate-400">
-                                    <FiBook className="w-5 h-5 text-emerald-400" />
+                                    <FiTarget className="w-5 h-5 text-emerald-400" />
+                                    <h3 className="font-semibold uppercase tracking-wider text-xs">Topics Mastered</h3>
+                                </div>
+                                <p className="text-3xl font-extrabold">{examData.completed_topics || 0} <span className="text-sm font-medium text-slate-500">/ {examData.total_topics || 0}</span></p>
+                            </div>
+                            <div className="glass-card p-6 rounded-2xl">
+                                <div className="flex items-center gap-3 mb-4 text-slate-400">
+                                    <FiBook className="w-5 h-5 text-rose-400" />
                                     <h3 className="font-semibold uppercase tracking-wider text-xs">Subjects</h3>
                                 </div>
                                 <p className="text-3xl font-extrabold">{examData.subjects?.length || 0} <span className="text-sm font-medium text-slate-500">tracked</span></p>
                             </div>
                             <div className="glass-card p-6 rounded-2xl">
                                 <div className="flex items-center gap-3 mb-4 text-slate-400">
-                                    <FiTarget className="w-5 h-5 text-rose-400" />
-                                    <h3 className="font-semibold uppercase tracking-wider text-xs">Overall Completion</h3>
+                                    <FiCalendar className="w-5 h-5 text-cyan-400" />
+                                    <h3 className="font-semibold uppercase tracking-wider text-xs">Overall Progress</h3>
                                 </div>
-                                <p className="text-3xl font-extrabold text-slate-100">{examData.completion_percentage}<span className="text-lg text-slate-500">%</span></p>
+                                <p className="text-3xl font-extrabold text-slate-100">{examData.completion_percentage || 0}<span className="text-lg text-slate-500">%</span></p>
                             </div>
                         </div>
 

@@ -165,8 +165,10 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('token');
     };
 
+    const isExamMode = user?.is_in_exam_mode || false;
+
     return (
-        <AuthContext.Provider value={{ user, session, login, loginDemo, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, setUser, session, login, loginDemo, register, logout, loading, isExamMode }}>
             {children}
         </AuthContext.Provider>
     );

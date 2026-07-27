@@ -19,10 +19,14 @@ const ExamTopic = sequelize.define('ExamTopic', {
         type: DataTypes.BOOLEAN,
         defaultValue: false
     },
+    study_status: {
+        type: DataTypes.ENUM('not_started', 'in_progress', 'completed', 'revision'),
+        defaultValue: 'not_started'
+    },
     revision_count: {
         type: DataTypes.INTEGER,
         defaultValue: 0,
-        validate: { min: 0, max: 3 }
+        validate: { min: 0, max: 10 }
     }
 }, {
     timestamps: true

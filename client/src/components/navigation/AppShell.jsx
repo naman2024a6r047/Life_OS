@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import Sidebar from './Sidebar';
+import { AuthContext } from '../../context/AuthContext';
 
 export default function AppShell({ children }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { isExamMode } = useContext(AuthContext);
 
   useEffect(() => {
     const handleToggle = () => setIsMobileMenuOpen(prev => !prev);
@@ -18,10 +20,10 @@ export default function AppShell({ children }) {
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-border-subtle bg-surface/50 backdrop-blur sticky top-0 z-30">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary to-purple flex items-center justify-center">
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isExamMode ? 'bg-gradient-to-tr from-info to-primary' : 'bg-gradient-to-tr from-primary to-purple'}`}>
               <span className="text-white text-sm font-bold">L</span>
             </div>
-            <span className="font-bold text-text-primary">LifeOS</span>
+            <span className="font-bold text-text-primary">{isExamMode ? 'Exam Mode' : 'LifeOS'}</span>
           </div>
           <button 
             onClick={() => setIsMobileMenuOpen(true)}

@@ -207,7 +207,7 @@ exports.getPartnerTelemetry = async (req, res) => {
         const { friendId } = req.params;
 
         const partnerUser = await User.findByPk(friendId, {
-            attributes: ['id', 'username', 'avatar_url', 'level', 'xp', 'current_streak', 'discipline_score', 'bio', 'createdAt', 'privacy_settings']
+            attributes: ['id', 'username', 'avatar_url', 'level', 'xp', 'current_streak', 'discipline_score', 'bio', 'createdAt', 'privacy_settings', 'is_in_exam_mode']
         });
 
         if (!partnerUser) {
@@ -376,6 +376,28 @@ exports.getPartnerTelemetry = async (req, res) => {
         const totalCompleted = allTasks.filter(t => t.completed).length;
         const completionRate = allTasks.length > 0 ? Math.round((totalCompleted / allTasks.length) * 100) : 0;
         const activeChallengesCount = challenges.filter(c => c.status === 'active' || c.status === 'unlocked').length;
+
+        if (partnerUser.is_in_exam_mode) {
+            let exam_info = null;
+            try {
+                const { ExamSession } = require('../models');
+                const session = await ExamSession.findOne({ where: { user_id: friendId, is_active: true } });
+                if (session) exam_info = session;
+            } catch (e) { console.error('Error fetching partner exam session', e); }
+
+            return res.status(200).json({
+                user: partnerUser,
+                is_in_exam_mode: true,
+                exam_info,
+                interventions,
+                stats: {},
+                challenges: [],
+                skippedTasks: [],
+                skippedMilestones: [],
+                activityLogs: [],
+                penalties: []
+            });
+        }
 
         res.status(200).json({
             user: partnerUser,

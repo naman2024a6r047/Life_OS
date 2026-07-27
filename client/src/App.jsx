@@ -11,7 +11,11 @@ import ChallengeDetail from './pages/ChallengeDetail';
 import Friends from './pages/Friends';
 import ReviewDashboard from './pages/ReviewDashboard';
 import AccountabilityDashboard from './pages/AccountabilityDashboard';
-import ExamDashboard from './pages/ExamDashboard';
+import ExamDashboard from './pages/exam/ExamDashboard';
+import ExamSetup from './pages/exam/ExamSetup';
+import ExamPlanner from './pages/exam/ExamPlanner';
+import ExamAnalytics from './pages/exam/ExamAnalytics';
+import FocusMode from './pages/exam/FocusMode';
 import GymDashboard from './pages/GymDashboard';
 import DevDashboard from './pages/DevDashboard';
 import AnalyticsDashboard from './pages/AnalyticsDashboard';
@@ -80,7 +84,10 @@ function AppRoutes() {
         <Route path="/friends/:friendId" element={<ProtectedRoute><PartnerDashboard /></ProtectedRoute>} />
         <Route path="/accountability" element={<ProtectedRoute><AccountabilityDashboard /></ProtectedRoute>} />
         <Route path="/reviews" element={<ProtectedRoute><ReviewDashboard /></ProtectedRoute>} />
-        <Route path="/exams" element={<ProtectedRoute><ExamDashboard /></ProtectedRoute>} />
+        <Route path="/exams" element={<ProtectedRoute>{user?.is_in_exam_mode ? <ExamDashboard /> : <ExamSetup />}</ProtectedRoute>} />
+        <Route path="/exams/planner" element={<ProtectedRoute><ExamPlanner /></ProtectedRoute>} />
+        <Route path="/exams/analytics" element={<ProtectedRoute><ExamAnalytics /></ProtectedRoute>} />
+        <Route path="/exams/focus" element={<ProtectedRoute><FocusMode /></ProtectedRoute>} />
         <Route path="/gym" element={<ProtectedRoute><GymDashboard /></ProtectedRoute>} />
         <Route path="/dev" element={<ProtectedRoute><DevDashboard /></ProtectedRoute>} />
         <Route path="/analytics" element={<ProtectedRoute><AnalyticsDashboard /></ProtectedRoute>} />

@@ -198,15 +198,7 @@ exports.getDashboard = async (req, res) => {
         });
 
         if (!session) {
-            // Auto-heal: create session so user is never trapped in error screen
-            session = await ExamSession.create({
-                user_id: req.user.id,
-                reason: 'Semester Exams',
-                exam_type: 'Semester',
-                start_date: new Date(),
-                end_date: new Date(Date.now() + 14 * 86400000),
-                is_active: true
-            });
+            return res.status(200).json(null);
         }
 
         const sessionJson = session.toJSON();
@@ -214,6 +206,26 @@ exports.getDashboard = async (req, res) => {
         // Accurately compute total study hours from all logged study sessions
         const totalMinutes = (sessionJson.studyLogs || []).reduce((acc, log) => acc + (log.duration_minutes || 0), 0);
         sessionJson.total_study_hours = Number((totalMinutes / 60).toFixed(1));
+
+        // Compute days remaining
+        const now = new Date();
+        const endDate = new Date(session.end_date);
+        const diffMs = endDate - now;
+        sessionJson.days_remaining = Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
+
+        // Compute topics progress
+        let totalTopics = 0;
+        let completedTopics = 0;
+        if (sessionJson.subjects) {
+            sessionJson.subjects.forEach(subject => {
+                if (subject.topics) {
+                    totalTopics += subject.topics.length;
+                    completedTopics += subject.topics.filter(t => t.is_completed || t.study_status === 'completed' || t.study_status === 'revision').length;
+                }
+            });
+        }
+        sessionJson.total_topics = totalTopics;
+        sessionJson.completed_topics = completedTopics;
 
         res.status(200).json(sessionJson);
     } catch (error) {
@@ -224,7 +236,7 @@ exports.getDashboard = async (req, res) => {
 
 exports.createSubject = async (req, res) => {
     try {
-        let { exam_session_id, name } = req.body;
+        let { exam_session_id, name, exam_date, priority } = req.body;
 
         if (!exam_session_id) {
             const activeSession = await ExamSession.findOne({ where: { user_id: req.user.id, is_active: true } });
@@ -235,7 +247,12 @@ exports.createSubject = async (req, res) => {
             return res.status(400).json({ message: 'No active exam session found.' });
         }
 
-        const subject = await ExamSubject.create({ exam_session_id, name });
+        const subject = await ExamSubject.create({ 
+            exam_session_id, 
+            name,
+            exam_date: exam_date || null,
+            priority: priority || 'Medium'
+        });
         res.status(201).json(subject);
     } catch (error) {
         console.error('Create subject error:', error);
@@ -392,6 +409,62 @@ exports.logMockTest = async (req, res) => {
             exam_session_id, date, score, time_taken_minutes, weak_areas, incorrect_questions
         });
         res.status(201).json(mock);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.getExamCalendar = async (req, res) => {
+    try {
+        const session = await ExamSession.findOne({
+            where: { user_id: req.user.id, is_active: true },
+            include: [{ model: ExamSubject, as: 'subjects', separate: true }]
+        });
+        if (!session) return res.status(200).json([]);
+        const subjects = session.subjects.filter(s => s.exam_date).sort((a, b) => new Date(a.exam_date) - new Date(b.exam_date));
+        res.status(200).json(subjects);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.deleteSubject = async (req, res) => {
+    try {
+        const { subjectId } = req.params;
+        const subject = await ExamSubject.findByPk(subjectId);
+        if (!subject) return res.status(404).json({ message: 'Subject not found' });
+        await ExamTopic.destroy({ where: { subject_id: subjectId } });
+        await subject.destroy();
+        res.status(200).json({ message: 'Subject deleted' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.deleteTopic = async (req, res) => {
+    try {
+        const { topicId } = req.params;
+        const topic = await ExamTopic.findByPk(topicId);
+        if (!topic) return res.status(404).json({ message: 'Topic not found' });
+        await topic.destroy();
+        res.status(200).json({ message: 'Topic deleted' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+exports.updateStudyGoal = async (req, res) => {
+    try {
+        const { daily_study_target_hours } = req.body;
+        const session = await ExamSession.findOne({ where: { user_id: req.user.id, is_active: true } });
+        if (!session) return res.status(404).json({ message: 'Session not found' });
+        session.daily_study_target_hours = daily_study_target_hours;
+        await session.save();
+        res.status(200).json(session);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });

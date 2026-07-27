@@ -15,6 +15,14 @@ const ExamSubject = sequelize.define('ExamSubject', {
         type: DataTypes.STRING,
         allowNull: false
     },
+    exam_date: {
+        type: DataTypes.DATEONLY,
+        allowNull: true
+    },
+    priority: {
+        type: DataTypes.STRING,
+        defaultValue: 'Medium'
+    },
     progress_percentage: {
         type: DataTypes.INTEGER,
         defaultValue: 0

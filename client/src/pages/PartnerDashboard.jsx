@@ -227,15 +227,17 @@ export default function PartnerDashboard() {
                     </div>
 
                     {/* Exam Mode Overlay Banner if Active */}
-                    {partner.exam_mode_active && (
-                        <div className="p-4 bg-amber-950/30 border border-amber-500/40 rounded-2xl flex items-center justify-between gap-4">
+                    {data.is_in_exam_mode && (
+                        <div className="p-4 bg-cyan-950/30 border border-cyan-500/40 rounded-2xl flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-400 font-bold text-lg">
+                                <div className="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center text-cyan-400 font-bold text-lg">
                                     📚
                                 </div>
                                 <div>
                                     <h4 className="font-extrabold text-sm text-white">{partner.username} is in Exam Mode</h4>
-                                    <p className="text-slate-400 text-xs font-mono">Streak pressure & penalties are paused for exam preparation. Send supportive study wishes!</p>
+                                    <p className="text-slate-400 text-xs font-mono">
+                                        Focusing on {data.exam_info?.reason || 'Exams'}. Telemetry and goals are locked to prevent distractions.
+                                    </p>
                                 </div>
                             </div>
 
@@ -250,15 +252,16 @@ export default function PartnerDashboard() {
                                     });
                                     setShowInterventionModal(true);
                                 }}
-                                className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1.5"
+                                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1.5"
                             >
-                                📚 Send Exam Wishes
+                                📚 Send Support
                             </button>
                         </div>
                     )}
 
-                    {/* Rich Telemetry Grid */}
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-slate-800">
+                    {/* Rich Telemetry Grid - Only show if NOT in exam mode */}
+                    {!data.is_in_exam_mode && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-slate-800">
                         {/* Task Completion Rate */}
                         <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
                             <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Completion Rate</div>
@@ -306,10 +309,13 @@ export default function PartnerDashboard() {
                             <div className="text-lg font-black text-indigo-400">{stats.totalStudyHours || '0.0'} hrs</div>
                         </div>
                     </div>
+                    )}
                 </div>
 
-                {/* Time Range Filter + Tab Navigation */}
-                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                {!data.is_in_exam_mode && (
+                    <>
+                        {/* Time Range Filter + Tab Navigation */}
+                        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     {/* Tabs */}
                     <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 flex-wrap">
                         {TABS.map(tab => (
@@ -730,6 +736,8 @@ export default function PartnerDashboard() {
                     </div>
                 )}
             </div>
+                    </>
+                )}
 
             {/* Intervention Modal */}
             {showInterventionModal && (

@@ -1,0 +1,85 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  name          String
+  quote         String?
+  dayStreak     Int      @default(0)
+  totalXp       Int      @default(0)
+  level         Int      @default(1)
+  levelTitle    String
+  lifeScore     Int      @default(0)
+  graceTokens   Int      @default(0)
+
+  tasks         Task[]
+  activityLogs  ActivityLog[]
+  partners      AccountabilityPartner[]
+  inquiriesSent Inquiry[] @relation("UserInquiries")
+  achievements  Achievement[]
+}
+
+model Task {
+  id          String    @id @default(uuid())
+  userId      String
+  title       String
+  status      String    // "Active", "Completed", "Skipped"
+  category    String    // "Exam", "Fitness", "Coding", "Study"
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  user        User      @relation(fields: [userId], references: [id])
+}
+
+model ActivityLog {
+  id            String   @id @default(uuid())
+  userId        String
+  date          DateTime @default(now())
+  category      String
+  durationHours Float?   // For study/coding tracking
+  completed     Boolean? // For fitness tracking
+
+  user          User     @relation(fields: [userId], references: [id])
+}
+
+model AccountabilityPartner {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  status      String    // "Online", "Offline"
+  lastSeen    DateTime?
+  avatar      String?
+
+  user        User      @relation(fields: [userId], references: [id])
+  inquiries   Inquiry[] @relation("PartnerInquiries")
+}
+
+model Inquiry {
+  id          String   @id @default(uuid())
+  partnerId   String
+  userId      String
+  message     String
+  createdAt   DateTime @default(now())
+  isRead      Boolean  @default(false)
+
+  partner     AccountabilityPartner @relation("PartnerInquiries", fields: [partnerId], references: [id])
+  user        User                  @relation("UserInquiries", fields: [userId], references: [id])
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String
+  xpAwarded   Int
+  unlockedAt  DateTime @default(now())
+  icon        String?
+
+  user        User     @relation(fields: [userId], references: [id])
+}

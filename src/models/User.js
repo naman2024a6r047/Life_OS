@@ -70,6 +70,10 @@ const User = sequelize.define('User', {
     google_drive_folder_link: {
         type: DataTypes.STRING,
         allowNull: true
+    },
+    resource_drive_folder_link: {
+        type: DataTypes.STRING,
+        allowNull: true
     }
 }, {
     timestamps: true

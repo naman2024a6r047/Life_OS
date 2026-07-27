@@ -265,7 +265,7 @@ const getGoogleToken = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { google_drive_folder_link } = req.body;
+        const { google_drive_folder_link, resource_drive_folder_link } = req.body;
         const user = await User.findByPk(req.user.id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -273,6 +273,10 @@ const updateProfile = async (req, res) => {
         
         if (google_drive_folder_link !== undefined) {
             user.google_drive_folder_link = google_drive_folder_link;
+        }
+
+        if (resource_drive_folder_link !== undefined) {
+            user.resource_drive_folder_link = resource_drive_folder_link;
         }
 
         await user.save();

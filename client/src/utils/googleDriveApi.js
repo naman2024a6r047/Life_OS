@@ -139,7 +139,7 @@ export async function fetchPhotosFromDrive(folderId, accessToken) {
   // q='folderId in parents' to get files inside the specific folder
   // fields to request id, name, thumbnailLink, webContentLink, createdTime
   const query = encodeURIComponent(`'${folderId}' in parents and mimeType contains 'image/' and trashed = false`);
-  const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,thumbnailLink,webContentLink,createdTime)&orderBy=createdTime desc`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,thumbnailLink,webContentLink,createdTime,size)&orderBy=createdTime desc`;
 
   const response = await fetch(url, {
     method: 'GET',
@@ -156,3 +156,32 @@ export async function fetchPhotosFromDrive(folderId, accessToken) {
   const data = await response.json();
   return data.files || [];
 }
+
+/**
+ * Fetches all files (any type) from the specified Google Drive folder.
+ */
+export async function fetchFilesFromDrive(folderId, accessToken) {
+  if (!accessToken || !CLIENT_ID) {
+    console.warn("Google Drive API: Mock fetch files successful.");
+    return [];
+  }
+
+  const query = encodeURIComponent(`'${folderId}' in parents and trashed = false`);
+  const url = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,name,mimeType,thumbnailLink,webContentLink,createdTime,size)&orderBy=createdTime desc`;
+
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${accessToken}`
+    }
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Fetch files failed: ${errText}`);
+  }
+
+  const data = await response.json();
+  return data.files || [];
+}
+

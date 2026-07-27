@@ -9,7 +9,7 @@ import {
 export default function KnowledgeDashboard() {
   const { user } = useContext(AuthContext);
 
-  const streak = user?.current_streak || 18;
+  const streak = user?.current_streak ?? 0;
 
   const recentSessions = [
     { title: 'Data Structures – Arrays', sub: 'C++ • LeetCode Problems', duration: '2h 15m', time: 'Today, 10:30 AM', icon: '</>', color: 'purple' },

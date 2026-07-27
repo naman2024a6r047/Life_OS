@@ -9,7 +9,7 @@ import {
 export default function AnalyticsDashboard() {
   const { user } = useContext(AuthContext);
 
-  const streak = user?.current_streak || 18;
+  const streak = user?.current_streak ?? 0;
 
   const subjectPerformance = [
     { name: 'Data Structures', time: '16h 20m', done: '22/25', pct: 88, color: 'bg-purple', icon: '</>' },

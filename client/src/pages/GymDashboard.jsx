@@ -381,7 +381,7 @@ export default function GymDashboard() {
   };
 
   // Interactive Muscle & Exercise Filter State
-  const streak = user?.current_streak || (workoutsList.length > 0 ? 1 : 0);
+  const streak = user?.current_streak ?? (workoutsList.length > 0 ? 1 : 0);
   const [selectedMuscleCategory, setSelectedMuscleCategory] = useState('all');
   const [selectedExercise, setSelectedExercise] = useState('Barbell Bench Press');
   const [searchExercise, setSearchExercise] = useState('');
@@ -515,7 +515,7 @@ export default function GymDashboard() {
         <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
           <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">⚡</div>
           <div>
-            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{user?.current_streak || 0}</h4>
+            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{user?.current_streak ?? 0}</h4>
             <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Day Streak</p>
             <span className="text-[6px] md:text-[9px] text-text-muted font-bold font-mono">Best: {user?.best_streak || 0} <span className="hidden md:inline">Days</span></span>
           </div>

@@ -278,7 +278,7 @@ export default function Dashboard() {
   const lifeScore = analytics?.lifeScore || 0;
   const totalXP = user?.xp || analytics?.xp || 0;
   const currentLevel = user?.level || analytics?.level || 1;
-  const streak = user?.current_streak || analytics?.streak || 0;
+  const streak = user?.current_streak ?? analytics?.streak ?? 0;
   const xpForLevel = currentLevel * 100;
   const xpProgress = Math.min(100, Math.round((totalXP / xpForLevel) * 100));
 

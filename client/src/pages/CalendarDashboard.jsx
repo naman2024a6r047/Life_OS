@@ -11,7 +11,7 @@ export default function CalendarDashboard() {
   const [viewMode, setViewMode] = useState('Month');
   const [selectedDay, setSelectedDay] = useState(12);
 
-  const streak = user?.current_streak || 18;
+  const streak = user?.current_streak ?? 0;
 
   const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 

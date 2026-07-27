@@ -13,7 +13,7 @@ export default function ExamDashboard() {
   const [currentQuestion, setCurrentQuestion] = useState(12);
   const [markedForReview, setMarkedForReview] = useState(false);
 
-  const streak = user?.current_streak || 32;
+  const streak = user?.current_streak ?? 0;
   const totalXP = (user?.xp || 0) + ((user?.level || 1) - 1) * 100 || 1825;
   const level = user?.level || 13;
 

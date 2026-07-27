@@ -23,6 +23,7 @@ const Badge = require('./Badge');
 const UserBadge = require('./UserBadge');
 const PartnerIntervention = require('./PartnerIntervention');
 const Penalty = require('./Penalty');
+const CalendarEvent = require('./CalendarEvent');
 const sequelize = require('../config/db');
 
 // User & Penalty
@@ -111,6 +112,10 @@ User.hasMany(PartnerIntervention, { foreignKey: 'receiver_id', as: 'receivedInte
 PartnerIntervention.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 PartnerIntervention.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 
+// Calendar
+User.hasMany(CalendarEvent, { foreignKey: 'user_id', as: 'calendarEvents' });
+CalendarEvent.belongsTo(User, { foreignKey: 'user_id' });
+
 const DailyReflection = require('./DailyReflection');
 const TaskAttachment = require('./TaskAttachment');
 const TransformationCheckpoint = require('./TransformationCheckpoint');
@@ -157,6 +162,7 @@ module.exports = {
     Badge,
     UserBadge,
     PartnerIntervention,
+    CalendarEvent,
     DailyReflection,
     TaskAttachment,
     TransformationCheckpoint,

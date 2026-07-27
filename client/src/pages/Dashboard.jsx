@@ -301,7 +301,7 @@ export default function Dashboard() {
   const todayDayIndex = (new Date().getDay() + 6) % 7;
 
   return (
-    <div className="p-4 md:p-6 space-y-5 bg-[#0F172A] min-h-screen">
+    <div className="p-4 md:p-6 space-y-5 min-h-screen">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -339,7 +339,7 @@ export default function Dashboard() {
 
       {/* Top Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-        <div className="stat-card bg-[#1E293B] border-slate-700">
+        <div className="stat-card">
           <LifeScoreCircle score={analytics?.lifeScore || 0} />
           <div>
             <p className="text-[11px] text-text-muted">Life Score</p>
@@ -359,7 +359,7 @@ export default function Dashboard() {
           {/* Today's Challenge + Today's Progress */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Today's Challenge */}
-            <div className="card p-4 bg-[#1E293B] border-slate-700">
+            <div className="card p-4">
               <div className="section-header">
                 <h3 className="section-title">Today's Challenge</h3>
                 <Link to="/challenges" className="section-link">View All</Link>
@@ -393,7 +393,7 @@ export default function Dashboard() {
             </div>
 
             {/* Today's Progress */}
-            <div className="card p-4 bg-[#1E293B] border-slate-700">
+            <div className="card p-4">
               <div className="section-header">
                 <h3 className="section-title">Today's Progress</h3>
                 <Link to="/challenges" className="section-link">View Plan</Link>
@@ -467,13 +467,13 @@ export default function Dashboard() {
         {/* Right 4 columns — Sidebar widgets */}
         <div className="lg:col-span-4 space-y-4">
           {/* Accountability Partners */}
-          <div className="card p-4 bg-[#1E293B] border-slate-700">
+          <div className="card p-4">
             <div className="section-header">
               <h3 className="section-title">Accountability Partners</h3>
               <Link to="/friends" className="section-link">View All</Link>
             </div>
             {partners.length > 0 ? partners.map((partner, i) => (
-              <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-700 last:border-0">
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-white text-xs font-bold">
                     {partner.name[0]}
@@ -481,20 +481,20 @@ export default function Dashboard() {
                   <div>
                     <p className="text-xs font-semibold text-text-primary">{partner.name}</p>
                     <div className="flex items-center gap-1">
-                      <div className={`w-1.5 h-1.5 rounded-full ${partner.status === 'Online' ? 'bg-[#10B981]' : 'bg-slate-500'}`} />
-                      <p className="text-[10px] text-slate-400">{partner.status === 'Online' ? 'Online' : partner.lastSeen ? `Last seen ${new Date(partner.lastSeen).toLocaleDateString()}` : 'Offline'}</p>
+                      <div className={`w-1.5 h-1.5 rounded-full ${partner.status === 'Online' ? 'bg-success' : 'bg-text-muted'}`} />
+                      <p className="text-[10px] text-text-muted">{partner.status === 'Online' ? 'Online' : partner.lastSeen ? `Last seen ${new Date(partner.lastSeen).toLocaleDateString()}` : 'Offline'}</p>
                     </div>
                   </div>
                 </div>
-                <Link to="/friends" className="btn-outline border-slate-600 text-slate-300 text-[10px] px-3 py-1">Inspect</Link>
+                <Link to="/friends" className="btn-outline border-border-subtle text-text-muted text-[10px] px-3 py-1">Inspect</Link>
               </div>
             )) : (
-              <p className="text-xs text-slate-500 text-center py-4">No partners assigned yet.</p>
+              <p className="text-xs text-text-muted text-center py-4">No partners assigned yet.</p>
             )}
           </div>
 
           {/* Pending Inquiries */}
-          <div className="card p-4 bg-[#1E293B] border-red-900/30">
+          <div className="card p-4 border-danger/30">
             <div className="section-header">
               <div className="flex items-center gap-2">
                 <h3 className="section-title text-red-500">Pending Inquiries</h3>
@@ -527,24 +527,24 @@ export default function Dashboard() {
           <XPBreakdown xp={analytics?.xp || 0} breakdown={dashStats?.xpBreakdown} />
 
           {/* Recent Achievements */}
-          <div className="card p-4 bg-[#1E293B] border-slate-700">
+          <div className="card p-4">
             <div className="section-header">
               <h3 className="section-title">Recent Achievements</h3>
               <span className="section-link">View All</span>
             </div>
             {achievements.length > 0 ? achievements.map((ach, i) => (
-              <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-700 last:border-0">
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
                 <div className="flex items-center gap-2.5">
                   <span className="text-lg">{ach.icon || '🏆'}</span>
                   <div>
-                    <p className="text-xs font-semibold text-white">{ach.title}</p>
-                    <p className="text-[10px] text-slate-400">{ach.description}</p>
+                    <p className="text-xs font-semibold text-text-primary">{ach.title}</p>
+                    <p className="text-[10px] text-text-muted">{ach.description}</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold font-mono text-[#F97316]">+{ach.xpAwarded} XP</span>
+                <span className="text-xs font-bold font-mono text-warning">+{ach.xpAwarded} XP</span>
               </div>
             )) : (
-              <p className="text-xs text-slate-500 text-center py-4">No recent achievements.</p>
+              <p className="text-xs text-text-muted text-center py-4">No recent achievements.</p>
             )}
           </div>
         </div>

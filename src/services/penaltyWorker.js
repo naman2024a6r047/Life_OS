@@ -1,14 +1,13 @@
 const cron = require('node-cron');
 const { User, Challenge, Milestone, MilestoneTask, Penalty, ActivityLog, sequelize } = require('../models');
 const { Op } = require('sequelize');
-const dayjs = require('dayjs');
 
 // Run every 1 minute
 const startPenaltyWorker = () => {
     cron.schedule('* * * * *', async () => {
         try {
             console.log('[PenaltyWorker] Running scheduled penalty checks...');
-            const todayStr = dayjs().format('YYYY-MM-DD');
+            const todayStr = new Date().toISOString().split('T')[0];
 
             const activeChallenges = await Challenge.findAll({
                 where: { status: 'active' },

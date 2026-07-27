@@ -15,10 +15,10 @@ export default function ReviewDashboard() {
   const [reviewsToDo, setReviewsToDo] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ratings, setRatings] = useState({
-    quality: 5,
-    completeness: 5,
+    understanding: 5,
     consistency: 5,
-    creativity: 5,
+    quality: 5,
+    overall: 5,
   });
   const [feedback, setFeedback] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -113,10 +113,10 @@ export default function ReviewDashboard() {
       setSubmitting(true);
       await axios.post(`/api/reviews/evaluate/${selectedReview?.id}`, {
         is_approved: isApproved,
-        rating_understanding: ratings.quality,
+        rating_understanding: ratings.understanding,
         rating_consistency: ratings.consistency,
-        rating_quality: ratings.completeness,
-        rating_overall: ratings.creativity,
+        rating_quality: ratings.quality,
+        rating_overall: ratings.overall,
         comment: feedback
       });
       alert(`Milestone ${isApproved ? 'Approved' : 'Rejected'}!`);
@@ -393,10 +393,10 @@ export default function ReviewDashboard() {
 
               <div className="space-y-3">
                 {[
-                  { key: 'quality', label: 'Quality', sub: 'How good is the quality?' },
-                  { key: 'completeness', label: 'Completeness', sub: 'How complete is the work?' },
-                  { key: 'consistency', label: 'Consistency', sub: 'Is the work consistent?' },
-                  { key: 'creativity', label: 'Creativity', sub: 'How creative is the approach?' },
+                  { key: 'understanding', label: 'Understanding', sub: 'Did they grasp the core concepts?' },
+                  { key: 'consistency', label: 'Consistency', sub: 'Was the effort consistent?' },
+                  { key: 'quality', label: 'Quality', sub: 'How complete and robust is the work?' },
+                  { key: 'overall', label: 'Overall', sub: 'General impression and creativity' },
                 ].map(dim => (
                   <div key={dim.key} className="space-y-0.5">
                     <div className="flex items-center justify-between text-xs">
@@ -436,10 +436,18 @@ export default function ReviewDashboard() {
                 </button>
               </div>
             </div>
+          ) : selectedReview ? (
+             <div className={`card p-4 space-y-2 border ${selectedReview.status === 'approved' ? 'bg-success/10 border-success/30' : 'bg-danger/10 border-danger/30'}`}>
+                <h3 className={`text-sm font-bold flex items-center gap-2 ${selectedReview.status === 'approved' ? 'text-success' : 'text-danger'}`}>
+                    {selectedReview.status === 'approved' ? <FiCheckCircle /> : <FiXCircle />} 
+                    Review {selectedReview.status === 'approved' ? 'Approved' : 'Rejected'}
+                </h3>
+                <p className="text-xs text-text-secondary">This review was evaluated on {new Date(selectedReview.updatedAt).toLocaleDateString()}.</p>
+             </div>
           ) : (
-             <div className="card p-4 space-y-2 bg-success/10 border border-success/30">
-                <h3 className="text-sm font-bold text-success flex items-center gap-2"><FiCheckCircle /> Review Completed</h3>
-                <p className="text-xs text-text-secondary">This review has already been evaluated.</p>
+             <div className="card p-4 space-y-2 bg-surface border border-border-subtle">
+                <h3 className="text-sm font-bold text-text-primary flex items-center gap-2"><FiInfo /> Select a Review</h3>
+                <p className="text-xs text-text-secondary">Select a review from the list to see details.</p>
              </div>
           )}
 

@@ -493,16 +493,16 @@ export default function ChallengeDetail() {
                                                     ) : (
                                                         <div className="space-y-2">
                                                             {dayItem.tasks.map(task => {
-                                                                const isMilestoneLocked = milestone.status === 'completed';
-                                                                const isDone = isMilestoneLocked || task.is_completed || task.completed;
+                                                                const isLockedForEdits = milestone.status === 'completed' || milestone.status === 'pending_review';
+                                                                const isDone = task.is_completed || task.completed;
                                                                 return (
                                                                     <div 
                                                                         key={task.id}
-                                                                        onClick={() => !isMilestoneLocked && handleToggleTask(task.id)}
+                                                                        onClick={() => !isLockedForEdits && handleToggleTask(task.id)}
                                                                         className={`p-3 rounded-xl border transition-all flex items-center justify-between group ${
                                                                             isDone ? 'bg-emerald-950/20 border-emerald-500/20 opacity-70' : 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/40'
-                                                                        } ${isMilestoneLocked ? 'cursor-default opacity-90' : 'cursor-pointer'}`}
-                                                                        title={isMilestoneLocked ? "Historical milestones are locked" : ""}
+                                                                        } ${isLockedForEdits ? 'cursor-default opacity-90' : 'cursor-pointer'}`}
+                                                                        title={isLockedForEdits ? `Milestone is ${milestone.status.replace('_', ' ')}` : ""}
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
@@ -534,23 +534,25 @@ export default function ChallengeDetail() {
                                                                         </div>
 
                                                                         {/* Option to Edit & Delete Task */}
-                                                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
-                                                                            <button 
-                                                                                onClick={(e) => openEditTaskModal(task, e)}
-                                                                                className="p-1.5 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition"
-                                                                                title="Edit Task"
-                                                                            >
-                                                                                <FiEdit2 size={13} />
-                                                                            </button>
+                                                                        {!isLockedForEdits && (
+                                                                            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
+                                                                                <button 
+                                                                                    onClick={(e) => openEditTaskModal(task, e)}
+                                                                                    className="p-1.5 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition"
+                                                                                    title="Edit Task"
+                                                                                >
+                                                                                    <FiEdit2 size={13} />
+                                                                                </button>
 
-                                                                            <button 
-                                                                                onClick={(e) => handleDeleteTask(task.id, task.title, e)}
-                                                                                className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-lg transition"
-                                                                                title="Delete Task"
-                                                                            >
-                                                                                <FiTrash2 size={13} />
-                                                                            </button>
-                                                                        </div>
+                                                                                <button 
+                                                                                    onClick={(e) => handleDeleteTask(task.id, task.title, e)}
+                                                                                    className="p-1.5 hover:bg-rose-500/20 text-rose-400 rounded-lg transition"
+                                                                                    title="Delete Task"
+                                                                                >
+                                                                                    <FiTrash2 size={13} />
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
                                                                     </div>
                                                                 );
                                                             })}
@@ -564,86 +566,110 @@ export default function ChallengeDetail() {
                                     {/* Submit Milestone Proof for Peer Review */}
                                     {isUnlocked && tasks.length > 0 && (
                                         <div className="mt-6 pt-4 border-t border-slate-800">
-                                            <div className="flex justify-between items-center mb-3">
-                                                <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                                                    <FiUserCheck /> Submit Milestone Proof to Partner
-                                                </h4>
-                                                <button 
-                                                    type="button" 
-                                                    onClick={() => setManualIdMode(!manualIdMode)} 
-                                                    className="text-[11px] text-slate-400 hover:text-white underline font-mono"
-                                                >
-                                                    {manualIdMode ? 'Select from Friends list' : 'Paste User ID manually'}
-                                                </button>
-                                            </div>
-
-                                            <form 
-                                                onSubmit={async (e) => {
-                                                    e.preventDefault();
-                                                    const formData = new FormData(e.target);
-                                                    try {
-                                                        const token = localStorage.getItem('token');
-                                                        await axios.post('/api/reviews/submit', {
-                                                            milestone_id: milestone.id,
-                                                            reviewer_id: formData.get('reviewer_id'),
-                                                            evidence_url: formData.get('evidence_url'),
-                                                            reflection: formData.get('reflection')
-                                                        }, { headers: { Authorization: `Bearer ${token}` } });
-                                                        alert('Milestone submitted for peer review to your partner!');
-                                                        fetchChallengeData();
-                                                    } catch (err) {
-                                                        alert(err.response?.data?.message || 'Error submitting for review');
-                                                    }
-                                                }}
-                                                className="space-y-3"
-                                            >
-                                                {manualIdMode ? (
-                                                    <input 
-                                                        required 
-                                                        name="reviewer_id" 
-                                                        type="text" 
-                                                        placeholder="Partner User ID (Paste here)" 
-                                                        className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none" 
-                                                    />
-                                                ) : (
+                                            {milestone.status === 'pending_review' ? (
+                                                <div className="p-4 bg-warning/10 border border-warning/30 rounded-xl flex items-center justify-center gap-2 text-warning">
+                                                    <span className="text-xl">⏳</span>
                                                     <div>
-                                                        <select 
-                                                            required 
-                                                            name="reviewer_id" 
-                                                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none cursor-pointer"
-                                                        >
-                                                            <option value="">Select Accountability Partner / Friend...</option>
-                                                            {friends.map(friend => (
-                                                                <option key={friend.id} value={friend.id}>
-                                                                    👤 {friend.username} (Level {friend.level || 1})
-                                                                </option>
-                                                            ))}
-                                                        </select>
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider">Pending Peer Review</h4>
+                                                        <p className="text-[10px] opacity-80">You have submitted this milestone. Waiting for your partner's approval.</p>
                                                     </div>
-                                                )}
+                                                </div>
+                                            ) : milestone.status === 'completed' ? (
+                                                <div className="p-4 bg-success/10 border border-success/30 rounded-xl flex items-center justify-center gap-2 text-success">
+                                                    <span className="text-xl">✅</span>
+                                                    <div>
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider">Peer Review Approved</h4>
+                                                        <p className="text-[10px] opacity-80">Your partner has approved your work for this milestone.</p>
+                                                    </div>
+                                                </div>
+                                            ) : !tasks.every(t => t.is_completed || t.completed) ? (
+                                                <div className="p-3 bg-slate-800/50 rounded-xl text-center">
+                                                    <p className="text-[11px] text-slate-400">Complete all tasks above to submit this milestone for peer review.</p>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                                                            <FiUserCheck /> Submit Milestone Proof to Partner
+                                                        </h4>
+                                                        <button 
+                                                            type="button" 
+                                                            onClick={() => setManualIdMode(!manualIdMode)} 
+                                                            className="text-[11px] text-slate-400 hover:text-white underline font-mono"
+                                                        >
+                                                            {manualIdMode ? 'Select from Friends list' : 'Paste User ID manually'}
+                                                        </button>
+                                                    </div>
 
-                                                <input 
-                                                    required 
-                                                    name="evidence_url" 
-                                                    type="url" 
-                                                    placeholder="Proof / Evidence URL (GitHub commit, Notion link, screenshot)" 
-                                                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none" 
-                                                />
+                                                    <form 
+                                                        onSubmit={async (e) => {
+                                                            e.preventDefault();
+                                                            const formData = new FormData(e.target);
+                                                            try {
+                                                                const token = localStorage.getItem('token');
+                                                                await axios.post('/api/reviews/submit', {
+                                                                    milestone_id: milestone.id,
+                                                                    reviewer_id: formData.get('reviewer_id'),
+                                                                    evidence_url: formData.get('evidence_url'),
+                                                                    reflection: formData.get('reflection')
+                                                                }, { headers: { Authorization: `Bearer ${token}` } });
+                                                                alert('Milestone submitted for peer review to your partner!');
+                                                                fetchChallengeData();
+                                                            } catch (err) {
+                                                                alert(err.response?.data?.message || 'Error submitting for review');
+                                                            }
+                                                        }}
+                                                        className="space-y-3"
+                                                    >
+                                                        {manualIdMode ? (
+                                                            <input 
+                                                                required 
+                                                                name="reviewer_id" 
+                                                                type="text" 
+                                                                placeholder="Partner User ID (Paste here)" 
+                                                                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none" 
+                                                            />
+                                                        ) : (
+                                                            <div>
+                                                                <select 
+                                                                    required 
+                                                                    name="reviewer_id" 
+                                                                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none cursor-pointer"
+                                                                >
+                                                                    <option value="">Select Accountability Partner / Friend...</option>
+                                                                    {friends.map(friend => (
+                                                                        <option key={friend.id} value={friend.id}>
+                                                                            👤 {friend.username} (Level {friend.level || 1})
+                                                                        </option>
+                                                                    ))}
+                                                                </select>
+                                                            </div>
+                                                        )}
 
-                                                <textarea 
-                                                    required 
-                                                    name="reflection" 
-                                                    placeholder="Short reflection on what you learned or built during this milestone..." 
-                                                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs h-16 resize-none text-white focus:border-indigo-500 focus:outline-none" 
-                                                />
+                                                        <input 
+                                                            required 
+                                                            name="evidence_url" 
+                                                            type="url" 
+                                                            placeholder="Proof / Evidence URL (GitHub commit, Notion link, screenshot)" 
+                                                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none" 
+                                                        />
 
-                                                <button 
-                                                    type="submit" 
-                                                    className="w-full bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 transition-all py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
-                                                >
-                                                    <FiUserCheck /> Send Proof to Partner for Review
-                                                </button>
-                                            </form>
+                                                        <textarea 
+                                                            required 
+                                                            name="reflection" 
+                                                            placeholder="Short reflection on what you learned or built during this milestone..." 
+                                                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs h-16 resize-none text-white focus:border-indigo-500 focus:outline-none" 
+                                                        />
+
+                                                        <button 
+                                                            type="submit" 
+                                                            className="w-full bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 transition-all py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                                                        >
+                                                            <FiUserCheck /> Send Proof to Partner for Review
+                                                        </button>
+                                                    </form>
+                                                </>
+                                            )}
                                         </div>
                                     )}
                                 </div>

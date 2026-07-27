@@ -34,12 +34,18 @@ export default function NotificationsDashboard() {
       
       challenges.forEach(challenge => {
           if (challenge.status !== 'active') return;
-          const activeMilestone = challenge.milestones?.find(m => m.status === 'in_progress');
-          if (!activeMilestone || !activeMilestone.tasks) return;
+          const activeMilestone = challenge.milestones?.find(m => m.status === 'unlocked' || !m.status);
+          if (!activeMilestone) return;
+          const tasks = activeMilestone.tasks || activeMilestone.MilestoneTasks || activeMilestone.milestone_tasks || [];
+          if (tasks.length === 0) return;
           
-          activeMilestone.tasks.forEach(task => {
-              if (task.date === todayStr) {
-                  tasksForToday.push({ ...task, challengeTitle: challenge.title });
+          tasks.forEach(task => {
+              if (task.date) {
+                  // Direct string comparison since DB dates are YYYY-MM-DD strings
+                  const tDate = typeof task.date === 'string' ? task.date.split('T')[0] : dayjs(task.date).format('YYYY-MM-DD');
+                  if (tDate === todayStr) {
+                      tasksForToday.push({ ...task, challengeTitle: challenge.title });
+                  }
               }
           });
       });

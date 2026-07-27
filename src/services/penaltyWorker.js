@@ -15,7 +15,7 @@ const startPenaltyWorker = () => {
                     {
                         model: Milestone,
                         as: 'milestones',
-                        where: { status: 'in_progress' },
+                        where: { status: 'unlocked' },
                         include: [{ model: MilestoneTask, as: 'tasks' }]
                     }
                 ]

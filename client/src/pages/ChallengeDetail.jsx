@@ -283,7 +283,7 @@ export default function ChallengeDetail() {
                             const tasks = milestone.tasks || milestone.MilestoneTasks || milestone.milestone_tasks || [];
                             const completedTasks = tasks.filter(t => t.is_completed || t.completed);
                             const pct = tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0;
-                            const isUnlocked = milestone.status === 'unlocked' || !milestone.status;
+                            const isUnlocked = milestone.status === 'unlocked' || milestone.status === 'rejected' || !milestone.status;
                             const isCompleted = milestone.status === 'completed' || pct === 100;
                             const totalEstMinutes = tasks.reduce((sum, t) => sum + (t.estimated_minutes || 30), 0);
 
@@ -588,9 +588,18 @@ export default function ChallengeDetail() {
                                                 </div>
                                             ) : (
                                                 <>
+                                                    {milestone.status === 'rejected' && (
+                                                        <div className="p-4 mb-4 bg-danger/10 border border-danger/30 rounded-xl flex items-start gap-3 text-danger">
+                                                            <span className="text-lg mt-0.5">⚠️</span>
+                                                            <div>
+                                                                <h4 className="text-xs font-bold uppercase tracking-wider">Peer Review Rejected</h4>
+                                                                <p className="text-[10px] text-danger/80 mt-1">Your partner requested improvements. Please review their feedback, update your tasks if necessary, and resubmit below.</p>
+                                                            </div>
+                                                        </div>
+                                                    )}
                                                     <div className="flex justify-between items-center mb-3">
                                                         <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
-                                                            <FiUserCheck /> Submit Milestone Proof to Partner
+                                                            <FiUserCheck /> {milestone.status === 'rejected' ? 'Resubmit Milestone Proof' : 'Submit Milestone Proof to Partner'}
                                                         </h4>
                                                         <button 
                                                             type="button" 

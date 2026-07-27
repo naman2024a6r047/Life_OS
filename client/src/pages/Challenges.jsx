@@ -1152,13 +1152,22 @@ export default function Challenges() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
                           <p className="text-xs font-bold text-text-primary truncate">{ch.title}</p>
-                          <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
-                            ch.status === 'completed' ? 'bg-success/20 text-success' :
-                            ch.status === 'paused' ? 'bg-warning/20 text-warning' :
-                            'bg-primary/20 text-primary-light'
-                          }`}>
-                            {ch.status || 'active'}
-                          </span>
+                          <div className="flex items-center gap-1.5">
+                            <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                              ch.difficulty === 'hard' || ch.difficulty === 'iron' ? 'bg-danger/20 text-danger' :
+                              ch.difficulty === 'medium' ? 'bg-warning/20 text-warning' :
+                              'bg-success/20 text-success'
+                            }`}>
+                              {ch.difficulty || 'medium'}
+                            </span>
+                            <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${
+                              ch.status === 'completed' ? 'bg-success/20 text-success' :
+                              ch.status === 'paused' ? 'bg-warning/20 text-warning' :
+                              'bg-primary/20 text-primary-light'
+                            }`}>
+                              {ch.status || 'active'}
+                            </span>
+                          </div>
                         </div>
                         <p className="text-[10px] text-text-muted truncate mt-0.5">{ch.category || 'Goal'} • {chDays} Days</p>
                       </div>

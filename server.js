@@ -21,6 +21,7 @@ const penaltyRoutes = require('./src/routes/penaltyRoutes');
 const gamificationRoutes = require('./src/routes/gamificationRoutes');
 const taskRoutes = require('./src/routes/taskRoutes');
 const goalWorkspaceRoutes = require('./src/routes/goalWorkspaceRoutes');
+const dashboardRoutes = require('./src/routes/dashboardRoutes');
 
 const compression = require('compression');
 
@@ -53,6 +54,7 @@ app.use('/api/penalties', penaltyRoutes);
 app.use('/api/gamification', gamificationRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/goals/workspace', goalWorkspaceRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 const fs = require('fs');
 

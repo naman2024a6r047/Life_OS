@@ -90,6 +90,17 @@ model User {
   submittedReviews ApprovalRequest[] @relation("MilestoneRequester")
   activityLogs    ActivityLog[]
   journals        GoalJournal[]
+  
+  // Gamification fields
+  quote           String?
+  levelTitle      String         @default("Beginner")
+  graceTokens     Int            @default(0)
+
+  // Gamification relations
+  partners        AccountabilityPartner[]
+  inquiriesSent   Inquiry[]      @relation("UserInquiries")
+  achievements    Achievement[]
+
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
@@ -272,4 +283,47 @@ model ActivityLog {
 
   @@index([userId])
   @@index([goalId])
+}
+
+model AccountabilityPartner {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  status      String    @default("Offline")
+  lastSeen    DateTime?
+  avatar      String?
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  inquiries   Inquiry[] @relation("PartnerInquiries")
+
+  @@index([userId])
+}
+
+model Inquiry {
+  id          String   @id @default(uuid())
+  partnerId   String
+  userId      String
+  message     String
+  createdAt   DateTime @default(now())
+  isRead      Boolean  @default(false)
+
+  partner     AccountabilityPartner @relation("PartnerInquiries", fields: [partnerId], references: [id], onDelete: Cascade)
+  user        User                  @relation("UserInquiries", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([partnerId])
+  @@index([userId])
+}
+
+model Achievement {
+  id          String   @id @default(uuid())
+  userId      String
+  title       String
+  description String
+  xpAwarded   Int
+  unlockedAt  DateTime @default(now())
+  icon        String?
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

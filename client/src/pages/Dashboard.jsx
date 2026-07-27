@@ -218,14 +218,20 @@ export default function Dashboard() {
   const [challenges, setChallenges] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [partners, setPartners] = useState([]);
+  const [inquiries, setInquiries] = useState([]);
+  const [achievements, setAchievements] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [challRes, analyticsRes, unreadRes] = await Promise.allSettled([
+        const [challRes, analyticsRes, unreadRes, partnersRes, inqRes, achRes] = await Promise.allSettled([
           axios.get('/api/challenges'),
           axios.get('/api/analytics/summary'),
           axios.get('/api/friends/interventions/unread-count'),
+          axios.get('/api/dashboard/partners'),
+          axios.get('/api/dashboard/inquiries'),
+          axios.get('/api/dashboard/achievements')
         ]);
         let fetched = [];
         if (challRes.status === 'fulfilled') fetched = challRes.value.data || [];
@@ -250,6 +256,9 @@ export default function Dashboard() {
         setChallenges(fetched);
         if (analyticsRes.status === 'fulfilled') setAnalytics(analyticsRes.value.data);
         if (unreadRes.status === 'fulfilled') setUnreadCount(unreadRes.value.data?.count || 0);
+        if (partnersRes.status === 'fulfilled') setPartners(partnersRes.value.data);
+        if (inqRes.status === 'fulfilled') setInquiries(inqRes.value.data);
+        if (achRes.status === 'fulfilled') setAchievements(achRes.value.data);
       } catch (err) {
         console.error(err);
       }
@@ -283,16 +292,16 @@ export default function Dashboard() {
   const todayDayIndex = (new Date().getDay() + 6) % 7;
 
   return (
-    <div className="p-6 space-y-5">
+    <div className="p-4 md:p-6 space-y-5 bg-[#0F172A] min-h-screen">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-bold text-text-primary flex items-center gap-2">
             {greeting}, {user?.username || 'Warrior'}! 👋
           </h1>
           <p className="text-xs text-text-muted mt-0.5">"Discipline today, freedom tomorrow."</p>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="text-lg">🔥</span>
             <div>
@@ -320,8 +329,8 @@ export default function Dashboard() {
       </div>
 
       {/* Top Stats Row */}
-      <div className="grid grid-cols-5 gap-3">
-        <div className="stat-card">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="stat-card bg-[#1E293B] border-slate-700">
           <LifeScoreCircle score={lifeScore} />
           <div>
             <p className="text-[11px] text-text-muted">Life Score</p>
@@ -335,13 +344,13 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left 8 columns */}
-        <div className="col-span-8 space-y-4">
+        <div className="lg:col-span-8 space-y-4">
           {/* Today's Challenge + Today's Progress */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Today's Challenge */}
-            <div className="card p-4">
+            <div className="card p-4 bg-[#1E293B] border-slate-700">
               <div className="section-header">
                 <h3 className="section-title">Today's Challenge</h3>
                 <Link to="/challenges" className="section-link">View All</Link>
@@ -375,7 +384,7 @@ export default function Dashboard() {
             </div>
 
             {/* Today's Progress */}
-            <div className="card p-4">
+            <div className="card p-4 bg-[#1E293B] border-slate-700">
               <div className="section-header">
                 <h3 className="section-title">Today's Progress</h3>
                 <Link to="/challenges" className="section-link">View Plan</Link>
@@ -416,7 +425,7 @@ export default function Dashboard() {
           </div>
 
           {/* Module Quick Access Cards */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { title: 'Exam Mode', sub: 'Focus Mode for Exams', value: '0', valueSub: 'Active Exams', icon: <FiShield size={24} />, color: 'primary', btn: 'Enter Exam Mode', link: '/exams' },
               { title: 'Gym & Fitness', sub: 'This Week', value: '4 / 6', valueSub: 'Workouts', icon: <FiActivity size={24} />, color: 'danger', btn: 'View Workout Plan', link: '/gym' },
@@ -440,26 +449,22 @@ export default function Dashboard() {
           </div>
 
           {/* Heatmap + Life Score Trend */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <ActivityHeatmap />
             <LifeScoreTrend />
           </div>
         </div>
 
         {/* Right 4 columns — Sidebar widgets */}
-        <div className="col-span-4 space-y-4">
+        <div className="lg:col-span-4 space-y-4">
           {/* Accountability Partners */}
-          <div className="card p-4">
+          <div className="card p-4 bg-[#1E293B] border-slate-700">
             <div className="section-header">
               <h3 className="section-title">Accountability Partners</h3>
               <Link to="/friends" className="section-link">View All</Link>
             </div>
-            {[
-              { name: 'Arjun Verma', status: 'Online', color: 'success' },
-              { name: 'Rohit Singh', status: 'Last seen 1h ago', color: 'text-muted' },
-              { name: 'Priya Sharma', status: 'Online', color: 'success' },
-            ].map((partner, i) => (
-              <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
+            {partners.length > 0 ? partners.map((partner, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-700 last:border-0">
                 <div className="flex items-center gap-2.5">
                   <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-white text-xs font-bold">
                     {partner.name[0]}
@@ -467,42 +472,43 @@ export default function Dashboard() {
                   <div>
                     <p className="text-xs font-semibold text-text-primary">{partner.name}</p>
                     <div className="flex items-center gap-1">
-                      <div className={`w-1.5 h-1.5 rounded-full bg-${partner.color}`} />
-                      <p className="text-[10px] text-text-muted">{partner.status}</p>
+                      <div className={`w-1.5 h-1.5 rounded-full ${partner.status === 'Online' ? 'bg-[#10B981]' : 'bg-slate-500'}`} />
+                      <p className="text-[10px] text-slate-400">{partner.status === 'Online' ? 'Online' : partner.lastSeen ? `Last seen ${new Date(partner.lastSeen).toLocaleDateString()}` : 'Offline'}</p>
                     </div>
                   </div>
                 </div>
-                <Link to="/friends" className="btn-outline text-[10px] px-3 py-1">Inspect</Link>
+                <Link to="/friends" className="btn-outline border-slate-600 text-slate-300 text-[10px] px-3 py-1">Inspect</Link>
               </div>
-            ))}
+            )) : (
+              <p className="text-xs text-slate-500 text-center py-4">No partners assigned yet.</p>
+            )}
           </div>
 
           {/* Pending Inquiries */}
-          <div className="card p-4">
+          <div className="card p-4 bg-[#1E293B] border-red-900/30">
             <div className="section-header">
               <div className="flex items-center gap-2">
-                <h3 className="section-title">Pending Inquiries</h3>
-                {unreadCount > 0 && (
-                  <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">{unreadCount}</span>
+                <h3 className="section-title text-red-500">Pending Inquiries</h3>
+                {inquiries.length > 0 && (
+                  <span className="w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center">{inquiries.length}</span>
                 )}
               </div>
             </div>
-            {[
-              { name: 'Arjun', task: 'Day 12 (Skipped)', time: '2h ago' },
-              { name: 'Priya', task: 'Day 8 (Skipped)', time: '5h ago' },
-            ].map((inq, i) => (
-              <div key={i} className="flex items-start gap-2.5 py-2.5 border-b border-border-subtle last:border-0">
-                <div className="w-6 h-6 rounded-full bg-danger/20 text-danger flex items-center justify-center flex-shrink-0 mt-0.5">
+            {inquiries.length > 0 ? inquiries.map((inq, i) => (
+              <div key={i} className="flex items-start gap-2.5 py-2.5 border-b border-slate-700 last:border-0 bg-red-500/5 px-2 rounded-lg mt-2">
+                <div className="w-6 h-6 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <FiEye size={10} />
                 </div>
                 <div>
-                  <p className="text-[11px] text-text-secondary">
-                    <span className="font-semibold text-text-primary">{inq.name}</span> asked about your <span className="text-danger font-semibold">{inq.task}</span>
+                  <p className="text-[11px] text-slate-300">
+                    <span className="font-semibold text-white">{inq.partner?.name || 'Partner'}</span> {inq.message}
                   </p>
-                  <p className="text-[9px] text-text-muted">{inq.time}</p>
+                  <p className="text-[9px] text-slate-500">{new Date(inq.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <p className="text-xs text-slate-500 text-center py-4">No pending inquiries.</p>
+            )}
             <Link to="/notifications" className="block mt-3 text-center text-xs font-semibold text-primary-light hover:text-primary transition-colors py-2 rounded-lg bg-surface-elevated">
               View All Inquiries
             </Link>
@@ -512,26 +518,25 @@ export default function Dashboard() {
           <XPBreakdown xp={totalXP + (currentLevel - 1) * 100} />
 
           {/* Recent Achievements */}
-          <div className="card p-4">
+          <div className="card p-4 bg-[#1E293B] border-slate-700">
             <div className="section-header">
               <h3 className="section-title">Recent Achievements</h3>
               <span className="section-link">View All</span>
             </div>
-            {[
-              { icon: '🏆', title: '10-Day Consistency', sub: 'Complete tasks for 10 days', xp: '+200 XP' },
-              { icon: '🌅', title: 'Early Bird', sub: 'Complete a task before 8 AM', xp: '+100 XP' },
-            ].map((ach, i) => (
-              <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
+            {achievements.length > 0 ? achievements.map((ach, i) => (
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-slate-700 last:border-0">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-lg">{ach.icon}</span>
+                  <span className="text-lg">{ach.icon || '🏆'}</span>
                   <div>
-                    <p className="text-xs font-semibold text-text-primary">{ach.title}</p>
-                    <p className="text-[10px] text-text-muted">{ach.sub}</p>
+                    <p className="text-xs font-semibold text-white">{ach.title}</p>
+                    <p className="text-[10px] text-slate-400">{ach.description}</p>
                   </div>
                 </div>
-                <span className="text-xs font-bold font-mono text-warning">{ach.xp}</span>
+                <span className="text-xs font-bold font-mono text-[#F97316]">+{ach.xpAwarded} XP</span>
               </div>
-            ))}
+            )) : (
+              <p className="text-xs text-slate-500 text-center py-4">No recent achievements.</p>
+            )}
           </div>
         </div>
       </div>
@@ -541,7 +546,7 @@ export default function Dashboard() {
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="card p-3 flex items-center gap-4"
+        className="card p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
       >
         <div className="flex items-center gap-2">
           <span className="text-lg">🏆</span>
@@ -550,12 +555,12 @@ export default function Dashboard() {
             <p className="text-[10px] text-text-muted">Keep your streak alive and level up your life!</p>
           </div>
         </div>
-        <div className="flex-1 flex items-center gap-3">
+        <div className="w-full md:w-auto flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
           <span className="text-xs font-semibold text-text-primary whitespace-nowrap">Level {currentLevel + 1} Progress</span>
-          <div className="flex-1 progress-bar h-2">
+          <div className="w-full sm:flex-1 progress-bar h-2">
             <div className="progress-fill bg-gradient-to-r from-primary to-success" style={{ width: `${xpProgress}%` }} />
           </div>
-          <span className="text-xs font-mono text-text-muted whitespace-nowrap">{totalXP} / {xpForLevel} XP</span>
+          <span className="text-xs font-mono text-text-muted whitespace-nowrap self-end sm:self-auto">{totalXP} / {xpForLevel} XP</span>
         </div>
       </motion.div>
     </div>

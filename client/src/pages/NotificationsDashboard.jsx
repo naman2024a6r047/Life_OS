@@ -13,33 +13,52 @@ export default function NotificationsDashboard() {
   const { user } = useContext(AuthContext);
   const [penalties, setPenalties] = useState([]);
   const [activePenalties, setActivePenalties] = useState([]);
+  const [todayTasks, setTodayTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const streak = user?.current_streak || 0;
 
-  useEffect(() => {
-    fetchPenalties();
-  }, []);
-
-  const fetchPenalties = async () => {
+  const fetchDashboardData = async () => {
     try {
-      const [historyRes, activeRes] = await Promise.all([
+      const [historyRes, activeRes, challengesRes] = await Promise.all([
         axios.get('/api/penalties/audit-log'),
-        axios.get('/api/penalties/active')
+        axios.get('/api/penalties/active'),
+        axios.get('/api/challenges')
       ]);
       setPenalties(historyRes.data);
       setActivePenalties(activeRes.data);
+
+      const todayStr = dayjs().format('YYYY-MM-DD');
+      let tasksForToday = [];
+      const challenges = challengesRes.data || [];
+      
+      challenges.forEach(challenge => {
+          if (challenge.status !== 'active') return;
+          const activeMilestone = challenge.milestones?.find(m => m.status === 'in_progress');
+          if (!activeMilestone || !activeMilestone.tasks) return;
+          
+          activeMilestone.tasks.forEach(task => {
+              if (task.date === todayStr) {
+                  tasksForToday.push({ ...task, challengeTitle: challenge.title });
+              }
+          });
+      });
+      setTodayTasks(tasksForToday);
     } catch (error) {
-      console.error('Failed to fetch penalties', error);
+      console.error('Failed to fetch dashboard data', error);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
+
   const acknowledgePenalty = async (id) => {
     try {
       await axios.post(`/api/penalties/${id}/acknowledge`);
-      fetchPenalties();
+      fetchDashboardData();
     } catch (error) {
       console.error('Failed to acknowledge', error);
     }
@@ -55,6 +74,15 @@ export default function NotificationsDashboard() {
   
   // Calculate total XP lost
   const totalXpLost = penalties.reduce((acc, p) => acc + (p.xp_deducted || 0), 0);
+
+  // Warning System Computations
+  const endOfDay = dayjs().endOf('day');
+  const hoursLeft = endOfDay.diff(dayjs(), 'hour');
+  const minutesLeft = endOfDay.diff(dayjs(), 'minute') % 60;
+  const uncompletedTasks = todayTasks.filter(t => !t.is_completed && !t.completed);
+  const isDanger = uncompletedTasks.length > 0 && hoursLeft < 6;
+  const isWarning = uncompletedTasks.length > 0 && hoursLeft >= 6 && hoursLeft <= 12;
+  const isSafe = uncompletedTasks.length === 0;
 
   if (loading) {
       return <div className="p-6 text-text-muted">Loading penalty system...</div>;
@@ -130,38 +158,44 @@ export default function NotificationsDashboard() {
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-12 gap-4">
-        {/* Left Column — Rules (5 cols) */}
-        <div className="col-span-5 card p-4 space-y-3">
-          <h3 className="section-title">Enforced Rules</h3>
+        {/* Left Column — Early Warning System (5 cols) */}
+        <div className={`col-span-5 card p-4 space-y-3 ${isDanger ? 'border-danger/40 bg-danger/5 shadow-glow-warning' : isWarning ? 'border-warning/40 bg-warning/5' : ''}`}>
+          <div className="flex items-center justify-between">
+            <h3 className="section-title flex items-center gap-2">
+                <FiClock className={isDanger ? 'text-danger' : isWarning ? 'text-warning' : 'text-purple'} /> 
+                Today's Active Tasks
+            </h3>
+            {uncompletedTasks.length > 0 ? (
+                <div className={`px-2 py-1 rounded text-[10px] font-bold ${isDanger ? 'bg-danger text-white animate-pulse' : isWarning ? 'bg-warning text-white' : 'bg-surface-elevated text-text-primary'}`}>
+                    {hoursLeft}h {minutesLeft}m left
+                </div>
+            ) : (
+                <div className="px-2 py-1 rounded text-[10px] font-bold bg-success text-white">Safe!</div>
+            )}
+          </div>
           
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead>
-                <tr className="border-b border-border-subtle text-[10px] text-text-muted uppercase">
-                  <th className="py-2">Rule</th>
-                  <th className="py-2">Condition</th>
-                  <th className="py-2">Consequence</th>
-                  <th className="py-2 text-right">Severity</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border-subtle">
-                {rules.map((r, i) => (
-                  <tr key={i} className="hover:bg-surface-elevated/40">
-                    <td className="py-2.5 font-bold text-text-primary flex items-center gap-1.5">
-                      <span>⚠️</span>
-                      {r.rule}
-                    </td>
-                    <td className="py-2.5 text-text-muted text-[11px]">{r.cond}</td>
-                    <td className="py-2.5 text-text-secondary text-[11px] font-medium">{r.cons}</td>
-                    <td className="py-2.5 text-right">
-                      <span className={
-                        r.sev === 'High' ? 'badge-danger text-[8px]' : r.sev === 'Medium' ? 'badge-warning text-[8px]' : 'badge-info text-[8px]'
-                      }>{r.sev}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '250px' }}>
+            {todayTasks.length === 0 ? (
+                <p className="text-xs text-text-muted text-center py-4">No active tasks scheduled for today.</p>
+            ) : todayTasks.map(t => {
+                const isDone = t.is_completed || t.completed;
+                return (
+                    <div key={t.id} className={`p-2.5 rounded-xl border flex items-center justify-between ${isDone ? 'bg-success/5 border-success/20 opacity-60' : 'bg-surface-elevated border-border-subtle'}`}>
+                        <div className="flex items-center gap-2.5">
+                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isDone ? 'bg-success border-success text-white' : 'border-text-muted'}`}>
+                                {isDone && <FiCheckCircle size={10} />}
+                            </div>
+                            <div>
+                                <p className={`text-[11px] font-bold ${isDone ? 'line-through text-text-muted' : 'text-text-primary'}`}>{t.title}</p>
+                                <p className="text-[9px] text-text-muted">{t.challengeTitle}</p>
+                            </div>
+                        </div>
+                        {!isDone && (
+                            <span className="badge-purple text-[8px]">{t.priority || 'P1'}</span>
+                        )}
+                    </div>
+                );
+            })}
           </div>
 
           <p className="text-[10px] text-text-muted flex items-center gap-1 pt-2 border-t border-border-subtle">

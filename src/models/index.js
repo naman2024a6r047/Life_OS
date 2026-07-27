@@ -127,6 +127,13 @@ TaskAttachment.belongsTo(MilestoneTask, { foreignKey: 'task_id' });
 User.hasMany(TransformationCheckpoint, { foreignKey: 'user_id', as: 'checkpoints' });
 TransformationCheckpoint.belongsTo(User, { foreignKey: 'user_id' });
 
+// Chat Messages
+const ChatMessage = require('./ChatMessage');
+User.hasMany(ChatMessage, { foreignKey: 'sender_id', as: 'sentMessages' });
+User.hasMany(ChatMessage, { foreignKey: 'receiver_id', as: 'receivedMessages' });
+ChatMessage.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
+ChatMessage.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
+
 module.exports = {
     sequelize,
     User,
@@ -153,5 +160,6 @@ module.exports = {
     DailyReflection,
     TaskAttachment,
     TransformationCheckpoint,
-    Penalty
+    Penalty,
+    ChatMessage
 };

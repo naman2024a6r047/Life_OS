@@ -7,9 +7,10 @@ import {
     FiArrowLeft, FiTarget, FiCheckCircle, FiXCircle, FiAlertTriangle, 
     FiMessageCircle, FiZap, FiTrendingUp, FiCalendar, FiClock,
     FiSend, FiUser, FiAward, FiActivity, FiAlertOctagon, FiChevronDown, FiChevronUp,
-    FiRefreshCw
+    FiRefreshCw, FiMessageSquare
 } from 'react-icons/fi';
 import BackButton from '../components/ui/BackButton';
+import ChatSystem from '../components/chat/ChatSystem';
 
 export default function PartnerDashboard() {
     const { friendId } = useParams();
@@ -150,13 +151,14 @@ export default function PartnerDashboard() {
         { key: 'overview', label: 'Overview', icon: <FiTrendingUp /> },
         { key: 'goals', label: 'Goals & Tasks', icon: <FiTarget /> },
         { key: 'skipped', label: `Skipped (${skippedTasks.length})`, icon: <FiAlertTriangle /> },
-        { key: 'interventions', label: 'Interventions', icon: <FiMessageCircle /> }
+        { key: 'interventions', label: 'Interventions', icon: <FiMessageCircle /> },
+        { key: 'chat', label: 'Chat', icon: <FiMessageSquare /> }
     ];
 
     return (
         <div className="min-h-screen bg-[#090A0F] text-slate-100 p-4 md:p-8 relative overflow-hidden">
-            <div className="ambient-glow top-[-10%] left-[-10%] w-[500px] h-[500px] bg-rose-600/10"></div>
-            <div className="ambient-glow bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10"></div>
+            <div className="absolute rounded-full blur-[120px] pointer-events-none top-[-10%] left-[-10%] w-[500px] h-[500px] bg-rose-600/10"></div>
+            <div className="absolute rounded-full blur-[120px] pointer-events-none bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10"></div>
 
             <div className="max-w-6xl mx-auto space-y-6 relative z-10">
                 <BackButton fallbackPath="/friends" />
@@ -364,14 +366,14 @@ export default function PartnerDashboard() {
                             </h3>
                             {activityLogs && activityLogs.length > 0 ? (
                                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
-                                    {activityLogs.filter(a => filterByTime(a.date)).map((log, i) => (
+                                    {activityLogs.filter(a => filterByTime(a.createdAt || a.date)).map((log, i) => (
                                         <div key={i} className="flex justify-between items-center p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-slate-500 font-mono w-20">{dayjs(log.date).format('MMM DD')}</span>
-                                                <span className="text-white">{log.action || log.type || 'Activity'}</span>
+                                                <span className="text-slate-500 font-mono w-20">{dayjs(log.createdAt || log.date).format('MMM DD')}</span>
+                                                <span className="text-white">{log.action_type || log.action || log.type || 'Activity'}</span>
                                             </div>
-                                            <span className={`font-bold ${log.xp_earned > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
-                                                {log.xp_earned > 0 ? `+${log.xp_earned} XP` : '—'}
+                                            <span className={`font-bold ${(log.xp_awarded || log.xp_earned || 0) > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                                {(log.xp_awarded || log.xp_earned || 0) > 0 ? `+${(log.xp_awarded || log.xp_earned)} XP` : '—'}
                                             </span>
                                         </div>
                                     ))}
@@ -718,6 +720,13 @@ export default function PartnerDashboard() {
                         ) : (
                             <div className="text-center py-12 text-slate-500 text-sm">No interventions yet between you and {partner.username}.</div>
                         )}
+                    </div>
+                )}
+
+                {/* TAB: CHAT */}
+                {activeTab === 'chat' && (
+                    <div className="space-y-4">
+                        <ChatSystem partnerId={friendId} />
                     </div>
                 )}
             </div>

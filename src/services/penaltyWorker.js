@@ -104,12 +104,36 @@ const startPenaltyWorker = () => {
                         const newXp = Math.max(0, (user.xp || 0) - xpDeducted);
                         await user.update({ xp: newXp, current_streak: 0 }, { transaction: t });
 
-                        // 3. Restart Milestone (Goal Restart)
-                        await MilestoneTask.update(
-                            { is_completed: false },
-                            { where: { milestone_id: milestone.id }, transaction: t }
-                        );
-                        await milestone.update({ start_date: new Date() }, { transaction: t });
+                        // 3. Restart Milestone (Goal Restart) - Shift dates starting from today
+                        const tasksToReset = await MilestoneTask.findAll({
+                            where: { milestone_id: milestone.id },
+                            order: [['createdAt', 'ASC']],
+                            transaction: t
+                        });
+
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        for (let i = 0; i < tasksToReset.length; i++) {
+                            const taskDate = new Date(today);
+                            taskDate.setDate(today.getDate() + i);
+
+                            tasksToReset[i].is_completed = false;
+                            if (tasksToReset[i].completed !== undefined) {
+                                tasksToReset[i].completed = false;
+                            }
+                            tasksToReset[i].date = taskDate.toISOString().split('T')[0];
+                            await tasksToReset[i].save({ transaction: t });
+                        }
+
+                        const endDate = new Date(today);
+                        endDate.setDate(today.getDate() + Math.max(0, tasksToReset.length - 1));
+
+                        await milestone.update({ 
+                            start_date: today,
+                            deadline: endDate,
+                            status: 'unlocked'
+                        }, { transaction: t });
 
                         // 4. Log Activity
                         await ActivityLog.create({

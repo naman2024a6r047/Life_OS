@@ -401,7 +401,7 @@ export default function Friends() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button className="btn-outline text-xs">View Profile</button>
+                    <Link to={`/friends/${selectedPartner.id}`} className="btn-outline text-xs inline-flex items-center justify-center">View Profile</Link>
                     <button className="btn-primary text-xs flex items-center gap-1">
                       <FiMessageSquare size={12} /> Message
                     </button>
@@ -429,22 +429,94 @@ export default function Friends() {
                 </div>
               </div>
 
-              {/* Progress Overview */}
+              {/* Deep Analytics & Progress Overview */}
               <div className="card p-4">
                 <div className="section-header">
-                  <h3 className="section-title">Progress Overview</h3>
-                  <button className="section-link">View All Milestones</button>
+                  <h3 className="section-title">Deep Analytics & Progress Overview</h3>
                 </div>
-                <p className="text-[10px] text-text-muted mb-3">Milestone Progress (This Week)</p>
-                <div className="grid grid-cols-4 gap-3">
-                  {(telemetry?.challenges || []).slice(0, 4).map((c, i) => {
-                    const colors = ['primary', 'success', 'info', 'warning'];
-                    const current = c.milestones?.filter(m => m.status === 'completed').length || 0;
-                    const total = c.milestones?.length || 0;
-                    return <ProgressBar key={c.id} label={c.title} current={current} total={total} color={colors[i % colors.length]} />;
+                <p className="text-[10px] text-text-muted mb-4">Detailed milestone tracking & penalty analytics</p>
+                <div className="space-y-4">
+                  {(telemetry?.challenges || []).filter(c => c.status === 'active' || c.status === 'unlocked').map((c) => {
+                    return (
+                        <div key={c.id} className="p-3 bg-surface-elevated/40 rounded-xl border border-border-subtle">
+                            <h4 className="text-xs font-bold text-text-primary mb-3 flex items-center gap-2">
+                                <span className="w-2 h-2 rounded-full bg-primary" /> {c.title}
+                            </h4>
+                            <div className="space-y-3">
+                                {c.milestones?.filter(m => m.status === 'unlocked' || m.status === 'rejected' || m.status === 'pending_review' || m.status === 'completed').map(milestone => {
+                                    const milestoneTasks = milestone.tasks || [];
+                                    const totalMTasks = milestoneTasks.length;
+                                    const completedMTasks = milestoneTasks.filter(t => t.completed || t.is_completed).length;
+                                    const pendingMTasks = totalMTasks - completedMTasks;
+                                    
+                                    // Tasks that are missed (past date and not completed)
+                                    const missedMTasks = milestoneTasks.filter(t => {
+                                        const isCompleted = t.completed || t.is_completed;
+                                        return !isCompleted && t.date && new Date(t.date).toISOString().split('T')[0] < new Date().toISOString().split('T')[0];
+                                    }).length;
+                                    
+                                    // Deep Penalty Mapping
+                                    const milestonePenalties = (telemetry?.penalties || []).filter(p => {
+                                        if (p.challenge_id !== c.id) return false;
+                                        return milestoneTasks.some(t => {
+                                            const isCompleted = t.completed || t.is_completed;
+                                            return !isCompleted && t.date && new Date(t.date).toISOString().split('T')[0] < new Date().toISOString().split('T')[0] && p.description?.includes(t.date);
+                                        });
+                                    });
+
+                                    return (
+                                        <div key={milestone.id} className="bg-surface p-3 rounded-lg border border-border-subtle">
+                                            <div className="flex justify-between items-center mb-2">
+                                                <span className="text-[11px] font-bold text-text-secondary">{milestone.title}</span>
+                                                <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                                                    milestone.status === 'completed' ? 'bg-success/20 text-success' :
+                                                    milestone.status === 'rejected' ? 'bg-danger/20 text-danger' :
+                                                    milestone.status === 'pending_review' ? 'bg-warning/20 text-warning' :
+                                                    'bg-primary/20 text-primary-light'
+                                                }`}>
+                                                    {milestone.status}
+                                                </span>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-4 gap-2 mb-2">
+                                                <div className="bg-surface-elevated rounded p-2 text-center">
+                                                    <div className="text-sm font-black text-white">{pendingMTasks}</div>
+                                                    <div className="text-[8px] text-text-muted uppercase font-bold">Pending</div>
+                                                </div>
+                                                <div className="bg-success/10 rounded p-2 text-center">
+                                                    <div className="text-sm font-black text-success">{completedMTasks}</div>
+                                                    <div className="text-[8px] text-success uppercase font-bold">Done</div>
+                                                </div>
+                                                <div className="bg-danger/10 rounded p-2 text-center">
+                                                    <div className="text-sm font-black text-danger">{missedMTasks}</div>
+                                                    <div className="text-[8px] text-danger uppercase font-bold">Missed</div>
+                                                </div>
+                                                <div className="bg-warning/10 rounded p-2 text-center">
+                                                    <div className="text-sm font-black text-warning">{milestonePenalties.length}</div>
+                                                    <div className="text-[8px] text-warning uppercase font-bold">Penalties</div>
+                                                </div>
+                                            </div>
+                                            
+                                            {milestonePenalties.length > 0 && (
+                                                <div className="mt-2 pt-2 border-t border-border-subtle space-y-1">
+                                                    <div className="text-[9px] font-bold text-text-muted mb-1">PENALTY DETAILS:</div>
+                                                    {milestonePenalties.map(p => (
+                                                        <div key={p.id} className="text-[10px] text-danger flex justify-between bg-danger/5 px-2 py-1 rounded">
+                                                            <span>⚠️ {p.penalty_type}</span>
+                                                            <span className="font-mono">-{p.xp_deducted} XP</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
                   })}
                   {(!telemetry?.challenges || telemetry.challenges.length === 0) && (
-                    <p className="text-[10px] text-text-muted col-span-4">No active challenges.</p>
+                    <p className="text-[10px] text-text-muted">No active challenges.</p>
                   )}
                 </div>
               </div>
@@ -574,7 +646,7 @@ export default function Friends() {
               <div key={act.id} className="flex items-start gap-2.5 py-2 border-b border-border-subtle last:border-0">
                 <span className="text-xs flex-shrink-0 mt-0.5">🟢</span>
                 <div className="flex-1">
-                  <p className="text-[11px] text-text-secondary">{act.User?.username || 'A partner'} completed a task</p>
+                  <p className="text-[11px] text-text-secondary">{act.User?.username || 'A partner'} {act.action || act.type || 'completed an activity'}</p>
                   <p className="text-[9px] text-text-muted">{new Date(act.createdAt).toLocaleDateString()}</p>
                 </div>
               </div>

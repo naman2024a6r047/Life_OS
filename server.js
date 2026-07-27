@@ -22,6 +22,7 @@ const gamificationRoutes = require('./src/routes/gamificationRoutes');
 const taskRoutes = require('./src/routes/taskRoutes');
 const goalWorkspaceRoutes = require('./src/routes/goalWorkspaceRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
+const chatRoutes = require('./src/routes/chatRoutes');
 
 const compression = require('compression');
 
@@ -45,6 +46,7 @@ app.use('/api/exams', examRoutes);
 app.use('/api/fitness', fitnessRoutes);
 app.use('/api/dev', devRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/chat', chatRoutes);
 
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/knowledge', knowledgeRoutes);
@@ -173,8 +175,56 @@ async function startServer() {
     const { startPenaltyWorker } = require('./src/services/penaltyWorker');
     startPenaltyWorker();
 
-    app.listen(PORT, () => {
-        console.log(`Server running on port ${PORT}`);
+    const http = require('http');
+    const { Server } = require('socket.io');
+    const { ChatMessage } = require('./src/models');
+
+    const server = http.createServer(app);
+    const io = new Server(server, {
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST']
+        }
+    });
+
+    const userSockets = {};
+
+    io.on('connection', (socket) => {
+        const userId = socket.handshake.query.userId;
+        if (userId) {
+            userSockets[userId] = socket.id;
+        }
+
+        socket.on('sendMessage', async (data) => {
+            try {
+                const { sender_id, receiver_id, content } = data;
+                
+                const message = await ChatMessage.create({
+                    sender_id,
+                    receiver_id,
+                    content
+                });
+
+                const receiverSocketId = userSockets[receiver_id];
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit('receiveMessage', message);
+                }
+
+                socket.emit('messageSent', message);
+            } catch (error) {
+                console.error('Socket send message error:', error);
+            }
+        });
+
+        socket.on('disconnect', () => {
+            if (userId) {
+                delete userSockets[userId];
+            }
+        });
+    });
+
+    server.listen(PORT, () => {
+        console.log(`Server and Socket.IO running on port ${PORT}`);
     });
 }
 

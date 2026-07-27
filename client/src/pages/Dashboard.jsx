@@ -56,25 +56,42 @@ function LifeScoreCircle({ score }) {
   );
 }
 
-function ActivityHeatmap() {
+function ActivityHeatmap({ heatmapData = [] }) {
   const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
   const days = ['Mon', '', 'Wed', '', 'Fri', '', ''];
   
   const cells = useMemo(() => {
     const result = [];
+    const countMap = {};
+    if (Array.isArray(heatmapData)) {
+      heatmapData.forEach(d => {
+        countMap[d.date] = d.count || 0;
+      });
+    }
+
+    const today = new Date();
+    today.setHours(0,0,0,0);
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() - (32 * 7) + 1); // 32 weeks ago
+
     for (let week = 0; week < 32; week++) {
       for (let day = 0; day < 7; day++) {
-        const intensity = Math.random();
+        const cellDate = new Date(startDate);
+        cellDate.setDate(startDate.getDate() + (week * 7) + day);
+        const dateStr = cellDate.toISOString().split('T')[0];
+        
+        const intensity = countMap[dateStr] || 0;
         let color = 'bg-surface-elevated';
-        if (intensity > 0.8) color = 'bg-primary';
-        else if (intensity > 0.6) color = 'bg-primary/70';
-        else if (intensity > 0.4) color = 'bg-primary/40';
-        else if (intensity > 0.2) color = 'bg-primary/20';
+        if (intensity >= 5) color = 'bg-primary';
+        else if (intensity >= 3) color = 'bg-primary/70';
+        else if (intensity >= 2) color = 'bg-primary/40';
+        else if (intensity === 1) color = 'bg-primary/20';
+        
         result.push({ week, day, color });
       }
     }
     return result;
-  }, []);
+  }, [heatmapData]);
 
   return (
     <div className="card p-4">
@@ -105,15 +122,15 @@ function ActivityHeatmap() {
   );
 }
 
-function LifeScoreTrend() {
-  const data = [
-    { label: '1 May', value: 45 }, { label: '8 May', value: 52 }, { label: '15 May', value: 55 },
-    { label: '22 May', value: 60 }, { label: '29 May', value: 78 }
+function ActivityTrend({ trendData = [] }) {
+  const data = trendData.length > 0 ? trendData.slice(-5) : [
+    { date: 'Start', xp: 0 }, { date: 'Now', xp: 0 }
   ];
-  const maxVal = 100;
+  
+  const maxVal = Math.max(...data.map(d => d.xp || 10), 100);
   const points = data.map((d, i) => ({
     x: (i / (data.length - 1)) * 100,
-    y: 100 - (d.value / maxVal) * 100
+    y: 100 - ((d.xp || 0) / maxVal) * 100
   }));
   const pathD = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
   const areaD = pathD + ` L 100 100 L 0 100 Z`;
@@ -121,8 +138,8 @@ function LifeScoreTrend() {
   return (
     <div className="card p-4">
       <div className="section-header">
-        <h3 className="section-title">Life Score Trend</h3>
-        <span className="text-[10px] text-text-muted font-medium">This Month ▾</span>
+        <h3 className="section-title">Activity XP Trend</h3>
+        <span className="text-[10px] text-text-muted font-medium">Monthly ▾</span>
       </div>
       <div className="relative h-36">
         {/* Y axis labels */}
@@ -154,21 +171,22 @@ function LifeScoreTrend() {
       </div>
       <div className="flex justify-between ml-7 mt-1">
         {data.map((d, i) => (
-          <span key={i} className="text-[9px] text-text-muted font-mono">{d.label}</span>
+          <span key={i} className="text-[9px] text-text-muted font-mono">{d.date.substring(5)}</span>
         ))}
       </div>
     </div>
   );
 }
 
-function XPBreakdown({ xp }) {
-  const segments = [
-    { label: 'Challenges', pct: 35, color: '#6366F1' },
-    { label: 'Study', pct: 25, color: '#06B6D4' },
-    { label: 'Fitness', pct: 20, color: '#22C55E' },
-    { label: 'Coding', pct: 15, color: '#F59E0B' },
-    { label: 'Other', pct: 5, color: '#64748B' },
+function XPBreakdown({ xp, breakdown = [] }) {
+  const defaultSegments = [
+    { label: 'Challenges', pct: 0, color: '#6366F1' },
+    { label: 'Study', pct: 0, color: '#06B6D4' },
+    { label: 'Fitness', pct: 0, color: '#22C55E' },
+    { label: 'Coding', pct: 0, color: '#F59E0B' },
+    { label: 'Other', pct: 100, color: '#64748B' },
   ];
+  const segments = breakdown.length > 0 ? breakdown : defaultSegments;
   const radius = 40;
   const circumference = 2 * Math.PI * radius;
   let accum = 0;
@@ -221,44 +239,35 @@ export default function Dashboard() {
   const [partners, setPartners] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [achievements, setAchievements] = useState([]);
+  const [heatmapData, setHeatmapData] = useState([]);
+  const [trendData, setTrendData] = useState([]);
+  const [dashStats, setDashStats] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [challRes, analyticsRes, unreadRes, partnersRes, inqRes, achRes] = await Promise.allSettled([
+        const [challRes, analyticsRes, unreadRes, partnersRes, inqRes, achRes, heatmapRes, trendRes, statsRes] = await Promise.allSettled([
           axios.get('/api/challenges'),
           axios.get('/api/analytics/summary'),
           axios.get('/api/friends/interventions/unread-count'),
           axios.get('/api/dashboard/partners'),
           axios.get('/api/dashboard/inquiries'),
-          axios.get('/api/dashboard/achievements')
+          axios.get('/api/dashboard/achievements'),
+          axios.get('/api/analytics/heatmap'),
+          axios.get('/api/analytics/timeseries?horizon=monthly'),
+          axios.get('/api/dashboard/stats')
         ]);
         let fetched = [];
         if (challRes.status === 'fulfilled') fetched = challRes.value.data || [];
-        if (fetched.length === 0) {
-          fetched = [{
-            id: 'ch_demo',
-            title: '100 Days of Code',
-            status: 'active',
-            start_date: new Date(Date.now() - 13 * 86400000).toISOString().split('T')[0],
-            end_date: new Date(Date.now() + 86 * 86400000).toISOString().split('T')[0],
-            milestones: [{
-              id: 'ms_demo_2',
-              title: 'Day 20 (10-Day Milestone)',
-              status: 'unlocked',
-              tasks: [
-                { id: 'td1', title: 'Build a To-Do App with React', description: 'Create a fully functional To-Do app with add, delete, toggle', is_completed: false, priority: 'P1' },
-                { id: 'td2', title: 'State management with React Context', description: 'Implement global application state', is_completed: true, priority: 'P1' },
-              ]
-            }]
-          }];
-        }
         setChallenges(fetched);
         if (analyticsRes.status === 'fulfilled') setAnalytics(analyticsRes.value.data);
         if (unreadRes.status === 'fulfilled') setUnreadCount(unreadRes.value.data?.count || 0);
         if (partnersRes.status === 'fulfilled') setPartners(partnersRes.value.data);
         if (inqRes.status === 'fulfilled') setInquiries(inqRes.value.data);
         if (achRes.status === 'fulfilled') setAchievements(achRes.value.data);
+        if (heatmapRes.status === 'fulfilled') setHeatmapData(heatmapRes.value.data);
+        if (trendRes.status === 'fulfilled') setTrendData(trendRes.value.data);
+        if (statsRes.status === 'fulfilled') setDashStats(statsRes.value.data);
       } catch (err) {
         console.error(err);
       }
@@ -272,9 +281,9 @@ export default function Dashboard() {
   const todayTask = tasks.find(t => !t.is_completed) || tasks[0];
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const totalTasks = tasks.length;
-  const milestoneProgress = 60;
+  const milestoneProgress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-  const lifeScore = analytics?.lifeScore || 78;
+  const lifeScore = analytics?.lifeScore || 0;
   const totalXP = user?.xp || analytics?.xp || 0;
   const currentLevel = user?.level || analytics?.level || 1;
   const streak = user?.current_streak || analytics?.streak || 0;
@@ -331,16 +340,16 @@ export default function Dashboard() {
       {/* Top Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
         <div className="stat-card bg-[#1E293B] border-slate-700">
-          <LifeScoreCircle score={lifeScore} />
+          <LifeScoreCircle score={analytics?.lifeScore || 0} />
           <div>
             <p className="text-[11px] text-text-muted">Life Score</p>
             <p className="text-xs text-success font-medium">Keep going!</p>
           </div>
         </div>
-        <StatCard icon={<FiTarget size={18} />} label="Active Challenges" value={challenges.filter(c => c.status === 'active').length || challenges.length} sub="Keep it up!" color="primary" />
-        <StatCard icon={<FiCheckSquare size={18} />} label="Tasks Completed" value={`${completedTasks} / ${totalTasks || 50}`} sub="This Week" color="success" />
-        <StatCard icon={<FiClock size={18} />} label="Focus Hours" value={analytics?.totalStudyHours || '18.6'} sub="This Week" color="info" />
-        <StatCard icon={<FiHeart size={18} />} label="Grace Tokens" value="2" sub="Available" color="warning" />
+        <StatCard icon={<FiTarget size={18} />} label="Active Challenges" value={analytics?.activeGoals || 0} sub="Keep it up!" color="primary" />
+        <StatCard icon={<FiCheckSquare size={18} />} label="Tasks Completed" value={`${analytics?.completedTasks || 0} / ${analytics?.totalTasks || 0}`} sub="All Time" color="success" />
+        <StatCard icon={<FiClock size={18} />} label="Focus Hours" value={dashStats?.focusHours || '0'} sub="Recorded" color="info" />
+        <StatCard icon={<FiHeart size={18} />} label="Grace Tokens" value={analytics?.graceTokens || 0} sub="Available" color="warning" />
       </div>
 
       {/* Main Content Grid */}
@@ -427,10 +436,10 @@ export default function Dashboard() {
           {/* Module Quick Access Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { title: 'Exam Mode', sub: 'Focus Mode for Exams', value: '0', valueSub: 'Active Exams', icon: <FiShield size={24} />, color: 'primary', btn: 'Enter Exam Mode', link: '/exams' },
-              { title: 'Gym & Fitness', sub: 'This Week', value: '4 / 6', valueSub: 'Workouts', icon: <FiActivity size={24} />, color: 'danger', btn: 'View Workout Plan', link: '/gym' },
-              { title: 'Developer Profile', sub: 'Coding Hours', value: '14.2', valueSub: 'This Week', icon: <FiTerminal size={24} />, color: 'success', btn: 'View Profile', link: '/dev' },
-              { title: 'Study Tracker', sub: 'Study Hours', value: '22.5', valueSub: 'This Week', icon: <FiBookOpen size={24} />, color: 'info', btn: 'Start Studying', link: '/knowledge' },
+              { title: 'Exam Mode', sub: 'Focus Mode', value: 'Active', valueSub: 'Study Sessions', icon: <FiShield size={24} />, color: 'primary', btn: 'Enter Exam Mode', link: '/exams' },
+              { title: 'Gym & Fitness', sub: 'Workouts', value: dashStats?.workouts || 0, valueSub: 'Total', icon: <FiActivity size={24} />, color: 'danger', btn: 'View Workout Plan', link: '/gym' },
+              { title: 'Developer Profile', sub: 'Coding Hours', value: dashStats?.codingHours || '0', valueSub: 'Total', icon: <FiTerminal size={24} />, color: 'success', btn: 'View Profile', link: '/dev' },
+              { title: 'Study Tracker', sub: 'Study Hours', value: dashStats?.studyHours || '0', valueSub: 'Total', icon: <FiBookOpen size={24} />, color: 'info', btn: 'Start Studying', link: '/knowledge' },
             ].map((mod, i) => (
               <div key={i} className="card p-4 flex flex-col items-center text-center">
                 <div className={`w-12 h-12 rounded-xl bg-${mod.color}/10 text-${mod.color} flex items-center justify-center mb-2`}>
@@ -450,8 +459,8 @@ export default function Dashboard() {
 
           {/* Heatmap + Life Score Trend */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ActivityHeatmap />
-            <LifeScoreTrend />
+            <ActivityHeatmap heatmapData={heatmapData} />
+            <ActivityTrend trendData={trendData} />
           </div>
         </div>
 
@@ -515,7 +524,7 @@ export default function Dashboard() {
           </div>
 
           {/* XP Breakdown */}
-          <XPBreakdown xp={totalXP + (currentLevel - 1) * 100} />
+          <XPBreakdown xp={analytics?.xp || 0} breakdown={dashStats?.xpBreakdown} />
 
           {/* Recent Achievements */}
           <div className="card p-4 bg-[#1E293B] border-slate-700">

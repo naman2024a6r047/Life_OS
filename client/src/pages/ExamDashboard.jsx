@@ -73,9 +73,9 @@ export default function ExamDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column — Exam Question & Environment (9 cols) */}
-        <div className="col-span-9 space-y-4">
+        <div className="lg:col-span-9 space-y-4">
           {/* Exam Info Header Card */}
           <div className="card p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -218,7 +218,7 @@ export default function ExamDashboard() {
         </div>
 
         {/* Right Column — Palette & Tools (3 cols) */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {/* Time Remaining Timer Widget */}
           <div className="card p-4 text-center space-y-3">
             <div className="flex items-center justify-between text-xs text-text-muted">

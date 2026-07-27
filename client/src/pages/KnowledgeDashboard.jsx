@@ -87,9 +87,9 @@ export default function KnowledgeDashboard() {
       </div>
 
       {/* Main Top Row Grid */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Study Overview Donut (4 cols) */}
-        <div className="col-span-4 card p-5 space-y-3">
+        <div className="lg:col-span-4 card p-5 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Study Overview</h3>
             <span className="text-xs text-text-muted">This Week ▾</span>
@@ -122,7 +122,7 @@ export default function KnowledgeDashboard() {
         </div>
 
         {/* Study Time Trend Bar Chart (5 cols) */}
-        <div className="col-span-5 card p-5 space-y-3">
+        <div className="lg:col-span-5 card p-5 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Study Time Trend</h3>
             <span className="text-xs text-text-muted">Daily ▾</span>
@@ -148,7 +148,7 @@ export default function KnowledgeDashboard() {
         </div>
 
         {/* Study Streak Card (3 cols) */}
-        <div className="col-span-3 card p-5 flex flex-col items-center justify-between text-center">
+        <div className="lg:col-span-3 card p-5 flex flex-col items-center justify-between text-center">
           <div className="w-full flex items-center justify-between text-xs">
             <span className="font-bold text-text-primary">Study Streak</span>
             <span className="text-xs font-mono text-text-muted font-bold">May 12 – May 18</span>
@@ -177,9 +177,9 @@ export default function KnowledgeDashboard() {
       </div>
 
       {/* Middle Row */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Recent Study Sessions (4 cols) */}
-        <div className="col-span-4 card p-4 space-y-3">
+        <div className="lg:col-span-4 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Recent Study Sessions</h3>
             <span className="section-link">View All</span>
@@ -209,7 +209,7 @@ export default function KnowledgeDashboard() {
         </div>
 
         {/* Focus Insights (5 cols) */}
-        <div className="col-span-5 card p-4 space-y-3">
+        <div className="lg:col-span-5 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Focus Insights</h3>
             <span className="text-xs text-text-muted">This Week</span>
@@ -246,7 +246,7 @@ export default function KnowledgeDashboard() {
         </div>
 
         {/* Weekly Goal & Subjects (3 cols) */}
-        <div className="col-span-3 card p-4 space-y-4">
+        <div className="lg:col-span-3 card p-4 space-y-4">
           {/* Weekly Goal Progress */}
           <div>
             <div className="flex justify-between text-xs mb-1">

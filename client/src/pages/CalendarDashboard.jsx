@@ -118,10 +118,10 @@ export default function CalendarDashboard() {
         </div>
       </div>
 
-      {/* Main Layout Grid */}
-      <div className="grid grid-cols-12 gap-4">
+      {/* Main 2-Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Main Calendar Month Grid (9 cols) */}
-        <div className="col-span-9 space-y-4">
+        <div className="lg:col-span-9 space-y-4">
           <div className="card overflow-hidden">
             {/* Days of Week Header */}
             <div className="grid grid-cols-7 border-b border-border-subtle bg-surface-elevated/50 text-center py-2 text-xs font-bold text-text-muted uppercase">
@@ -225,7 +225,7 @@ export default function CalendarDashboard() {
         </div>
 
         {/* Right Column — Mini Calendar, Upcoming & Legend (3 cols) */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {/* Mini Calendar Widget */}
           <div className="card p-4 space-y-2 text-center">
             <div className="flex items-center justify-between text-xs mb-2">

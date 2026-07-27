@@ -85,9 +85,9 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Top Row Charts */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Study Time Overview Stacked Bar Chart (5 cols) */}
-        <div className="col-span-5 card p-4 space-y-3">
+        <div className="lg:col-span-5 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Study Time Overview</h3>
             <span className="text-xs text-text-muted font-medium">This Week ▾</span>
@@ -124,7 +124,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Time Distribution Donut Chart (4 cols) */}
-        <div className="col-span-4 card p-4 space-y-3">
+        <div className="lg:col-span-4 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Time Distribution</h3>
           </div>
@@ -155,7 +155,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Activity Heatmap Grid (3 cols) */}
-        <div className="col-span-3 card p-4 space-y-3">
+        <div className="lg:col-span-3 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Activity Heatmap</h3>
             <span className="text-xs text-text-muted">This Month ▾</span>
@@ -186,9 +186,9 @@ export default function AnalyticsDashboard() {
       </div>
 
       {/* Middle Row */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Subject Performance List (4 cols) */}
-        <div className="col-span-4 card p-4 space-y-3">
+        <div className="lg:col-span-4 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Subject Performance</h3>
             <span className="text-xs text-text-muted">This Week ▾</span>
@@ -216,7 +216,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Focus Time vs Break Time Donut (3 cols) */}
-        <div className="col-span-3 card p-4 space-y-3">
+        <div className="lg:col-span-3 card p-4 space-y-3">
           <div className="section-header">
             <h3 className="section-title">Focus Time vs Break Time</h3>
             <span className="text-xs text-text-muted">This Week ▾</span>
@@ -241,7 +241,7 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Productivity Trend & Top Sessions & Insights (5 cols) */}
-        <div className="col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4">
           {/* Productivity Trend Line Chart */}
           <div className="card p-4 space-y-2">
             <div className="section-header">
@@ -317,8 +317,8 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-3 space-y-3 py-2 border-r border-border-subtle">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-3 space-y-3 py-2 border-b lg:border-b-0 lg:border-r border-border-subtle pb-4 lg:pb-2">
             <div className="flex items-center gap-2">
               <FiClock className="text-purple" />
               <div>
@@ -349,7 +349,7 @@ export default function AnalyticsDashboard() {
             </div>
           </div>
 
-          <div className="col-span-9 h-40 relative pt-2">
+          <div className="lg:col-span-9 h-40 relative pt-2">
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="w-full h-full">
               {/* Line 1: Study Time */}
               <path d="M 0 70 L 16 80 L 32 60 L 48 30 L 64 50 L 80 20 L 100 40" fill="none" stroke="#A855F7" strokeWidth="2" />

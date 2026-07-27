@@ -136,16 +136,16 @@ export default function AICoachDashboard() {
       </div>
 
       {/* Main Grid Layout */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left 9 Columns — Featured & Library */}
-        <div className="col-span-9 space-y-5">
+        <div className="lg:col-span-9 space-y-5">
           {/* Featured Resources (4 Cards) */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <h3 className="text-xs font-bold text-text-primary">Featured Resources</h3>
               <span className="section-link">View All</span>
             </div>
-            <div className="grid grid-cols-4 gap-3">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {featured.map((f, i) => (
                 <div key={i} className="card overflow-hidden hover:border-purple/40 transition-all flex flex-col justify-between">
                   {/* Card Cover Banner */}
@@ -242,7 +242,7 @@ export default function AICoachDashboard() {
         </div>
 
         {/* Right 3 Columns — My Resources & Recently Added & Contribute */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {/* My Resources Stats */}
           <div className="card p-4 space-y-3">
             <div className="section-header">

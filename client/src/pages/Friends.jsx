@@ -309,9 +309,9 @@ export default function Friends() {
       </div>
 
       {/* Main 3-Column Layout */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left — Partner List */}
-        <div className="col-span-3 space-y-3">
+        <div className="lg:col-span-3 space-y-3">
           <div className="card p-4">
             <h3 className="text-xs font-bold text-text-primary mb-3">My Partners ({friends.length})</h3>
             <div className="relative mb-3">
@@ -378,7 +378,7 @@ export default function Friends() {
         </div>
 
         {/* Center — Selected Partner Detail */}
-        <div className="col-span-5 space-y-4">
+        <div className="lg:col-span-5 space-y-4">
           {selectedPartner ? (
             <>
               {/* Partner Profile Card */}
@@ -526,11 +526,11 @@ export default function Friends() {
                 <div className="section-header">
                   <h3 className="section-title">Activity Calendar</h3>
                 </div>
-                <div className="grid grid-cols-12 gap-4">
-                  <div className="col-span-7">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  <div className="lg:col-span-7">
                     <ActivityCalendar telemetry={telemetry} />
                   </div>
-                  <div className="col-span-5 space-y-3">
+                  <div className="lg:col-span-5 space-y-3">
                     <h4 className="text-xs font-bold text-text-primary">This Week Summary</h4>
                     <div className="space-y-2">
                       {[
@@ -567,7 +567,7 @@ export default function Friends() {
         </div>
 
         {/* Right — Inquiries & Activity */}
-        <div className="col-span-4 space-y-4">
+        <div className="lg:col-span-4 space-y-4">
           {/* Pending Inquiries */}
           <div className="card p-4">
             <div className="section-header">

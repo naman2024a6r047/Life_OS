@@ -1106,10 +1106,10 @@ export default function Challenges() {
       </div>
 
       {/* --- MAIN 3-COLUMN LAYOUT --- */}
-      <div className="grid grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
 
         {/* LEFT COLUMN: GOAL LIST SIDEBAR */}
-        <div className="col-span-12 lg:col-span-3 space-y-3">
+        <div className="lg:col-span-3 space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider">Goals ({filteredChallenges.length})</h3>
             <span className="text-[10px] text-text-muted font-mono">{activeTab.toUpperCase()}</span>
@@ -1208,7 +1208,7 @@ export default function Challenges() {
         </div>
 
         {/* CENTER COLUMN: SELECTED GOAL DETAIL & MILESTONE TASK TABLE */}
-        <div className="col-span-12 lg:col-span-6 space-y-5">
+        <div className="lg:col-span-6 space-y-5">
           {selectedChallenge ? (
             <>
               {/* --- HERO GOAL CARD --- */}
@@ -1451,7 +1451,7 @@ export default function Challenges() {
         </div>
 
         {/* RIGHT COLUMN: GOAL OVERVIEW PANEL */}
-        <div className="col-span-12 lg:col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {selectedChallenge ? (
             <>
              

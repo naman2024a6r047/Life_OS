@@ -207,9 +207,9 @@ export default function ReviewDashboard() {
       </div>
 
       {/* Main 3-Column Layout */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column (3 cols) */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {/* Reviews to Do Search & List */}
           <div className="card p-4">
             <div className="flex items-center justify-between mb-3">
@@ -311,7 +311,7 @@ export default function ReviewDashboard() {
         </div>
 
         {/* Center Column (6 cols) */}
-        <div className="col-span-6 space-y-4">
+        <div className="lg:col-span-6 space-y-4">
           {/* Active Review Detail */}
           <div className="card p-5 space-y-4">
             <div className="flex items-start justify-between">
@@ -382,7 +382,7 @@ export default function ReviewDashboard() {
         </div>
 
         {/* Right Column (3 cols) */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           {/* Submit Your Review Form */}
           {activeTab === 'to-do' ? (
             <div className="card p-4 space-y-4">

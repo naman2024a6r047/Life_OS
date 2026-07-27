@@ -367,7 +367,8 @@ export default function ChallengeDetail() {
                                     {/* Days Breakdown (Day 1, Day 2, Day 3... Day N) */}
                                     <div className="space-y-4">
                                         {daysList.map(dayItem => {
-                                            const dayCompletedCount = dayItem.tasks.filter(t => t.is_completed || t.completed).length;
+                                            const isMilestoneLocked = isCompleted;
+                                            const dayCompletedCount = isMilestoneLocked ? dayItem.tasks.length : dayItem.tasks.filter(t => t.is_completed || t.completed).length;
                                             const isAddingToThisDay = addTaskTarget?.milestoneId === milestone.id && addTaskTarget?.dayNum === dayItem.dayNum;
                                             const isToday = dayItem.dateStr === dayjs().format('YYYY-MM-DD');
 
@@ -492,14 +493,15 @@ export default function ChallengeDetail() {
                                                     ) : (
                                                         <div className="space-y-2">
                                                             {dayItem.tasks.map(task => {
-                                                                const isDone = task.is_completed || task.completed;
+                                                                const isMilestoneLocked = milestone.status === 'completed';
+                                                                const isDone = isMilestoneLocked || task.is_completed || task.completed;
                                                                 return (
                                                                     <div 
                                                                         key={task.id}
-                                                                        onClick={() => handleToggleTask(task.id)}
-                                                                        className={`p-3 rounded-xl border transition-all flex items-center justify-between cursor-pointer group ${
+                                                                        onClick={() => !isMilestoneLocked && handleToggleTask(task.id)}
+                                                                        className={`p-3 rounded-xl border transition-all flex items-center justify-between group ${
                                                                             isDone ? 'bg-emerald-950/20 border-emerald-500/20 opacity-70' : 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/40'
-                                                                        }`}
+                                                                        } ${isMilestoneLocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${

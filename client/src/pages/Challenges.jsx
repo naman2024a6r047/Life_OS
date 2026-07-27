@@ -648,8 +648,8 @@ function MilestoneTimeline({ milestones = [], activeMilestoneIndex = 0, onSelect
 }
 
 // --- Task Row ---
-function TaskRow({ task, onToggle, onOpenDetail }) {
-  const isCompleted = task.is_completed;
+function TaskRow({ task, onToggle, onOpenDetail, isLocked }) {
+  const isCompleted = isLocked || task.is_completed;
 
   // Extract clean title (remove "Day X • ")
   const match = task.title?.match(/Day[\s\-]*\d+\s*[•\-\:]\s*(.*)/i);
@@ -674,8 +674,8 @@ function TaskRow({ task, onToggle, onOpenDetail }) {
       className={`flex items-center gap-3 px-4 py-3 hover:bg-surface-elevated/60 transition-all border-b border-border-subtle/30 last:border-0 ${isCompleted ? 'opacity-60' : ''}`}
     >
       <button
-        onClick={() => onToggle(task)}
-        className={`w-5 h-5 rounded-[4px] border-2 flex flex-shrink-0 items-center justify-center transition-all cursor-pointer ${
+        onClick={() => !isLocked && onToggle(task)}
+        className={`w-5 h-5 rounded-[4px] border-2 flex flex-shrink-0 items-center justify-center transition-all ${isLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'} ${
           isCompleted 
             ? 'bg-primary border-primary text-white' 
             : 'bg-transparent border-border-subtle hover:border-primary/50'
@@ -800,6 +800,8 @@ export default function Challenges() {
   const completedTasks = tasks.filter(t => t.is_completed).length;
   const totalTasks = tasks.length;
   const dayOffset = activeMilestoneIdx * 10;
+  
+  const isMilestoneLocked = activeMilestone?.status === 'completed' || (currentMilestoneIndex >= 0 && activeMilestoneIdx < currentMilestoneIndex);
 
   const groupedTasks = useMemo(() => {
     const groups = {};
@@ -836,6 +838,7 @@ export default function Challenges() {
 
   // Task Toggle Action
   const handleToggleTask = async (task) => {
+    if (isMilestoneLocked) return;
     try {
       const newStatus = !task.is_completed;
       setChallenges(prev => prev.map(c => {
@@ -865,6 +868,7 @@ export default function Challenges() {
   };
 
   const handleToggleDay = async (dayTasks, isAllDone) => {
+    if (isMilestoneLocked) return;
     try {
       const newStatus = !isAllDone;
       const tasksToUpdate = dayTasks.filter(t => (!!t.is_completed) !== newStatus);
@@ -1339,7 +1343,7 @@ export default function Challenges() {
                     <div className="p-4 space-y-4 bg-surface-elevated/20">
                       {Object.keys(groupedTasks).sort((a,b)=>a-b).map((dayKey) => {
                         const dayTasks = groupedTasks[dayKey];
-                        const dayCompleted = dayTasks.filter(t => t.is_completed).length;
+                        const dayCompleted = isMilestoneLocked ? dayTasks.length : dayTasks.filter(t => t.is_completed).length;
                         const isAllDone = dayCompleted === dayTasks.length;
                         return (
                           <div key={dayKey} className={`border rounded-xl overflow-hidden shadow-lg transition-all ${isAllDone ? 'border-success/30 bg-success/5' : 'border-border-subtle bg-surface'}`}>
@@ -1348,9 +1352,9 @@ export default function Challenges() {
                                 <button 
                                   onClick={(e) => {
                                       e.stopPropagation();
-                                      handleToggleDay(dayTasks, isAllDone);
+                                      if (!isMilestoneLocked) handleToggleDay(dayTasks, isAllDone);
                                   }}
-                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all cursor-pointer ${isAllDone ? 'bg-success border-success text-white' : 'border-border-subtle hover:border-primary text-transparent'}`}
+                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isMilestoneLocked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer'} ${isAllDone ? 'bg-success border-success text-white' : 'border-border-subtle hover:border-primary text-transparent'}`}
                                   title="Check/Uncheck all tasks for this day"
                                 >
                                   <FiCheck size={12} strokeWidth={3} />
@@ -1374,6 +1378,7 @@ export default function Challenges() {
                                     setDetailTask(t);
                                     setIsTaskModalOpen(true);
                                   }}
+                                  isLocked={isMilestoneLocked}
                                 />
                               ))}
                             </div>

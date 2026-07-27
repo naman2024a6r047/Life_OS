@@ -470,6 +470,55 @@ export default function PartnerDashboard() {
                                                             </div>
                                                         </div>
 
+                                                        {/* Deep Analytics for Milestone */}
+                                                        {(() => {
+                                                            const milestoneTasks = milestone.tasks || [];
+                                                            const totalMTasks = milestoneTasks.length;
+                                                            if (totalMTasks === 0) return null;
+                                                            const completedMTasks = milestoneTasks.filter(t => t.completed).length;
+                                                            const missedMTasks = milestoneTasks.filter(t => !t.completed && t.date && dayjs(t.date).isBefore(dayjs(), 'day')).length;
+                                                            
+                                                            // Find penalties related to this milestone by checking if penalty description contains any of the skipped task dates
+                                                            const milestonePenalties = (data.penalties || []).filter(p => {
+                                                                if (p.challenge_id !== challenge.id) return false;
+                                                                return milestoneTasks.some(t => !t.completed && t.date && dayjs(t.date).isBefore(dayjs(), 'day') && p.description?.includes(t.date));
+                                                            });
+
+                                                            return (
+                                                                <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800/80 mb-4 mt-2">
+                                                                    <div className="text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-wider flex items-center gap-1.5"><FiActivity /> Deep Analytics</div>
+                                                                    <div className="grid grid-cols-4 gap-2">
+                                                                        <div className="bg-slate-900/80 rounded p-2 text-center border border-slate-800">
+                                                                            <div className="text-lg font-black text-white">{totalMTasks}</div>
+                                                                            <div className="text-[9px] text-slate-500 uppercase font-bold">Total</div>
+                                                                        </div>
+                                                                        <div className="bg-emerald-950/20 rounded p-2 text-center border border-emerald-900/30">
+                                                                            <div className="text-lg font-black text-emerald-400">{completedMTasks}</div>
+                                                                            <div className="text-[9px] text-emerald-500/70 uppercase font-bold">Done</div>
+                                                                        </div>
+                                                                        <div className="bg-rose-950/20 rounded p-2 text-center border border-rose-900/30">
+                                                                            <div className="text-lg font-black text-rose-400">{missedMTasks}</div>
+                                                                            <div className="text-[9px] text-rose-500/70 uppercase font-bold">Missed</div>
+                                                                        </div>
+                                                                        <div className="bg-amber-950/20 rounded p-2 text-center border border-amber-900/30">
+                                                                            <div className="text-lg font-black text-amber-400">{milestonePenalties.length}</div>
+                                                                            <div className="text-[9px] text-amber-500/70 uppercase font-bold">Penalties</div>
+                                                                        </div>
+                                                                    </div>
+                                                                    {milestonePenalties.length > 0 && (
+                                                                        <div className="mt-2 space-y-1">
+                                                                            {milestonePenalties.map(p => (
+                                                                                <div key={p.id} className="text-[10px] text-rose-400/80 flex justify-between bg-rose-500/5 px-2 py-1 rounded">
+                                                                                    <span>⚠️ {p.penalty_type}</span>
+                                                                                    <span className="font-mono">-{p.xp_deducted} XP</span>
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })()}
+
                                                         <div className="space-y-1.5">
                                                             {(filteredTasks.length > 0 ? filteredTasks : milestone.tasks || []).map(task => {
                                                                 const isPast = task.date && dayjs(task.date).isBefore(dayjs(), 'day');

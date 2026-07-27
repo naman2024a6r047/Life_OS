@@ -1322,12 +1322,17 @@ export default function Challenges() {
                       <span className="text-xs font-mono font-bold text-text-muted mr-1">
                         {completedTasks} / {totalTasks} Completed
                       </span>
-                      {activeMilestone.status === 'unlocked' && totalTasks > 0 && completedTasks === totalTasks ? (
+                      {activeMilestone.status === 'rejected' && (
+                        <span className="badge-danger text-xs px-3 py-1.5 flex items-center gap-1.5 mr-2">
+                          ⚠️ Rejected: Improve & Resubmit
+                        </span>
+                      )}
+                      {(activeMilestone.status === 'unlocked' || activeMilestone.status === 'rejected') && totalTasks > 0 && completedTasks === totalTasks ? (
                         <button
                           onClick={() => setIsReviewModalOpen(true)}
                           className="btn-primary text-xs px-3 py-1.5 flex items-center gap-1.5 cursor-pointer shadow-glow-primary bg-gradient-to-r from-success to-primary"
                         >
-                          <FiSend size={13} /> Request Peer Approval
+                          <FiSend size={13} /> {activeMilestone.status === 'rejected' ? 'Resubmit Peer Approval' : 'Request Peer Approval'}
                         </button>
                       ) : activeMilestone.status === 'pending_review' ? (
                         <span className="badge-warning text-xs px-3 py-1.5 flex items-center gap-1.5 animate-pulse">

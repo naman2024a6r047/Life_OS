@@ -216,7 +216,7 @@ exports.getPartnerTelemetry = async (req, res) => {
 
         const { 
             Challenge, Milestone, MilestoneTask, StudyLog, 
-            ActivityLog, PartnerIntervention, WorkoutPlan, Skill 
+            ActivityLog, PartnerIntervention, WorkoutPlan, Skill, Penalty 
         } = require('../models');
 
         // Fetch partner's challenges with milestones & tasks
@@ -343,6 +343,15 @@ exports.getPartnerTelemetry = async (req, res) => {
             });
         } catch (e) { /* table fallback */ }
 
+        // Fetch penalties
+        let penalties = [];
+        try {
+            penalties = await Penalty.findAll({
+                where: { user_id: friendId },
+                order: [['createdAt', 'DESC']]
+            });
+        } catch (e) { /* table fallback */ }
+
         // Fetch interventions between these two users
         let interventions = [];
         try {
@@ -384,12 +393,14 @@ exports.getPartnerTelemetry = async (req, res) => {
                 totalStudyHours: privacy.show_analytics ? totalStudyHours : '0.0',
                 studyLogCount: privacy.show_analytics ? studyLogCount : 0,
                 workoutPlanCount: privacy.show_workouts ? workoutPlanCount : 0,
-                skillCount: privacy.show_achievements ? skillCount : 0
+                skillCount: privacy.show_achievements ? skillCount : 0,
+                totalPenalties: privacy.show_analytics ? penalties.length : 0
             },
             challenges: privacy.show_goals ? challenges : [],
             skippedTasks: privacy.show_tasks ? skippedTasks : [],
             skippedMilestones: privacy.show_goals ? skippedMilestones : [],
             activityLogs: privacy.show_analytics ? activityLogs : [],
+            penalties: privacy.show_analytics ? penalties : [],
             interventions
         });
     } catch (error) {

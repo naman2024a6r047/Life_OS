@@ -71,15 +71,13 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING,
         allowNull: true
     },
-<<<<<<< HEAD
     is_in_exam_mode: {
         type: DataTypes.BOOLEAN,
         defaultValue: false
-=======
+    },
     resource_drive_folder_link: {
         type: DataTypes.STRING,
         allowNull: true
->>>>>>> 967e9d650e66339fafbd8efee6709b1e51f9ff39
     }
 }, {
     timestamps: true

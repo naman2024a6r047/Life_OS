@@ -30,12 +30,13 @@ export const AuthProvider = ({ children }) => {
     }, [session]);
 
     // Sync the local user profile with the backend after authentication
-    const syncUserProfile = async (supabaseUser, accessToken) => {
+    const syncUserProfile = async (supabaseUser, accessToken, providerRefreshToken) => {
         try {
             const res = await axios.post('/api/auth/sync-profile', {
                 supabaseUserId: supabaseUser.id,
                 username: supabaseUser.user_metadata?.username || supabaseUser.email.split('@')[0],
-                email: supabaseUser.email
+                email: supabaseUser.email,
+                providerRefreshToken
             }, {
                 headers: { Authorization: `Bearer ${accessToken}` }
             });
@@ -61,7 +62,10 @@ export const AuthProvider = ({ children }) => {
 
                 if (existingSession) {
                     setSession(existingSession);
-                    const localUser = await syncUserProfile(existingSession.user, existingSession.access_token);
+                    if (existingSession.provider_token) {
+                        localStorage.setItem('google_access_token', existingSession.provider_token);
+                    }
+                    const localUser = await syncUserProfile(existingSession.user, existingSession.access_token, existingSession.provider_refresh_token);
                     setUser(localUser);
                 }
             } catch (error) {
@@ -77,13 +81,17 @@ export const AuthProvider = ({ children }) => {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
             setSession(newSession);
 
+            if (newSession?.provider_token) {
+                localStorage.setItem('google_access_token', newSession.provider_token);
+            }
+
             if (event === 'SIGNED_IN' && newSession) {
-                const localUser = await syncUserProfile(newSession.user, newSession.access_token);
+                const localUser = await syncUserProfile(newSession.user, newSession.access_token, newSession.provider_refresh_token);
                 setUser(localUser);
             } else if (event === 'SIGNED_OUT') {
                 setUser(null);
+                localStorage.removeItem('google_access_token');
             } else if (event === 'TOKEN_REFRESHED' && newSession) {
-                // Session refreshed — keep user as-is, just update session
                 setSession(newSession);
             }
         });
@@ -104,8 +112,30 @@ export const AuthProvider = ({ children }) => {
         }
 
         setSession(data.session);
-        const localUser = await syncUserProfile(data.user, data.session.access_token);
+        if (data.session?.provider_token) {
+            localStorage.setItem('google_access_token', data.session.provider_token);
+        }
+        const localUser = await syncUserProfile(data.user, data.session.access_token, null);
         setUser(localUser);
+    };
+
+    const loginWithGoogle = async () => {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent'
+                },
+                scopes: 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly'
+            }
+        });
+
+        if (error) {
+            throw error;
+        }
+        return data;
     };
 
     const register = async (username, email, password) => {
@@ -121,14 +151,15 @@ export const AuthProvider = ({ children }) => {
             throw error;
         }
 
-        // If email confirmation is disabled, user gets a session immediately
         if (data.session) {
             setSession(data.session);
+            if (data.session?.provider_token) {
+                localStorage.setItem('google_access_token', data.session.provider_token);
+            }
             const localUser = await syncUserProfile(data.user, data.session.access_token);
             setUser(localUser);
         }
 
-        // Also create the local profile via backend
         try {
             await axios.post('/api/auth/sync-profile', {
                 supabaseUserId: data.user.id,
@@ -154,6 +185,7 @@ export const AuthProvider = ({ children }) => {
         setUser(demoUser);
         setSession({ access_token: 'demo_token' });
         localStorage.setItem('token', 'demo_token');
+        localStorage.setItem('google_access_token', 'demo_google_access_token');
     };
 
     const logout = async () => {
@@ -163,13 +195,15 @@ export const AuthProvider = ({ children }) => {
         setSession(null);
         setUser(null);
         localStorage.removeItem('token');
+        localStorage.removeItem('google_access_token');
     };
 
     const isExamMode = user?.is_in_exam_mode || false;
 
     return (
-        <AuthContext.Provider value={{ user, setUser, session, login, loginDemo, register, logout, loading, isExamMode }}>
+        <AuthContext.Provider value={{ user, setUser, session, login, loginWithGoogle, loginDemo, register, logout, loading, isExamMode }}>
             {children}
         </AuthContext.Provider>
     );
 };
+

@@ -139,6 +139,19 @@ User.hasMany(ChatMessage, { foreignKey: 'receiver_id', as: 'receivedMessages' })
 ChatMessage.belongsTo(User, { foreignKey: 'sender_id', as: 'sender' });
 ChatMessage.belongsTo(User, { foreignKey: 'receiver_id', as: 'receiver' });
 
+// Resource Library
+const ResourceCategory = require('./ResourceCategory');
+const Resource = require('./Resource');
+
+User.hasMany(ResourceCategory, { foreignKey: 'user_id', as: 'resourceCategories' });
+ResourceCategory.belongsTo(User, { foreignKey: 'user_id' });
+
+User.hasMany(Resource, { foreignKey: 'user_id', as: 'resources' });
+Resource.belongsTo(User, { foreignKey: 'user_id' });
+
+ResourceCategory.hasMany(Resource, { foreignKey: 'category_id', as: 'resources' });
+Resource.belongsTo(ResourceCategory, { foreignKey: 'category_id', as: 'category' });
+
 module.exports = {
     sequelize,
     User,
@@ -167,5 +180,7 @@ module.exports = {
     TaskAttachment,
     TransformationCheckpoint,
     Penalty,
-    ChatMessage
+    ChatMessage,
+    ResourceCategory,
+    Resource
 };

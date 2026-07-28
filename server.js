@@ -23,6 +23,8 @@ const taskRoutes = require('./src/routes/taskRoutes');
 const goalWorkspaceRoutes = require('./src/routes/goalWorkspaceRoutes');
 const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
+const resourceRoutes = require('./src/routes/resourceRoutes');
+const studyRoutes = require('./src/routes/studyRoutes');
 
 const compression = require('compression');
 
@@ -57,6 +59,8 @@ app.use('/api/gamification', gamificationRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/goals/workspace', goalWorkspaceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/resources', resourceRoutes);
+app.use('/api/study', studyRoutes);
 
 const fs = require('fs');
 

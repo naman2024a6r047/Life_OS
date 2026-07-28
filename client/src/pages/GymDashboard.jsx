@@ -27,6 +27,11 @@ export default function GymDashboard() {
   useEffect(() => {
     const fetchToken = async () => {
       try {
+        const storedGoogleToken = localStorage.getItem('google_access_token');
+        if (storedGoogleToken) {
+          setGoogleAccessToken(storedGoogleToken);
+        }
+
         const tokenStr = localStorage.getItem('token');
         if (!tokenStr) return;
         const res = await fetch('/api/auth/google-token', {
@@ -35,6 +40,7 @@ export default function GymDashboard() {
         const data = await res.json();
         if (data.access_token) {
           setGoogleAccessToken(data.access_token);
+          localStorage.setItem('google_access_token', data.access_token);
         }
       } catch (err) {
         console.error("Failed to fetch google token automatically", err);

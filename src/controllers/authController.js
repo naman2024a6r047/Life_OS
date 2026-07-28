@@ -137,7 +137,7 @@ const syncProfile = async (req, res) => {
     try {
         // This endpoint is called by the frontend after Supabase Auth login
         // to ensure the local Users row exists with the correct data
-        const { supabaseUserId, username, email } = req.body;
+        const { supabaseUserId, username, email, providerRefreshToken } = req.body;
 
         if (!supabaseUserId || !email) {
             return res.status(400).json({ message: 'supabaseUserId and email are required' });
@@ -155,6 +155,12 @@ const syncProfile = async (req, res) => {
                 username: username || email.split('@')[0],
                 email
             });
+        }
+        
+        // Save Google Refresh Token if provided (from Supabase OAuth login)
+        if (providerRefreshToken) {
+            user.google_refresh_token = providerRefreshToken;
+            await user.save();
         }
 
         const activeExam = await ExamSession.findOne({ where: { user_id: user.id, is_active: true } });

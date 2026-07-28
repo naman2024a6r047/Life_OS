@@ -735,9 +735,9 @@ export default function PartnerDashboard() {
                         <ChatSystem partnerId={friendId} />
                     </div>
                 )}
-            </div>
                     </>
                 )}
+            </div>
 
             {/* Intervention Modal */}
             {showInterventionModal && (

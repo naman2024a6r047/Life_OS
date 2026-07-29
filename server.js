@@ -161,6 +161,8 @@ async function startServer() {
             console.log('Database connected to Supabase');
             await sequelize.sync({ alter: false });
             try {
+                await sequelize.query('ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "is_in_exam_mode" BOOLEAN DEFAULT false;');
+                await sequelize.query('ALTER TABLE "Users" ADD COLUMN IF NOT EXISTS "resource_drive_folder_link" VARCHAR(255);');
                 await sequelize.query('ALTER TABLE "PartnerInterventions" ADD COLUMN IF NOT EXISTS "sender_read" BOOLEAN DEFAULT false;');
             } catch(e) { console.error('Migration notice:', e.message); }
         } catch (err) {

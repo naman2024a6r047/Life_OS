@@ -13,7 +13,8 @@ exports.getSummary = async (req, res) => {
             totalMilestones,
             completedMilestones,
             totalTasks,
-            completedTasks
+            completedTasks,
+            activityLogCount
         ] = await Promise.all([
             User.findByPk(userId, { raw: true }),
             Challenge.count({ where: { user_id: userId } }),
@@ -22,7 +23,8 @@ exports.getSummary = async (req, res) => {
             Milestone.count({ include: [{ model: Challenge, where: { user_id: userId } }] }),
             Milestone.count({ include: [{ model: Challenge, where: { user_id: userId } }], where: { status: 'completed' } }),
             MilestoneTask.count({ include: [{ model: Milestone, include: [{ model: Challenge, where: { user_id: userId } }] }] }),
-            MilestoneTask.count({ include: [{ model: Milestone, include: [{ model: Challenge, where: { user_id: userId } }] }], where: { is_completed: true } })
+            MilestoneTask.count({ include: [{ model: Milestone, include: [{ model: Challenge, where: { user_id: userId } }] }], where: { is_completed: true } }),
+            ActivityLog.count({ where: { user_id: userId } })
         ]);
 
         if (!user) {
@@ -30,6 +32,8 @@ exports.getSummary = async (req, res) => {
         }
 
         const streak = user.current_streak || 0;
+        const userXP = user.xp || 0;
+        const userLevel = user.level || 1;
         const totalItems = totalTasks;
         const completedItems = completedTasks;
 
@@ -39,18 +43,48 @@ exports.getSummary = async (req, res) => {
         let focusScore = 0;
         let overallLifeScore = 0;
 
-        if (totalItems > 0 || totalGoals > 0 || streak > 0) {
-            const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
-            const streakBonus = Math.min(streak * 10, 30);
-            const goalsBonus = Math.min(completedGoals * 15, 20);
+        // Improved Life Score calculation that factors in multiple signals
+        const completionRate = totalItems > 0 ? (completedItems / totalItems) * 100 : 0;
+        const streakBonus = Math.min(streak * 5, 25);
+        const goalsBonus = Math.min(activeGoals * 5, 15);
+        const completedGoalsBonus = Math.min(completedGoals * 10, 20);
+        // Activity engagement: having logged activities shows engagement
+        const activityBonus = Math.min(Math.floor(activityLogCount / 2), 15);
+        // XP/Level bonus: reward progression
+        const levelBonus = Math.min((userLevel - 1) * 5, 15);
 
-            disciplineScore = Math.min(100, Math.round((totalItems > 0 ? (completedItems / totalItems) * 70 : 0) + streakBonus));
-            growthScore = Math.min(100, Math.round((totalGoals > 0 ? (completedGoals / totalGoals) * 70 : 0) + goalsBonus));
-            healthScore = Math.min(100, Math.round(streak > 0 ? 50 : 0));
-            focusScore = Math.min(100, Math.round(totalItems > 0 ? (completedItems / totalItems) * 100 : 0));
+        disciplineScore = Math.min(100, Math.round(
+            (totalItems > 0 ? (completedItems / totalItems) * 50 : 0) +
+            streakBonus +
+            activityBonus
+        ));
 
-            overallLifeScore = Math.min(100, Math.round((completionRate * 0.5) + streakBonus + goalsBonus));
-        }
+        growthScore = Math.min(100, Math.round(
+            (totalGoals > 0 ? (completedGoals / totalGoals) * 50 : 0) +
+            completedGoalsBonus +
+            goalsBonus
+        ));
+
+        healthScore = Math.min(100, Math.round(
+            (streak > 0 ? 30 : 0) +
+            (streak >= 7 ? 20 : 0) +
+            activityBonus
+        ));
+
+        focusScore = Math.min(100, Math.round(
+            (totalItems > 0 ? (completedItems / totalItems) * 70 : 0) +
+            (activityLogCount > 0 ? 20 : 0) +
+            levelBonus
+        ));
+
+        overallLifeScore = Math.min(100, Math.round(
+            (completionRate * 0.3) +
+            streakBonus +
+            goalsBonus +
+            completedGoalsBonus +
+            activityBonus +
+            levelBonus
+        ));
 
         res.status(200).json({
             lifeScore: overallLifeScore,
@@ -65,8 +99,8 @@ exports.getSummary = async (req, res) => {
             completedMilestones,
             totalTasks,
             completedTasks,
-            level: user.level || 1,
-            xp: user.xp || 0,
+            level: userLevel,
+            xp: userXP,
             streak: streak,
             graceTokens: user.grace_tokens || 0
         });

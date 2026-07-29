@@ -10,10 +10,6 @@ exports.toggleTask = async (req, res) => {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        if (!task.is_completed) {
-
-        }
-
         task.is_completed = !task.is_completed;
         await task.save();
 
@@ -24,7 +20,66 @@ exports.toggleTask = async (req, res) => {
                 action_type: 'daily_task_completed',
                 xp_awarded: xpReward
             });
-            await User.increment({ xp: xpReward }, { where: { id: req.user.id } });
+
+            // --- Level-Up Logic ---
+            const user = await User.findByPk(req.user.id);
+            let newXP = (user.xp || 0) + xpReward;
+            let newLevel = user.level || 1;
+
+            // Check level up (XP threshold = Level * 100)
+            while (newXP >= newLevel * 100) {
+                newXP -= newLevel * 100;
+                newLevel += 1;
+            }
+
+            // --- Streak Logic ---
+            // Check if user had any activity yesterday
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            yesterday.setHours(0, 0, 0, 0);
+            const yesterdayEnd = new Date(yesterday);
+            yesterdayEnd.setHours(23, 59, 59, 999);
+
+            const yesterdayActivity = await ActivityLog.findOne({
+                where: {
+                    user_id: req.user.id,
+                    createdAt: { [Op.between]: [yesterday, yesterdayEnd] }
+                }
+            });
+
+            let newStreak = user.current_streak || 0;
+
+            // Check if we already counted today's activity for streak
+            const todayStart = new Date();
+            todayStart.setHours(0, 0, 0, 0);
+            const todayEnd = new Date();
+            todayEnd.setHours(23, 59, 59, 999);
+
+            const todayActivityCount = await ActivityLog.count({
+                where: {
+                    user_id: req.user.id,
+                    action_type: 'daily_task_completed',
+                    createdAt: { [Op.between]: [todayStart, todayEnd] }
+                }
+            });
+
+            // Only update streak on the FIRST task completion of the day
+            if (todayActivityCount <= 1) {
+                if (yesterdayActivity) {
+                    newStreak = newStreak + 1;
+                } else {
+                    newStreak = 1; // Reset streak, but today counts as day 1
+                }
+            }
+
+            const newLongestStreak = Math.max(user.longest_streak || 0, newStreak);
+
+            await user.update({
+                xp: newXP,
+                level: newLevel,
+                current_streak: newStreak,
+                longest_streak: newLongestStreak
+            });
         }
 
         res.status(200).json(task);

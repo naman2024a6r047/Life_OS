@@ -142,19 +142,19 @@ export default function GymDashboard() {
   // Default Weekly Plan Template
   const defaultWeeklyPlan = {
     Monday: { title: 'Push Day', focus: 'Chest • Shoulders • Triceps', exercises: [
-      { id: 'ex_1', name: 'Barbell Bench Press', sets: 4, reps: 10, targetWeight: '80', completed: true },
-      { id: 'ex_2', name: 'Dumbbell Shoulder Press', sets: 3, reps: 12, targetWeight: '24', completed: true },
+      { id: 'ex_1', name: 'Barbell Bench Press', sets: 4, reps: 10, targetWeight: '80' },
+      { id: 'ex_2', name: 'Dumbbell Shoulder Press', sets: 3, reps: 12, targetWeight: '24' },
     ]},
     Tuesday: { title: 'Pull Day', focus: 'Back • Biceps • Rear Delts', exercises: [
-      { id: 'ex_3', name: 'Pull Up', sets: 4, reps: 10, targetWeight: 'BW', completed: false },
-      { id: 'ex_5', name: 'Deadlift', sets: 3, reps: 8, targetWeight: '120', completed: false },
+      { id: 'ex_3', name: 'Pull Up', sets: 4, reps: 10, targetWeight: 'BW' },
+      { id: 'ex_5', name: 'Deadlift', sets: 3, reps: 8, targetWeight: '120' },
     ]},
     Wednesday: { title: 'Leg Day', focus: 'Quads • Hamstrings • Calves', exercises: [
-      { id: 'ex_2', name: 'Barbell Back Squat', sets: 4, reps: 10, targetWeight: '100', completed: false },
+      { id: 'ex_2', name: 'Barbell Back Squat', sets: 4, reps: 10, targetWeight: '100' },
     ]},
     Thursday: { title: 'Rest Day', focus: 'Active Recovery & Mobility', exercises: [] },
     Friday: { title: 'Upper Body Strength', focus: 'Chest • Back • Arms', exercises: [
-      { id: 'ex_1', name: 'Barbell Bench Press', sets: 4, reps: 8, targetWeight: '85', completed: false },
+      { id: 'ex_1', name: 'Barbell Bench Press', sets: 4, reps: 8, targetWeight: '85' },
     ]},
     Saturday: { title: 'Lower Body & Core', focus: 'Legs • Abs', exercises: [] },
     Sunday: { title: 'Rest Day', focus: 'Recovery', exercises: [] },
@@ -188,6 +188,16 @@ export default function GymDashboard() {
     const saved = localStorage.getItem(workoutStorageKey);
     return saved ? JSON.parse(saved) : [];
   });
+
+  // Date-keyed daily completion state: { "2026-07-29": { "ex_1": true, "ex_3": false } }
+  const dailyCompletionsKey = user?.id ? `lifeos_user_${user.id}_gym_daily_completions` : 'lifeos_demo_gym_daily_completions';
+  const [dailyCompletions, setDailyCompletions] = useState(() => {
+    const saved = localStorage.getItem(dailyCompletionsKey);
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  // Today's date string for date-keying
+  const todayDateStr = new Date().toLocaleDateString('en-CA'); // YYYY-MM-DD local
 
   const [userProfile, setUserProfile] = useState(() => {
     const savedProf = localStorage.getItem(profileStorageKey);
@@ -267,6 +277,11 @@ export default function GymDashboard() {
     }
   }, [workoutsList, isDemoAccount, user?.id, workoutStorageKey]);
 
+  // Persist daily completions
+  useEffect(() => {
+    localStorage.setItem(dailyCompletionsKey, JSON.stringify(dailyCompletions));
+  }, [dailyCompletions, dailyCompletionsKey]);
+
   useEffect(() => {
     if (!isDemoAccount && user?.id) {
       localStorage.setItem(profileStorageKey, JSON.stringify(userProfile));
@@ -341,21 +356,34 @@ export default function GymDashboard() {
     setShowExerciseModal(false);
   };
 
-  // One-Click Checkbox Logging Function & PR Carryover Logic
+  // Toggle exercise completion — ONLY for today's date
   const handleToggleExerciseCheckbox = (day, exerciseId) => {
-    const updatedPlan = { ...weeklyPlan };
-    const dayExList = updatedPlan[day].exercises;
-    const targetEx = dayExList.find(e => e.id === exerciseId);
+    // Determine the date for the selected plan day
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayDayName = new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date());
 
-    if (targetEx) {
-      targetEx.completed = !targetEx.completed;
-      setWeeklyPlan(updatedPlan);
+    // Only allow toggling for TODAY — not future or past
+    if (day !== todayDayName) return;
 
-      if (targetEx.completed) {
+    const exerciseWasCompleted = dailyCompletions[todayDateStr]?.[exerciseId] || false;
+    const nowCompleted = !exerciseWasCompleted;
+
+    setDailyCompletions(prev => ({
+      ...prev,
+      [todayDateStr]: {
+        ...(prev[todayDateStr] || {}),
+        [exerciseId]: nowCompleted
+      }
+    }));
+
+    // PR carryover logic
+    if (nowCompleted) {
+      const dayExList = weeklyPlan[day]?.exercises || [];
+      const targetEx = dayExList.find(e => e.id === exerciseId);
+      if (targetEx) {
         const weightNum = parseFloat(targetEx.loggedWeight || targetEx.targetWeight) || 0;
         const exName = targetEx.name;
         const oldPR = personalRecords[exName];
-
         if (!oldPR || weightNum > oldPR.weight) {
           const newPRRecord = { weight: weightNum, date: 'Today' };
           setPersonalRecords(prev => ({ ...prev, [exName]: newPRRecord }));
@@ -364,6 +392,29 @@ export default function GymDashboard() {
         }
       }
     }
+  };
+
+  // Helper: is a given weekday in the future relative to today?
+  const isFutureDay = (dayName) => {
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayIdx = new Date().getDay(); // 0=Sun
+    const targetIdx = daysOfWeek.indexOf(dayName);
+    // Calculate days ahead in the current week
+    const diff = (targetIdx - todayIdx + 7) % 7;
+    return diff > 0; // strictly in the future this week
+  };
+
+  // Helper: get the date string for a given weekday name in the current week
+  const getDateForWeekday = (dayName) => {
+    const daysOfWeek = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const todayIdx = new Date().getDay();
+    const targetIdx = daysOfWeek.indexOf(dayName);
+    const diff = (targetIdx - todayIdx + 7) % 7;
+    const d = new Date();
+    d.setDate(d.getDate() - (diff === 0 ? 0 : 7 - diff)); // past or today
+    // For future days (diff > 0) just return empty so no completions
+    if (diff > 0) return null;
+    return d.toLocaleDateString('en-CA');
   };
 
   // Add Exercise to Weekly Plan
@@ -900,22 +951,36 @@ export default function GymDashboard() {
 
             {weeklyPlan[selectedPlanDay]?.exercises?.length > 0 ? (
               <div className="space-y-2.5">
-                {weeklyPlan[selectedPlanDay].exercises.map((ex) => (
+                {weeklyPlan[selectedPlanDay].exercises.map((ex) => {
+                  const targetDateStr = getDateForWeekday(selectedPlanDay);
+                  const isFuture = isFutureDay(selectedPlanDay);
+                  const isToday = selectedPlanDay === currentWeekday;
+                  const isExCompleted = targetDateStr ? (dailyCompletions[targetDateStr]?.[ex.id] || false) : false;
+                  
+                  return (
                   <div key={ex.id} className={`flex items-center justify-between p-3.5 rounded-2xl border transition-all ${
-                    ex.completed ? 'bg-success/10 border-success/30' : 'bg-surface-elevated border-border-subtle hover:border-purple/40'
+                    isExCompleted ? 'bg-success/10 border-success/30' : 'bg-surface-elevated border-border-subtle hover:border-purple/40'
                   }`}>
                     <div className="flex items-center gap-3.5">
-                      <button
-                        onClick={() => handleToggleExerciseCheckbox(selectedPlanDay, ex.id)}
-                        className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-                          ex.completed ? 'bg-success text-white shadow-glow-success' : 'border-2 border-border-subtle bg-surface hover:border-purple'
-                        }`}
-                      >
-                        {ex.completed && <FiCheck size={16} className="stroke-[3]" />}
-                      </button>
+                      {isFuture ? (
+                        <div className="w-7 h-7 rounded-xl flex items-center justify-center border-2 border-border-subtle bg-surface shrink-0 opacity-50" title="Future days cannot be logged yet">
+                           <FiClock size={14} className="text-text-muted" />
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleToggleExerciseCheckbox(selectedPlanDay, ex.id)}
+                          disabled={!isToday}
+                          className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all shrink-0 ${
+                            isExCompleted ? 'bg-success text-white shadow-glow-success' : 'border-2 border-border-subtle bg-surface hover:border-purple'
+                          } ${!isToday ? 'opacity-75 cursor-not-allowed' : ''}`}
+                          title={!isToday ? "Only today's exercises can be toggled" : ""}
+                        >
+                          {isExCompleted && <FiCheck size={16} className="stroke-[3]" />}
+                        </button>
+                      )}
 
                       <div className="flex-1 min-w-0">
-                        <p className={`text-sm font-bold truncate ${ex.completed ? 'line-through text-text-muted' : 'text-text-primary'}`}>
+                        <p className={`text-sm font-bold truncate ${isExCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
                           {ex.name}
                         </p>
                         <div className="text-xs text-text-muted font-mono flex items-center gap-1.5 mt-0.5 flex-wrap">
@@ -930,7 +995,7 @@ export default function GymDashboard() {
                               className="bg-transparent text-text-primary w-10 text-center outline-none font-bold placeholder-text-muted disabled:opacity-50"
                               placeholder={ex.targetWeight}
                               value={ex.loggedWeight || ''}
-                              disabled={ex.completed}
+                              disabled={isExCompleted || isFuture}
                               onChange={(e) => {
                                 const val = e.target.value;
                                 setWeeklyPlan(prev => ({
@@ -971,7 +1036,7 @@ export default function GymDashboard() {
                       </button>
                     </div>
                   </div>
-                ))}
+                )})}
               </div>
             ) : (
               <div className="text-center py-10 text-xs text-text-muted space-y-2">

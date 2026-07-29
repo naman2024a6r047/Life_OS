@@ -54,6 +54,21 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    // Refresh user profile from DB (call this to get latest xp/level/streak)
+    const refreshUser = async () => {
+        if (!session?.access_token) return;
+        try {
+            const res = await axios.get('/api/auth/profile', {
+                headers: { Authorization: `Bearer ${session.access_token}` }
+            });
+            if (res.data) {
+                setUser(prev => ({ ...prev, ...res.data }));
+            }
+        } catch (error) {
+            console.warn('refreshUser failed, silently ignoring:', error?.response?.status);
+        }
+    };
+
     // Initialize — check for existing Supabase session
     useEffect(() => {
         const initAuth = async () => {
@@ -201,7 +216,7 @@ export const AuthProvider = ({ children }) => {
     const isExamMode = user?.is_in_exam_mode || false;
 
     return (
-        <AuthContext.Provider value={{ user, setUser, session, login, loginWithGoogle, loginDemo, register, logout, loading, isExamMode }}>
+        <AuthContext.Provider value={{ user, setUser, session, login, loginWithGoogle, loginDemo, register, logout, loading, isExamMode, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

@@ -224,7 +224,7 @@ function XPBreakdown({ xp, breakdown = [] }) {
 // --- Main Dashboard ---
 
 export default function Dashboard() {
-  const { user } = useContext(AuthContext);
+  const { user, refreshUser } = useContext(AuthContext);
   const [challenges, setChallenges] = useState([]);
   const [analytics, setAnalytics] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -265,6 +265,8 @@ export default function Dashboard() {
       }
     };
     fetchData();
+    // Refresh user profile so header shows latest level/xp/streak from DB
+    refreshUser();
   }, []);
 
   const activeChallenge = challenges.find(c => c.status === 'active') || challenges[0];

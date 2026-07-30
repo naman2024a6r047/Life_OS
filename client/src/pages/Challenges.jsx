@@ -833,6 +833,18 @@ export default function Challenges() {
   const tasks = activeMilestone?.tasks || activeMilestone?.MilestoneTasks || [];
   
   const completedTasks = tasks.filter(t => t.is_completed).length;
+
+  // Calculate Total Studied Hours across the entire goal
+  const totalStudiedHours = useMemo(() => {
+    let total = 0;
+    milestones.forEach(m => {
+      const mTasks = m.tasks || m.MilestoneTasks || [];
+      mTasks.forEach(t => {
+        total += (t.actual_hours || 0);
+      });
+    });
+    return total;
+  }, [milestones]);
   const totalTasks = tasks.length;
   const dayOffset = activeMilestoneIdx * 10;
   
@@ -1535,6 +1547,7 @@ export default function Challenges() {
                     { icon: '⭐', label: 'Reward Pool', value: `${totalDays * 50} XP` },
                     { icon: '🔥', label: 'Active Streak', value: `${streak} Days` },
                     { icon: '✅', label: 'Milestone Progress', value: `${completedTasks} / ${totalTasks || totalDays} Tasks` },
+                    { icon: '⏳', label: 'Total Hours Studied', value: `${totalStudiedHours} Hrs` },
                     { icon: '🛡️', label: 'Penalty Mode', value: selectedChallenge.penalty_mode === 'hard' ? 'Hard (1 Skip Restart)' : selectedChallenge.penalty_mode === 'medium' ? 'Medium (2 Skips Restart)' : 'Easy (No Restart)' },
                   ].map((item, i) => (
                     <div key={i} className="flex items-center gap-3 py-1">

@@ -287,6 +287,45 @@ const calcCurrentDay = (startDate, endDate) => {
   return Math.max(1, Math.min(total, diff));
 };
 
+const calcProgressDay = (challenge) => {
+  if (!challenge) return 1;
+  const allTasks = [];
+  (challenge.milestones || challenge.Milestones || []).forEach(m => {
+    const mTasks = m.tasks || m.MilestoneTasks || [];
+    allTasks.push(...mTasks);
+  });
+  
+  if (allTasks.length === 0) {
+    return calcCurrentDay(challenge.start_date, challenge.end_date);
+  }
+
+  const groups = {};
+  let challengeStart = challenge.start_date ? new Date(challenge.start_date) : null;
+  if (challengeStart) challengeStart.setHours(0, 0, 0, 0);
+
+  allTasks.forEach(task => {
+    let dayNum = 1;
+    if (task.date && challengeStart) {
+      const tDate = new Date(task.date);
+      tDate.setHours(0, 0, 0, 0);
+      dayNum = Math.round((tDate - challengeStart) / 86400000) + 1;
+    }
+    if (!groups[dayNum]) groups[dayNum] = [];
+    groups[dayNum].push(task);
+  });
+
+  const dayKeys = Object.keys(groups).map(Number).sort((a,b) => a - b);
+  let completedCount = 0;
+  for (const k of dayKeys) {
+    if (groups[k].every(t => t.is_completed)) {
+      completedCount++;
+    } else {
+      break;
+    }
+  }
+  return completedCount + 1;
+};
+
 // --- Toast Manager ---
 function ToastContainer({ toasts, removeToast }) {
   return (
@@ -697,7 +736,7 @@ function TaskRow({ task, onToggle, onOpenDetail, onUpdateActualHours, isLocked }
         </p>
 
         {!isLocked && (
-          <div className="flex items-center gap-1.5 transition-opacity">
+          <div className="flex items-center gap-1.5 transition-opacity opacity-0 group-hover:opacity-100">
             <span className="text-[10px] text-text-muted font-bold uppercase">Studied:</span>
             <input 
               type="number"
@@ -874,7 +913,7 @@ export default function Challenges() {
   }, [tasks, dayOffset, selectedChallenge?.start_date]);
 
   const totalDays = selectedChallenge ? calcTotalDays(selectedChallenge.start_date, selectedChallenge.end_date) : 30;
-  const currentDay = selectedChallenge ? calcCurrentDay(selectedChallenge.start_date, selectedChallenge.end_date) : 1;
+  const currentDay = selectedChallenge ? calcProgressDay(selectedChallenge) : 1;
   const overallProgress = Math.min(100, Math.round((currentDay / totalDays) * 100)) || 0;
 
   // Stats Counters
@@ -1195,7 +1234,7 @@ export default function Challenges() {
               {filteredChallenges.map(ch => {
                 const isSelected = ch.id === selectedChallenge?.id;
                 const chDays = calcTotalDays(ch.start_date, ch.end_date);
-                const chCurrentDay = calcCurrentDay(ch.start_date, ch.end_date);
+                const chCurrentDay = calcProgressDay(ch);
                 const chProgress = Math.min(100, Math.round((chCurrentDay / chDays) * 100)) || 0;
 
                 return (
@@ -1425,10 +1464,11 @@ export default function Challenges() {
                   {/* Task Rows Grouped by Day */}
                   {tasks.length > 0 ? (
                     <div className="p-4 space-y-4 bg-surface-elevated/20">
-                      {Object.keys(groupedTasks).sort((a,b)=>a-b).map((dayKey) => {
+                      {Object.keys(groupedTasks).sort((a,b)=>a-b).map((dayKey, index) => {
                         const dayTasks = groupedTasks[dayKey];
                         const dayCompleted = isMilestoneLocked ? dayTasks.length : dayTasks.filter(t => t.is_completed).length;
                         const isAllDone = dayCompleted === dayTasks.length;
+                        const displayDayNum = index + 1 + dayOffset; // Sequentially number the days in the milestone
                         return (
                           <div key={dayKey} className={`border rounded-xl overflow-hidden shadow-lg transition-all ${isAllDone ? 'border-success/30 bg-success/5' : 'border-border-subtle bg-surface'}`}>
                             <div className={`px-4 py-3 flex items-center justify-between border-b ${isAllDone ? 'bg-success/10 border-success/20' : 'bg-surface-elevated border-border-subtle'}`}>
@@ -1444,7 +1484,7 @@ export default function Challenges() {
                                   <FiCheck size={12} strokeWidth={3} />
                                 </button>
                                 <h4 className={`font-bold text-sm ${isAllDone ? 'text-success' : 'text-text-primary'}`}>
-                                  Day {dayKey} Checklist
+                                  Day {displayDayNum} Checklist
                                   <span className="text-text-muted text-[10px] font-normal uppercase tracking-wider ml-2">({dayTasks.length} Tasks)</span>
                                 </h4>
                               </div>

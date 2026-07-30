@@ -5,15 +5,21 @@ const {
 
 exports.activateExamMode = async (req, res) => {
     try {
+        console.log(`[ExamMode] Activate requested by user: ${req.user.id}`);
         const { reason, exam_type, start_date, end_date } = req.body;
         const defaultReason = (reason && reason.trim()) ? reason : 'Exam Prep';
+
+        console.log(`[ExamMode] Request payload:`, req.body);
 
         // Ensure user is not already in exam mode
         let session = await ExamSession.findOne({ 
             where: { user_id: req.user.id, is_active: true } 
         });
 
+        console.log(`[ExamMode] Found existing session? ${!!session}`);
+
         if (!session) {
+            console.log(`[ExamMode] Creating new session...`);
             session = await ExamSession.create({
                 user_id: req.user.id,
                 reason: defaultReason,
@@ -22,18 +28,23 @@ exports.activateExamMode = async (req, res) => {
                 end_date: end_date || new Date(Date.now() + 14 * 86400000),
                 is_active: true
             });
+            console.log(`[ExamMode] New session created: ${session.id}`);
         }
 
         // Update User model flag
+        console.log(`[ExamMode] Updating User flag...`);
         await User.update(
             { is_in_exam_mode: true },
             { where: { id: req.user.id } }
         );
 
         // 1. Freeze Challenges
+        console.log(`[ExamMode] Fetching active challenges...`);
         const activeChallenges = await Challenge.findAll({
             where: { user_id: req.user.id, status: 'active' }
         });
+
+        console.log(`[ExamMode] Found ${activeChallenges.length} active challenges to freeze.`);
 
         const pauseStates = activeChallenges.map(challenge => ({
             user_id: req.user.id,
@@ -44,17 +55,20 @@ exports.activateExamMode = async (req, res) => {
         }));
 
         if (pauseStates.length > 0) {
+            console.log(`[ExamMode] Creating pause states...`);
             await ActivityPauseState.bulkCreate(pauseStates);
+            console.log(`[ExamMode] Updating challenge statuses to paused...`);
             await Challenge.update(
                 { status: 'paused' },
                 { where: { user_id: req.user.id, status: 'active' } }
             );
         }
 
+        console.log(`[ExamMode] Activation completed successfully!`);
         res.status(201).json({ message: 'Exam mode activated. All activities paused under Exam Prep.', session });
     } catch (error) {
         console.error('Activate Exam Mode Error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
 
@@ -94,11 +108,22 @@ exports.deactivateExamMode = async (req, res) => {
             const challengeIds = pausedChallenges.map(p => p.activity_id);
             
             if (challengeIds.length > 0) {
-                await Challenge.update(
-                    { status: 'active' },
-                    { where: { id: challengeIds } }
-                );
-                console.log('[ExamMode] Challenges set to active.');
+                // Fetch the actual challenges to read their old dates before shifting
+                const challengesToUpdate = await Challenge.findAll({ where: { id: challengeIds } });
+                await Promise.all(challengesToUpdate.map(async (c) => {
+                    const cStart = new Date(c.start_date);
+                    cStart.setDate(cStart.getDate() + elapsedDays);
+
+                    const cEnd = new Date(c.end_date);
+                    cEnd.setDate(cEnd.getDate() + elapsedDays);
+
+                    return c.update({
+                        status: 'active',
+                        start_date: cStart,
+                        end_date: cEnd
+                    });
+                }));
+                console.log('[ExamMode] Challenges set to active and dates shifted.');
 
                 // Fetch Milestones and push their start_date and deadline forward by elapsedDays
                 const milestones = await Milestone.findAll({

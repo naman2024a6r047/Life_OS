@@ -129,15 +129,19 @@ export default function MuscleDiagram({
       if (isHovered) {
         group.style.fill = 'url(#hoverGradient)';
         group.style.filter = 'drop-shadow(0px 0px 8px rgba(192, 132, 252, 0.9))';
+          group.style.opacity = '1';
       } else if (status === 'primary') {
         group.style.fill = 'url(#primaryGradient)';
         group.style.filter = 'drop-shadow(0px 0px 7px rgba(168, 85, 247, 0.85))';
+          group.style.opacity = '1';
       } else if (status === 'secondary') {
         group.style.fill = 'url(#secondaryGradient)';
         group.style.filter = 'drop-shadow(0px 0px 5px rgba(56, 189, 248, 0.65))';
+          group.style.opacity = '1';
       } else {
         group.style.fill = 'url(#inactiveGradient)';
         group.style.filter = 'none';
+          group.style.opacity = '0.35';
       }
     });
   }); // Run on every render to ensure styles update
@@ -407,15 +411,15 @@ export default function MuscleDiagram({
     <div ref={svgContainerRef} className="relative w-full h-full flex flex-col items-center justify-center select-none overflow-visible">
       {/* PERFECT CENTER DIVIDER */}
       {viewMode === 'both' && (
-        <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border-subtle -translate-x-1/2 pointer-events-none" />
+        <div className="absolute left-1/2 top-4 bottom-12 w-px bg-border-subtle -translate-x-1/2 pointer-events-none" />
       )}
 
       {/* GRID FOR EQUAL SIZING AND HORIZONTAL SPACING */}
-      <div className={`relative w-full h-full ${viewMode === 'both' ? 'grid grid-cols-2 gap-10 px-4' : 'flex justify-center items-center'}`}>
+      <div className={`relative w-full h-full -mt-6 ${viewMode === 'both' ? 'grid grid-cols-2 gap-10 px-4' : 'flex justify-center items-center'}`}>
         
         {/* FRONT ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'front') && (
-          <div className="w-full h-full flex items-center justify-center">
+          <div className="w-full h-full flex items-center justify-center" style={{ transform: 'scale(0.94) translateY(3%)' }}>
             <div 
               className="w-full h-full flex justify-center items-center"
               dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="h-full w-auto max-h-full filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]" preserveAspectRatio="xMidYMid meet" ').replace('</style>', '</style><defs><linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient><linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0ea5e9" /></linearGradient><linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#52525b" /><stop offset="100%" stopColor="#27272a" /></linearGradient><linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d8b4fe" /><stop offset="100%" stopColor="#c084fc" /></linearGradient></defs>') }} 

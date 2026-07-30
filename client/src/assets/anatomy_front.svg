@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 900" fill-rule="evenodd" clip-rule="evenodd">
+  <style>.muscle path { stroke: #1a1c28; stroke-width: 1.2; }</style>
+  <g id="head" class="muscle" data-muscle="head" fill="#4a5068">
+    <path id="head-0" d="M200,50 L200,60"/>
+  </g>
+  <g id="neck" class="muscle" data-muscle="neck" fill="#4a5068">
+    <path id="neck-left-0" d="M190,70 L190,80"/>
+    <path id="neck-right-0" d="M210,70 L210,80"/>
+  </g>
+  <g id="trapezius" class="muscle" data-muscle="trapezius" fill="#4a5068">
+    <path id="trapezius-left-0" d="M180,80 L180,90"/>
+    <path id="trapezius-right-0" d="M220,80 L220,90"/>
+  </g>
+  <g id="deltoids" class="muscle" data-muscle="deltoids" fill="#4a5068">
+    <path id="deltoids-left-0" d="M150,100 L150,110"/>
+    <path id="deltoids-right-0" d="M250,100 L250,110"/>
+  </g>
+  <g id="chest" class="muscle" data-muscle="chest" fill="#4a5068">
+    <path id="chest-left-0" d="M170,120 L170,130"/>
+    <path id="chest-right-0" d="M230,120 L230,130"/>
+  </g>
+  <g id="abs" class="muscle" data-muscle="abs" fill="#4a5068">
+    <path id="abs-left-0" d="M190,150 L190,160"/>
+    <path id="abs-right-0" d="M210,150 L210,160"/>
+  </g>
+  <g id="obliques" class="muscle" data-muscle="obliques" fill="#4a5068">
+    <path id="obliques-left-0" d="M170,150 L170,160"/>
+    <path id="obliques-right-0" d="M230,150 L230,160"/>
+  </g>
+  <g id="biceps" class="muscle" data-muscle="biceps" fill="#4a5068">
+    <path id="biceps-left-0" d="M140,150 L140,160"/>
+    <path id="biceps-right-0" d="M260,150 L260,160"/>
+  </g>
+  <g id="forearm" class="muscle" data-muscle="forearm" fill="#4a5068">
+    <path id="forearm-left-0" d="M130,200 L130,210"/>
+    <path id="forearm-right-0" d="M270,200 L270,210"/>
+  </g>
+  <g id="hands" class="muscle" data-muscle="hands" fill="#4a5068">
+    <path id="hands-left-0" d="M120,250 L120,260"/>
+    <path id="hands-right-0" d="M280,250 L280,260"/>
+  </g>
+  <g id="adductors" class="muscle" data-muscle="adductors" fill="#4a5068">
+    <path id="adductors-left-0" d="M190,250 L190,260"/>
+    <path id="adductors-right-0" d="M210,250 L210,260"/>
+  </g>
+  <g id="quadriceps" class="muscle" data-muscle="quadriceps" fill="#4a5068">
+    <path id="quadriceps-left-0" d="M170,300 L170,310"/>
+    <path id="quadriceps-right-0" d="M230,300 L230,310"/>
+  </g>
+  <g id="shins" class="muscle" data-muscle="shins" fill="#4a5068">
+    <path id="shins-left-0" d="M170,400 L170,410"/>
+    <path id="shins-right-0" d="M230,400 L230,410"/>
+  </g>
+  <g id="ankles" class="muscle" data-muscle="ankles" fill="#4a5068">
+    <path id="ankles-left-0" d="M170,450 L170,460"/>
+    <path id="ankles-right-0" d="M230,450 L230,460"/>
+  </g>
+  <g id="feet" class="muscle" data-muscle="feet" fill="#4a5068">
+    <path id="feet-left-0" d="M170,480 L170,490"/>
+    <path id="feet-right-0" d="M230,480 L230,490"/>
+  </g>
+</svg>

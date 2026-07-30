@@ -1,37 +1,18 @@
 require('dotenv').config();
 const { sequelize } = require('./src/models');
-const CodingProfile = require('./src/models/CodingProfile');
 
 async function fix() {
-    try {
-        await sequelize.authenticate();
-        // find all profiles
-        const profiles = await CodingProfile.findAll();
-        
-        // group by user_id
-        const userProfiles = {};
-        for (const p of profiles) {
-            if (!userProfiles[p.user_id]) userProfiles[p.user_id] = [];
-            userProfiles[p.user_id].push(p);
-        }
-        
-        // delete duplicates
-        for (const [userId, prs] of Object.entries(userProfiles)) {
-            if (prs.length > 1) {
-                console.log(`Found ${prs.length} profiles for user ${userId}. Deleting duplicates...`);
-                // keep the first one, delete the rest
-                for (let i = 1; i < prs.length; i++) {
-                    await prs[i].destroy();
-                    console.log(`Deleted profile ${prs[i].id}`);
-                }
-            }
-        }
-        
-        console.log('Fixed database.');
+  try {
+    await sequelize.query('ALTER TABLE "MilestoneTasks" ADD COLUMN actual_hours FLOAT DEFAULT 0 NOT NULL;');
+    console.log('Column added');
+    process.exit(0);
+  } catch(e) {
+    if (e.message && e.message.includes('already exists')) {
+        console.log('Column already exists');
         process.exit(0);
-    } catch (e) {
-        console.error(e);
-        process.exit(1);
     }
+    console.error(e);
+    process.exit(1);
+  }
 }
 fix();

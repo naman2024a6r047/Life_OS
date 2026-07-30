@@ -60,15 +60,18 @@ exports.activateExamMode = async (req, res) => {
 
 exports.deactivateExamMode = async (req, res) => {
     try {
+        console.log(`[ExamMode] Deactivating exam mode for user: ${req.user.id}`);
         // ALWAYS reset User flag first so user is never trapped
         await User.update(
             { is_in_exam_mode: false },
             { where: { id: req.user.id } }
         );
+        console.log('[ExamMode] User flag reset.');
 
         const session = await ExamSession.findOne({
             where: { user_id: req.user.id, is_active: true }
         });
+        console.log(`[ExamMode] Found active session: ${session ? session.id : 'None'}`);
 
         if (session) {
             // Calculate days spent in Exam Mode
@@ -76,14 +79,17 @@ exports.deactivateExamMode = async (req, res) => {
             const now = new Date();
             const elapsedMs = Math.max(0, now - sessionStart);
             const elapsedDays = Math.max(1, Math.ceil(elapsedMs / (1000 * 60 * 60 * 24)));
+            console.log(`[ExamMode] Elapsed days calculated: ${elapsedDays}`);
 
             session.is_active = false;
             await session.save();
+            console.log('[ExamMode] Session marked inactive.');
 
             // 1. Unfreeze Challenges & Shift Dates Forward by elapsedDays
             const pausedChallenges = await ActivityPauseState.findAll({
                 where: { user_id: req.user.id, exam_session_id: session.id, activity_type: 'Challenge' }
             });
+            console.log(`[ExamMode] Found ${pausedChallenges.length} paused challenges.`);
 
             const challengeIds = pausedChallenges.map(p => p.activity_id);
             
@@ -92,38 +98,51 @@ exports.deactivateExamMode = async (req, res) => {
                     { status: 'active' },
                     { where: { id: challengeIds } }
                 );
+                console.log('[ExamMode] Challenges set to active.');
 
                 // Fetch Milestones and push their start_date and deadline forward by elapsedDays
                 const milestones = await Milestone.findAll({
                     where: { challenge_id: challengeIds }
                 });
+                console.log(`[ExamMode] Found ${milestones.length} milestones to shift.`);
 
-                for (const m of milestones) {
+                // Update all milestones in parallel
+                await Promise.all(milestones.map(async (m) => {
                     const newStart = new Date(m.start_date);
                     newStart.setDate(newStart.getDate() + elapsedDays);
 
                     const newDeadline = new Date(m.deadline);
                     newDeadline.setDate(newDeadline.getDate() + elapsedDays);
 
-                    await m.update({
+                    return m.update({
                         start_date: newStart,
                         deadline: newDeadline
                     });
+                }));
 
-                    // Also shift MilestoneTask dates forward
+                // Fetch all tasks for all milestones at once
+                const milestoneIds = milestones.map(m => m.id);
+                if (milestoneIds.length > 0) {
                     const tasks = await MilestoneTask.findAll({
-                        where: { milestone_id: m.id }
+                        where: { milestone_id: milestoneIds }
                     });
-                    for (const t of tasks) {
+                    
+                    console.log(`[ExamMode] Found ${tasks.length} tasks to shift.`);
+
+                    // Update all tasks in parallel
+                    const taskUpdatePromises = tasks.map(async (t) => {
                         if (t.date) {
                             const taskDate = new Date(t.date);
                             taskDate.setDate(taskDate.getDate() + elapsedDays);
-                            await t.update({
+                            return t.update({
                                 date: taskDate.toISOString().split('T')[0]
                             });
                         }
-                    }
+                    });
+
+                    await Promise.all(taskUpdatePromises);
                 }
+                console.log('[ExamMode] Milestones and tasks shifted in parallel.');
             }
         }
 
@@ -132,6 +151,7 @@ exports.deactivateExamMode = async (req, res) => {
             { status: 'active' },
             { where: { user_id: req.user.id, status: 'paused' } }
         );
+        console.log('[ExamMode] Fallback unfreeze completed.');
 
         res.status(200).json({ message: 'Exam mode deactivated. Dates pushed forward seamlessly.' });
     } catch (error) {

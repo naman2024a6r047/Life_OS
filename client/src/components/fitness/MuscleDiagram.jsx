@@ -427,17 +427,15 @@ export default function MuscleDiagram({
 
         {/* FRONT ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'front') && (
-          <g id="front-anatomy" transform={viewMode === 'front' ? "translate(200, 0) scale(1)" : "translate(0, 0)"} dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace(/<svg[^>]*>|</svg>/g, '') }} />
+          <g id="front-anatomy" transform={viewMode === 'front' ? "translate(200, 0) scale(1)" : "translate(0, 0)"} dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace(/<svg[^>]*>|<\/svg>/g, '') }} />
         )}
 
         {/* BACK ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'back') && (
-          <g id="back-anatomy" transform={viewMode === 'back' ? "translate(200, 0) scale(1)" : "translate(400, 0)"} dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace(/<svg[^>]*>|</svg>/g, '') }} />
+          <g id="back-anatomy" transform={viewMode === 'back' ? "translate(200, 0) scale(1)" : "translate(400, 0)"} dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace(/<svg[^>]*>|<\/svg>/g, '') }} />
         )}
       </svg>
-    </div>
-  );
-
+      
       {/* FLOATING GLASSMORPHISM TOOLTIP */}
       <AnimatePresence>
         {currentHoverMeta && (

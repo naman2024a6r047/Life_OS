@@ -417,7 +417,7 @@ export default function MuscleDiagram({
         {(viewMode === 'both' || viewMode === 'front') && (
           <div 
             className={`h-full ${viewMode === 'both' ? 'w-1/2' : 'w-3/4 max-w-[400px]'} flex justify-center`}
-            dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="h-full w-auto max-h-full filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]" preserveAspectRatio="xMidYMid meet" ').replace('</style>', '</style><defs><linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient><linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0ea5e9" /></linearGradient><linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#52525b" /><stop offset="100%" stopColor="#3f3f46" /></linearGradient><linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d8b4fe" /><stop offset="100%" stopColor="#c084fc" /></linearGradient></defs>') }} 
+            dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="h-full w-auto max-h-full filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]" preserveAspectRatio="xMidYMid meet" ').replace('</style>', '</style><defs><linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient><linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0ea5e9" /></linearGradient><linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#71717a" /><stop offset="100%" stopColor="#52525b" /></linearGradient><linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d8b4fe" /><stop offset="100%" stopColor="#c084fc" /></linearGradient></defs>') }} 
           />
         )}
 
@@ -425,7 +425,7 @@ export default function MuscleDiagram({
         {(viewMode === 'both' || viewMode === 'back') && (
           <div 
             className={`h-full ${viewMode === 'both' ? 'w-1/2' : 'w-3/4 max-w-[400px]'} flex justify-center`}
-            dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace('<svg ', '<svg class="h-full w-auto max-h-full filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]" preserveAspectRatio="xMidYMid meet" ').replace('</style>', '</style><defs><linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient><linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0ea5e9" /></linearGradient><linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#52525b" /><stop offset="100%" stopColor="#3f3f46" /></linearGradient><linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d8b4fe" /><stop offset="100%" stopColor="#c084fc" /></linearGradient></defs>') }} 
+            dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace('<svg ', '<svg class="h-full w-auto max-h-full filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]" preserveAspectRatio="xMidYMid meet" ').replace('</style>', '</style><defs><linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient><linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0ea5e9" /></linearGradient><linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#71717a" /><stop offset="100%" stopColor="#52525b" /></linearGradient><linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d8b4fe" /><stop offset="100%" stopColor="#c084fc" /></linearGradient></defs>') }} 
           />
         )}
       </div>
@@ -509,7 +509,7 @@ export default function MuscleDiagram({
         </div>
 
         {/* Compact legend */}
-        <div className="flex items-center justify-center gap-6 pt-6 pb-2 shrink-0">
+        <div className="flex items-center justify-center gap-6 pt-3 pb-2 shrink-0">
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-purple" />
             <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none">Primary</span>

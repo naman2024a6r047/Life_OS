@@ -650,6 +650,12 @@ function MilestoneTimeline({ milestones = [], activeMilestoneIndex = 0, onSelect
 // --- Task Row ---
 function TaskRow({ task, onToggle, onOpenDetail, onUpdateActualHours, isLocked }) {
   const isCompleted = isLocked || task.is_completed;
+  const [localHours, setLocalHours] = useState(task.actual_hours || '');
+
+  // Sync local state if task prop changes externally
+  useEffect(() => {
+    setLocalHours(task.actual_hours || '');
+  }, [task.actual_hours]);
 
   // Extract clean title (remove "Day X • ")
   const match = task.title?.match(/Day[\s\-]*\d+\s*[•\-\:]\s*(.*)/i);
@@ -691,7 +697,7 @@ function TaskRow({ task, onToggle, onOpenDetail, onUpdateActualHours, isLocked }
         </p>
 
         {!isLocked && (
-          <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-1.5 transition-opacity">
             <span className="text-[10px] text-text-muted font-bold uppercase">Studied:</span>
             <input 
               type="number"
@@ -699,8 +705,16 @@ function TaskRow({ task, onToggle, onOpenDetail, onUpdateActualHours, isLocked }
               max="24"
               step="0.5"
               placeholder="Hrs"
-              value={task.actual_hours || ''}
-              onChange={(e) => onUpdateActualHours && onUpdateActualHours(task.id, Number(e.target.value))}
+              value={localHours}
+              onChange={(e) => setLocalHours(e.target.value)}
+              onBlur={() => {
+                if (localHours !== task.actual_hours) {
+                  onUpdateActualHours && onUpdateActualHours(task.id, Number(localHours));
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') e.target.blur();
+              }}
               onClick={(e) => e.stopPropagation()}
               className="w-12 bg-surface border border-border-subtle rounded text-[11px] px-1 py-0.5 text-center text-text-primary focus:border-primary focus:outline-none transition-colors"
             />

@@ -440,7 +440,7 @@ export default function ChallengeDetail() {
                                                                     className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
                                                                 />
 
-                                                                <div className="grid grid-cols-3 gap-2 text-xs">
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
                                                                     <div>
                                                                         <label className="block text-[10px] text-slate-400 mb-1">Priority</label>
                                                                         <select 

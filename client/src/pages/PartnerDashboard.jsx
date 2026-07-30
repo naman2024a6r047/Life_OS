@@ -331,7 +331,7 @@ export default function PartnerDashboard() {
                     </div>
 
                     {/* Time Range Filter */}
-                    <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10">
+                    <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10 flex-wrap">
                         {['daily', 'weekly', 'monthly', 'yearly', 'all'].map(range => (
                             <button
                                 key={range}

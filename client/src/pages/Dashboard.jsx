@@ -116,13 +116,13 @@ function ActivityHeatmap({ heatmapData = [] }) {
             <div key={i} className="h-[12px] text-[9px] text-text-muted font-mono flex items-center">{d}</div>
           ))}
         </div>
-        <div className="flex-1 overflow-hidden">
-          <div className="flex gap-[3px] mb-1">
+        <div className="flex-1 overflow-x-auto pb-2 min-w-0">
+          <div className="flex gap-[3px] mb-1 min-w-max">
             {months.map((m, i) => (
               <div key={i} className="text-[9px] text-text-muted font-mono" style={{ width: `${100/8}%` }}>{m}</div>
             ))}
           </div>
-          <div className="grid grid-flow-col grid-rows-7 gap-[3px]">
+          <div className="grid grid-flow-col grid-rows-7 gap-[3px] min-w-max">
             {cells.map((cell, i) => (
               <div key={i} title={cell.title} className={`w-[12px] h-[12px] rounded-[2px] transition-all cursor-pointer hover:ring-1 hover:ring-white/40 ${cell.color}`} />
             ))}

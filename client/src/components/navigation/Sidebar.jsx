@@ -113,7 +113,7 @@ export default function Sidebar({ isOpen, onClose }) {
             : (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)));
           const Icon = item.icon;
           return (
-            <Link key={item.path} to={item.path}>
+            <Link key={item.path} to={item.path} onClick={onClose}>
               <div className={`sidebar-item ${isActive ? (isExamMode ? 'bg-info text-white font-semibold' : 'active') : ''}`}>
                 <Icon size={16} />
                 <span>{item.label}</span>

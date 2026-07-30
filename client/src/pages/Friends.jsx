@@ -323,7 +323,7 @@ export default function Friends() {
   return (
     <div className="p-6 space-y-5">
       {/* Page Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
             <FiUsers size={22} />
@@ -333,7 +333,7 @@ export default function Friends() {
             <p className="text-xs text-text-muted">Stay accountable. Stay consistent. Grow together.</p>
           </div>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <div className="flex items-center gap-1.5">
             <span className="text-sm">🔥</span>
             <div>
@@ -369,17 +369,18 @@ export default function Friends() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1">
+      <div className="flex items-center gap-6 border-b border-border-subtle overflow-x-auto whitespace-nowrap scrollbar-hide min-w-0">
         {tabs.map(tab => (
           <button key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition-all flex items-center gap-1.5 ${
-              activeTab === tab.id ? 'text-primary border-b-2 border-primary' : 'text-text-muted hover:text-text-primary'
+            className={`pb-3 text-sm font-semibold transition-colors relative flex items-center gap-2 ${
+              activeTab === tab.id ? 'text-primary' : 'text-text-muted hover:text-text-primary'
             }`}>
             {tab.label}
             {tab.badge > 0 && (
               <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">{tab.badge}</span>
             )}
+            {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
           </button>
         ))}
       </div>

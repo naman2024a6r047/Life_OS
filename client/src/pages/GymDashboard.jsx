@@ -609,65 +609,79 @@ export default function GymDashboard() {
           {/* Top Row Cards (Unified Heights, Balanced Densified Grid) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             {/* CARD 1: TODAY'S SCHEDULED WORKOUT (PROMINENT FULL-HEIGHT SVG & COLOR CHIPS) */}
-            <div className="lg:col-span-5 card p-5 space-y-4 bg-gradient-to-br from-surface to-surface-elevated relative overflow-visible flex flex-col justify-between border border-purple/30">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+            <div className="lg:col-span-5 card p-6 gap-6 bg-gradient-to-br from-surface to-surface-elevated relative overflow-visible flex flex-col border border-purple/30">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
                 <span className="text-xs font-bold text-text-primary tracking-wide">Today's Scheduled Workout</span>
                 <span className="badge-success text-[10px] px-2.5 py-0.5 font-bold">Push Day • Active Split</span>
               </div>
 
               {/* Title & Workout Header */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center font-bold text-lg">
+              <div className="flex flex-col gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-2xl shrink-0">
                     🏋️
                   </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold text-text-primary">
+                  <div className="flex flex-col justify-center gap-1">
+                    <h3 className="text-xl font-extrabold text-text-primary leading-none">
                       {weeklyPlan[currentWeekday]?.title || 'Rest Day'}
                     </h3>
-                    <p className="text-xs font-semibold text-purple">
+                    <p className="text-sm font-semibold text-purple leading-none mt-1">
                       {weeklyPlan[currentWeekday]?.focus || 'Rest & Recovery'}
                     </p>
                   </div>
                 </div>
 
                 {/* Sleek Colored Metric Chips */}
-                <div className="grid grid-cols-4 gap-2 pt-1">
-                  <div className="p-2 rounded-xl bg-purple/10 border border-purple/20 text-center">
-                    <p className="text-[9px] text-text-muted uppercase">Duration</p>
-                    <p className="text-xs font-bold font-mono text-purple">60 min</p>
+                <div className="grid grid-cols-4 gap-3">
+                  <div className="p-3 rounded-2xl bg-purple/10 border border-purple/20 flex flex-col items-center justify-center gap-2 aspect-square">
+                    <FiClock className="text-purple shrink-0" size={18} />
+                    <div className="flex flex-col items-center justify-center gap-1">
+                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Duration</p>
+                      <p className="text-sm font-bold font-mono text-purple leading-none">60 min</p>
+                    </div>
                   </div>
-                  <div className="p-2 rounded-xl bg-info/10 border border-info/20 text-center">
-                    <p className="text-[9px] text-text-muted uppercase">Exercises</p>
-                    <p className="text-xs font-bold font-mono text-info">{weeklyPlan[currentWeekday]?.exercises?.length || 0}</p>
+                  <div className="p-3 rounded-2xl bg-info/10 border border-info/20 flex flex-col items-center justify-center gap-2 aspect-square">
+                    <FiActivity className="text-info shrink-0" size={18} />
+                    <div className="flex flex-col items-center justify-center gap-1">
+                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Exercises</p>
+                      <p className="text-sm font-bold font-mono text-info leading-none">{weeklyPlan[currentWeekday]?.exercises?.length || 0}</p>
+                    </div>
                   </div>
-                  <div className="p-2 rounded-xl bg-warning/10 border border-warning/20 text-center">
-                    <p className="text-[9px] text-text-muted uppercase">Calories</p>
-                    <p className="text-xs font-bold font-mono text-warning">550 kcal</p>
+                  <div className="p-3 rounded-2xl bg-warning/10 border border-warning/20 flex flex-col items-center justify-center gap-2 aspect-square">
+                    <FiZap className="text-warning shrink-0" size={18} />
+                    <div className="flex flex-col items-center justify-center gap-1">
+                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Calories</p>
+                      <p className="text-sm font-bold font-mono text-warning leading-none">550 kcal</p>
+                    </div>
                   </div>
-                  <div className="p-2 rounded-xl bg-success/10 border border-success/20 text-center">
-                    <p className="text-[9px] text-text-muted uppercase">Target Vol</p>
-                    <p className="text-xs font-bold font-mono text-success">7.5k kg</p>
+                  <div className="p-3 rounded-2xl bg-success/10 border border-success/20 flex flex-col items-center justify-center gap-2 aspect-square">
+                    <FiCheckCircle className="text-success shrink-0" size={18} />
+                    <div className="flex flex-col items-center justify-center gap-1">
+                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Target Vol</p>
+                      <p className="text-sm font-bold font-mono text-success leading-none">7.5k kg</p>
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* ENLARGED PROMINENT ANATOMICAL SVG (320px Height, Zero Cropping) */}
-              <div className="w-full h-[320px] flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-2 my-1 overflow-visible">
+              <div className="w-full h-[360px] flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-6 overflow-visible">
                 <MuscleDiagram activeExercises={todayExercises} className="w-full h-full" />
               </div>
 
               {/* View Weekly Plan Action */}
-              <div className="pt-1">
-                <button onClick={() => setActiveTab('workouts')} className="btn-primary text-xs w-full py-3 bg-gradient-to-r from-purple to-purple-accent text-white font-bold flex items-center justify-center gap-1.5 shadow-glow-primary rounded-xl">
-                  View Weekly Plan & Schedule <FiChevronRight size={16} />
+              <div className="mt-auto pt-2">
+                <button onClick={() => setActiveTab('workouts')} className="btn-primary text-sm w-full py-4 bg-gradient-to-r from-purple via-purple-accent to-purple text-white font-bold flex items-center justify-center gap-2 shadow-glow-primary rounded-xl px-4">
+                  <FiCalendar size={18} />
+                  <span>View Weekly Plan & Schedule</span>
+                  <FiChevronRight size={18} className="ml-auto" />
                 </button>
               </div>
             </div>
 
             {/* CARD 2: REDESIGNED COMPACT WEEKLY ACTIVITY CARD */}
             <div className="lg:col-span-4 card p-5 space-y-4 flex flex-col justify-between bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
                 <div>
                   <h3 className="section-title text-base font-bold">Weekly Activity</h3>
                   <p className="text-[10px] text-text-muted">83% Weekly Plan Completion</p>
@@ -881,7 +895,7 @@ export default function GymDashboard() {
           </div>
 
           <div className="card p-4 space-y-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
-            <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+            <div className="flex items-center justify-between border-b border-border-subtle pb-4">
               <h3 className="text-xs font-bold text-text-primary flex items-center gap-2">
                 <FiCalendar className="text-purple" /> Weekly Plan Split
               </h3>
@@ -1146,7 +1160,7 @@ export default function GymDashboard() {
             </div>
 
             <div className="col-span-4 card p-5 space-y-4">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
                 <h3 className="text-base font-bold text-text-primary">{activeExerciseObj.name}</h3>
                 <button onClick={() => openEditExerciseModal(activeExerciseObj)} className="btn-outline text-xs py-1.5 px-3 flex items-center gap-1 font-bold rounded-xl">
                   <FiEdit3 /> Edit Exercise
@@ -1356,7 +1370,7 @@ export default function GymDashboard() {
         {showExerciseModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-lg w-full space-y-4">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
                 <h3 className="text-base font-extrabold text-text-primary">
                   {editingExerciseId ? 'Edit Exercise' : 'Create New Exercise'}
                 </h3>
@@ -1521,7 +1535,7 @@ export default function GymDashboard() {
         {showWeeklyPlanModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-lg w-full space-y-4">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-3">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
                 <h3 className="text-base font-extrabold text-text-primary">Add Exercise to {selectedPlanDay}'s Plan</h3>
                 <button onClick={() => setShowWeeklyPlanModal(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
               </div>

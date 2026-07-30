@@ -480,8 +480,8 @@ export default function MuscleDiagram({
     return (
       <div className={`w-full h-full flex flex-col ${className}`}>
         {/* Compact View Toggle */}
-        <div className="flex items-center justify-between pb-2 mb-1 shrink-0">
-          <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider">Muscle Activation</span>
+        <div className="flex items-center justify-between pb-4 shrink-0 w-full">
+          <h4 className="text-xs font-bold text-text-primary uppercase tracking-wider">Muscle Activation</h4>
           <div className="flex items-center p-0.5 rounded-lg bg-surface-elevated border border-border-subtle gap-0.5">
             {[
               { id: 'both', label: 'Both' },
@@ -509,18 +509,18 @@ export default function MuscleDiagram({
         </div>
 
         {/* Compact legend */}
-        <div className="flex items-center justify-center gap-3 pt-2 shrink-0">
-          <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-purple" />
-            <span className="text-[9px] text-text-muted">Primary</span>
+        <div className="flex items-center justify-center gap-6 pt-6 pb-2 shrink-0">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-purple" />
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none">Primary</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-info" />
-            <span className="text-[9px] text-text-muted">Secondary</span>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-info" />
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none">Secondary</span>
           </div>
-          <div className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-slate-700" />
-            <span className="text-[9px] text-text-muted">Inactive</span>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none">Inactive</span>
           </div>
         </div>
       </div>

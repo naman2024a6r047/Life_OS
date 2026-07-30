@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
 import dayjs from 'dayjs';
@@ -14,10 +14,11 @@ import ChatSystem from '../components/chat/ChatSystem';
 
 export default function PartnerDashboard() {
     const { friendId } = useParams();
+    const location = useLocation();
     const { user } = useContext(AuthContext);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [activeTab, setActiveTab] = useState('overview');
+    const [activeTab, setActiveTab] = useState(location.state?.tab || 'overview');
     const [timeRange, setTimeRange] = useState('all'); // 'daily', 'weekly', 'monthly', 'yearly', 'all'
 
     // Intervention modal state

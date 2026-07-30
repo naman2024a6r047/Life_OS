@@ -478,9 +478,9 @@ export default function Friends() {
                   </div>
                   <div className="flex items-center gap-2">
                     <Link to={`/friends/${selectedPartner.id}`} className="btn-outline text-xs inline-flex items-center justify-center">View Profile</Link>
-                    <button className="btn-primary text-xs flex items-center gap-1">
+                    <Link to={`/friends/${selectedPartner.id}`} state={{ tab: 'chat' }} className="btn-primary text-xs flex items-center gap-1">
                       <FiMessageSquare size={12} /> Message
-                    </button>
+                    </Link>
                   </div>
                 </div>
 

@@ -141,7 +141,7 @@ export default function MuscleDiagram({
       } else {
         group.style.fill = 'url(#inactiveGradient)';
         group.style.filter = 'none';
-          group.style.opacity = '0.35';
+          group.style.opacity = '0.45';
       }
     });
   }); // Run on every render to ensure styles update
@@ -415,7 +415,7 @@ export default function MuscleDiagram({
       )}
 
       {/* GRID FOR EQUAL SIZING AND HORIZONTAL SPACING */}
-      <div className={`relative w-full h-full -mt-6 ${viewMode === 'both' ? 'grid grid-cols-2 gap-10 px-4' : 'flex justify-center items-center'}`}>
+      <div className={`relative w-full h-full -mt-3 ${viewMode === 'both' ? 'grid grid-cols-2 gap-6' : 'flex justify-center items-center'}`}>
         
         {/* FRONT ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'front') && (

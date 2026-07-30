@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
-import anatomyFrontRaw from '../../assets/anatomy_front.svg?raw';
-import anatomyBackRaw from '../../assets/anatomy_back.svg?raw';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FiActivity, FiCheckCircle, FiClock, FiTrendingUp, FiX, FiLayers, FiInfo, FiZap } from 'react-icons/fi';
 
-/**
- * High-Fidelity Muscle Focus Card & Interactive Anatomical SVG Model
+import anatomyFrontRaw from '../../assets/anatomy.svg?raw';
+import anatomyBackRaw from '../../assets/anatomy_back.svg?raw';
+
+/** & Interactive Anatomical SVG Model
  * Supports:
  * - 60% Width Centerpiece Display in Today's Workout Card
  * - 40% Larger Athletic Vector Anatomy (Front & Back Views) with zero cropping

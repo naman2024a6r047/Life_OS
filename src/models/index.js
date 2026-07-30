@@ -105,6 +105,10 @@ ActivityLog.belongsTo(User, { foreignKey: 'user_id' });
 
 User.belongsToMany(Badge, { through: UserBadge, foreignKey: 'user_id' });
 Badge.belongsToMany(User, { through: UserBadge, foreignKey: 'badge_id' });
+UserBadge.belongsTo(Badge, { foreignKey: 'badge_id' });
+Badge.hasMany(UserBadge, { foreignKey: 'badge_id' });
+UserBadge.belongsTo(User, { foreignKey: 'user_id' });
+User.hasMany(UserBadge, { foreignKey: 'user_id' });
 
 // Partner Interventions & Accountability Penalties
 User.hasMany(PartnerIntervention, { foreignKey: 'sender_id', as: 'sentInterventions' });

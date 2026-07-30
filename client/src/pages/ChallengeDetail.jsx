@@ -25,6 +25,7 @@ export default function ChallengeDetail() {
         priority: 'P1',
         energy_level: 'high',
         estimated_minutes: 30,
+        hours: 1,
     });
 
     // Edit Task state
@@ -34,6 +35,7 @@ export default function ChallengeDetail() {
         priority: 'P1',
         energy_level: 'high',
         estimated_minutes: 30,
+        hours: 1,
         date: ''
     });
 
@@ -105,7 +107,8 @@ export default function ChallengeDetail() {
             title: '',
             priority: 'P1',
             energy_level: 'high',
-            estimated_minutes: 30
+            estimated_minutes: 30,
+            hours: 1
         });
     };
 
@@ -120,6 +123,7 @@ export default function ChallengeDetail() {
                 priority: newTaskForm.priority,
                 energy_level: newTaskForm.energy_level,
                 estimated_minutes: newTaskForm.estimated_minutes,
+                hours: newTaskForm.hours,
                 date: addTaskTarget.date
             }, getAuthHeaders());
             setAddTaskTarget(null);
@@ -137,6 +141,7 @@ export default function ChallengeDetail() {
             priority: task.priority || 'P1',
             energy_level: task.energy_level || 'high',
             estimated_minutes: task.estimated_minutes || 30,
+            hours: task.hours || 0,
             date: task.date ? dayjs(task.date).format('YYYY-MM-DD') : dayjs().format('YYYY-MM-DD')
         });
     };
@@ -286,6 +291,7 @@ export default function ChallengeDetail() {
                             const isUnlocked = milestone.status === 'unlocked' || milestone.status === 'rejected' || !milestone.status;
                             const isCompleted = milestone.status === 'completed' || pct === 100;
                             const totalEstMinutes = tasks.reduce((sum, t) => sum + (t.estimated_minutes || 30), 0);
+                            const totalHours = tasks.reduce((sum, t) => sum + (t.hours || 0), 0);
 
                             // Calculate Days range for this milestone (e.g. Day 1 to Day 10)
                             let mStart = milestone.start_date ? dayjs(milestone.start_date) : dayjs();
@@ -341,6 +347,7 @@ export default function ChallengeDetail() {
                                                     <span>Day 1 – Day {dayCount} ({mStart.format('MMM D')} – {mEnd.format('MMM D')})</span>
                                                     <span>•</span>
                                                     <span>⏱ {Math.round(totalEstMinutes / 60 * 10) / 10} hrs total</span>
+                                                    {totalHours > 0 && <><span>•</span><span>🕐 {totalHours}h assigned</span></>}
                                                 </div>
                                             </div>
                                         </div>
@@ -471,6 +478,19 @@ export default function ChallengeDetail() {
                                                                             className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
                                                                         />
                                                                     </div>
+
+                                                                    <div>
+                                                                        <label className="block text-[10px] text-slate-400 mb-1">Hours</label>
+                                                                        <input 
+                                                                            type="number"
+                                                                            min="0"
+                                                                            max="24"
+                                                                            step="0.5"
+                                                                            value={newTaskForm.hours}
+                                                                            onChange={e => setNewTaskForm({ ...newTaskForm, hours: Number(e.target.value) })}
+                                                                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                                                                        />
+                                                                    </div>
                                                                 </div>
 
                                                                 <div className="flex justify-end gap-2 pt-1">
@@ -529,6 +549,7 @@ export default function ChallengeDetail() {
 
                                                                                     <span>•</span>
                                                                                     <span>⏱ {task.estimated_minutes || 30} mins</span>
+                                                                                    {task.hours > 0 && <><span>•</span><span>🕐 {task.hours}h</span></>}
                                                                                 </div>
                                                                             </div>
                                                                         </div>
@@ -750,6 +771,19 @@ export default function ChallengeDetail() {
                                         max="480"
                                         value={editTaskForm.estimated_minutes}
                                         onChange={e => setEditTaskForm({ ...editTaskForm, estimated_minutes: Number(e.target.value) })}
+                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hours</label>
+                                    <input 
+                                        type="number"
+                                        min="0"
+                                        max="24"
+                                        step="0.5"
+                                        value={editTaskForm.hours}
+                                        onChange={e => setEditTaskForm({ ...editTaskForm, hours: Number(e.target.value) })}
                                         className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
                                     />
                                 </div>

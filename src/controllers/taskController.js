@@ -92,7 +92,7 @@ exports.toggleTask = async (req, res) => {
 exports.updateTask = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, priority, energy_level, estimated_minutes, date } = req.body;
+        const { title, priority, energy_level, estimated_minutes, hours, actual_hours, date } = req.body;
 
         const task = await MilestoneTask.findByPk(id);
         if (!task) {
@@ -103,6 +103,8 @@ exports.updateTask = async (req, res) => {
         if (priority) task.priority = priority;
         if (energy_level) task.energy_level = energy_level;
         if (estimated_minutes) task.estimated_minutes = estimated_minutes;
+        if (hours !== undefined) task.hours = hours;
+        if (actual_hours !== undefined) task.actual_hours = actual_hours;
         if (date) task.date = date;
 
         await task.save();
@@ -115,7 +117,7 @@ exports.updateTask = async (req, res) => {
 
 exports.createTask = async (req, res) => {
     try {
-        const { milestone_id, title, priority, energy_level, estimated_minutes, date } = req.body;
+        const { milestone_id, title, priority, energy_level, estimated_minutes, hours, date } = req.body;
         if (!milestone_id || !title) {
             return res.status(400).json({ message: 'Milestone ID and title are required' });
         }
@@ -126,6 +128,7 @@ exports.createTask = async (req, res) => {
             priority: priority || 'P1',
             energy_level: energy_level || 'high',
             estimated_minutes: estimated_minutes || 30,
+            hours: hours || 0,
             date: date || new Date().toISOString().split('T')[0],
             is_completed: false
         });

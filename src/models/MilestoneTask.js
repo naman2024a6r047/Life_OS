@@ -31,6 +31,16 @@ const MilestoneTask = sequelize.define('MilestoneTask', {
         type: DataTypes.INTEGER,
         defaultValue: 45
     },
+    hours: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0,
+        allowNull: false
+    },
+    actual_hours: {
+        type: DataTypes.FLOAT,
+        defaultValue: 0,
+        allowNull: false
+    },
     date: {
         type: DataTypes.DATEONLY,
         allowNull: true

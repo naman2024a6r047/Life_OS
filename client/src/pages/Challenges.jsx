@@ -648,7 +648,7 @@ function MilestoneTimeline({ milestones = [], activeMilestoneIndex = 0, onSelect
 }
 
 // --- Task Row ---
-function TaskRow({ task, onToggle, onOpenDetail, isLocked }) {
+function TaskRow({ task, onToggle, onOpenDetail, onUpdateActualHours, isLocked }) {
   const isCompleted = isLocked || task.is_completed;
 
   // Extract clean title (remove "Day X • ")
@@ -671,7 +671,7 @@ function TaskRow({ task, onToggle, onOpenDetail, isLocked }) {
       layout
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`flex items-center gap-3 px-4 py-3 hover:bg-surface-elevated/60 transition-all border-b border-border-subtle/30 last:border-0 ${isCompleted ? 'opacity-60' : ''}`}
+      className={`group flex items-center gap-3 px-4 py-3 hover:bg-surface-elevated/60 transition-all border-b border-border-subtle/30 last:border-0 ${isCompleted ? 'opacity-60' : ''}`}
     >
       <button
         title={isLocked ? "Historical milestones are locked" : "Toggle task"}
@@ -685,14 +685,34 @@ function TaskRow({ task, onToggle, onOpenDetail, isLocked }) {
         {isCompleted && <FiCheck size={14} strokeWidth={4} />}
       </button>
 
-      <div className="flex-1 min-w-0 flex items-center gap-2">
+      <div className="flex-1 min-w-0 flex items-center gap-2 justify-between mr-2">
         <p className={`text-[13px] font-medium tracking-wide ${isCompleted ? 'line-through text-text-muted' : 'text-text-primary'}`}>
           {displayTitle}
         </p>
+
+        {!isLocked && (
+          <div className="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-[10px] text-text-muted font-bold uppercase">Studied:</span>
+            <input 
+              type="number"
+              min="0"
+              max="24"
+              step="0.5"
+              placeholder="Hrs"
+              value={task.actual_hours || ''}
+              onChange={(e) => onUpdateActualHours && onUpdateActualHours(task.id, Number(e.target.value))}
+              onClick={(e) => e.stopPropagation()}
+              className="w-12 bg-surface border border-border-subtle rounded text-[11px] px-1 py-0.5 text-center text-text-primary focus:border-primary focus:outline-none transition-colors"
+            />
+          </div>
+        )}
       </div>
 
       <button
-        onClick={() => onOpenDetail(task)}
+        onClick={(e) => {
+          e.stopPropagation();
+          onOpenDetail(task);
+        }}
         className="p-1.5 text-text-muted hover:text-primary transition-colors flex-shrink-0 rounded-lg hover:bg-primary/10"
         title="View Task Details & Notes"
       >
@@ -864,6 +884,29 @@ export default function Challenges() {
       }
     } catch (err) {
       console.error('Failed to toggle task:', err);
+      fetchChallenges();
+    }
+  };
+
+  const handleUpdateActualHours = async (taskId, actual_hours) => {
+    try {
+      setChallenges(prev => prev.map(c => {
+        if (c.id !== selectedChallenge?.id) return c;
+        const updatedMilestones = (c.milestones || c.Milestones || []).map(m => {
+          if (m.id !== activeMilestone?.id) return m;
+          const updatedTasks = (m.tasks || m.MilestoneTasks || []).map(t => {
+            if (t.id === taskId) return { ...t, actual_hours };
+            return t;
+          });
+          return { ...m, tasks: updatedTasks, MilestoneTasks: updatedTasks };
+        });
+        return { ...c, milestones: updatedMilestones, Milestones: updatedMilestones };
+      }));
+
+      await axios.put(`/api/tasks/${taskId}`, { actual_hours });
+    } catch (err) {
+      console.error('Failed to update actual hours:', err);
+      addToast('Failed to save hours', 'warning', '❌');
       fetchChallenges();
     }
   };
@@ -1389,6 +1432,7 @@ export default function Challenges() {
                                   key={task.id || i}
                                   task={task}
                                   onToggle={handleToggleTask}
+                                  onUpdateActualHours={handleUpdateActualHours}
                                   onOpenDetail={(t) => {
                                     setDetailTask(t);
                                     setIsTaskModalOpen(true);

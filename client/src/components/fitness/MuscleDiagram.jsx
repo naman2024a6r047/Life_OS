@@ -398,11 +398,8 @@ export default function MuscleDiagram({
         We wrap both in a shared SVG to keep the gradients in scope.
         The viewBox handles the overall layout of both figures. 
       */}
-      <svg
-        viewBox="0 0 800 900"
-        preserveAspectRatio="xMidYMid meet"
-        className="w-full h-full filter drop-shadow-xl"
-      >
+      {/* INVISIBLE DEFS FOR GRADIENTS */}
+      <svg width="0" height="0" className="absolute">
         <defs>
           <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#7c3aed" />
@@ -424,17 +421,25 @@ export default function MuscleDiagram({
             <stop offset="100%" stopColor="#c084fc" />
           </linearGradient>
         </defs>
+      </svg>
 
+      <div className="relative w-full h-full flex justify-center items-center gap-4">
         {/* FRONT ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'front') && (
-          <g id="front-anatomy" transform={viewMode === 'front' ? "translate(200, 0) scale(1)" : "translate(0, 0)"} dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace(/<svg[^>]*>|<\/svg>/g, '') }} />
+          <div 
+            className={`h-full ${viewMode === 'both' ? 'w-1/2' : 'w-3/4 max-w-[400px]'} flex justify-center`}
+            dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="w-full h-full filter drop-shadow-xl" ') }} 
+          />
         )}
 
         {/* BACK ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'back') && (
-          <g id="back-anatomy" transform={viewMode === 'back' ? "translate(200, 0) scale(1)" : "translate(400, 0)"} dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace(/<svg[^>]*>|<\/svg>/g, '') }} />
+          <div 
+            className={`h-full ${viewMode === 'both' ? 'w-1/2' : 'w-3/4 max-w-[400px]'} flex justify-center`}
+            dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace('<svg ', '<svg class="w-full h-full filter drop-shadow-xl" ') }} 
+          />
         )}
-      </svg>
+      </div>
       
       {/* FLOATING GLASSMORPHISM TOOLTIP */}
       <AnimatePresence>

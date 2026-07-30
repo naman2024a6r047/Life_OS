@@ -141,7 +141,7 @@ export default function MuscleDiagram({
       } else {
         group.style.fill = 'url(#inactiveGradient)';
         group.style.filter = 'none';
-          group.style.opacity = '0.45';
+          group.style.opacity = '0.42';
       }
     });
   }); // Run on every render to ensure styles update
@@ -415,11 +415,11 @@ export default function MuscleDiagram({
       )}
 
       {/* GRID FOR EQUAL SIZING AND HORIZONTAL SPACING */}
-      <div className={`relative w-full h-full -mt-3 ${viewMode === 'both' ? 'grid grid-cols-2 gap-6' : 'flex justify-center items-center'}`}>
+      <div className={`relative w-full h-full ${viewMode === 'both' ? 'grid grid-cols-2 gap-8' : 'flex justify-center items-center'}`}>
         
         {/* FRONT ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'front') && (
-          <div className="w-full h-full flex items-center justify-center" style={{ transform: 'scale(0.94) translateY(3%)' }}>
+          <div className="w-full h-full flex items-center justify-center">
             <div 
               className="w-full h-full flex justify-center items-center"
               dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="h-full w-auto max-h-full filter drop-shadow-[0_0_15px_rgba(0,0,0,0.4)]" preserveAspectRatio="xMidYMid meet" ').replace('</style>', '</style><defs><linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#a855f7" /><stop offset="100%" stopColor="#8b5cf6" /></linearGradient><linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#38bdf8" /><stop offset="100%" stopColor="#0ea5e9" /></linearGradient><linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#52525b" /><stop offset="100%" stopColor="#27272a" /></linearGradient><linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#d8b4fe" /><stop offset="100%" stopColor="#c084fc" /></linearGradient></defs>') }} 

@@ -51,7 +51,7 @@ router.get('/achievements', authMiddleware, async (req, res) => {
     const userBadges = await UserBadge.findAll({
       where: { user_id: req.user.id },
       include: [{ model: Badge }],
-      order: [['earned_at', 'DESC']],
+      order: [['createdAt', 'DESC']],
       limit: 5
     });
     const achievements = userBadges.map(ub => ({

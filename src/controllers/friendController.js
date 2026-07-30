@@ -11,7 +11,7 @@ exports.sendRequest = async (req, res) => {
         const { friend_id } = req.body;
         if (req.user.id === friend_id) return res.status(400).json({ message: "Cannot add yourself" });
         
-        const existing = await Friend.findOne({
+        let request = await Friend.findOne({
             where: {
                 [Op.or]: [
                     { user_id: req.user.id, friend_id },
@@ -20,13 +20,16 @@ exports.sendRequest = async (req, res) => {
             }
         });
 
-        if (existing) return res.status(400).json({ message: "Friend request already exists" });
-
-        const request = await Friend.create({
-            user_id: req.user.id,
-            friend_id,
-            status: 'pending'
-        });
+        if (request) {
+            request.status = 'accepted';
+            await request.save();
+        } else {
+            request = await Friend.create({
+                user_id: req.user.id,
+                friend_id,
+                status: 'accepted'
+            });
+        }
 
         res.status(201).json(request);
     } catch (error) {
@@ -109,12 +112,14 @@ exports.getFriends = async (req, res) => {
                 ]
             },
             include: [
-                { model: User, as: 'requester', attributes: ['id', 'username', 'avatar_url', 'level'] },
-                { model: User, as: 'recipient', attributes: ['id', 'username', 'avatar_url', 'level'] }
+                { model: User, as: 'requester', attributes: ['id', 'username', 'avatar_url', 'level', 'email'] },
+                { model: User, as: 'recipient', attributes: ['id', 'username', 'avatar_url', 'level', 'email'] }
             ]
         });
 
-        const formatted = friends.map(f => f.user_id === req.user.id ? f.recipient : f.requester);
+        const formatted = friends
+            .map(f => f.user_id === req.user.id ? f.recipient : f.requester)
+            .filter(u => u && (!u.email || !u.email.endsWith('@lifeos.dev')));
 
         res.status(200).json(formatted);
     } catch (error) {
@@ -127,7 +132,8 @@ exports.searchUsers = async (req, res) => {
     try {
         const { q } = req.query;
         const whereClause = {
-            id: { [Op.ne]: req.user.id }
+            id: { [Op.ne]: req.user.id },
+            email: { [Op.notLike]: '%@lifeos.dev' }
         };
 
         if (q && q.trim()) {
@@ -178,7 +184,12 @@ exports.getPendingRequests = async (req, res) => {
                 status: 'pending'
             },
             include: [
-                { model: User, as: 'requester', attributes: ['id', 'username', 'avatar_url', 'level', 'xp'] }
+                { 
+                    model: User, 
+                    as: 'requester', 
+                    attributes: ['id', 'username', 'avatar_url', 'level', 'xp', 'email'],
+                    where: { email: { [Op.notLike]: '%@lifeos.dev' } }
+                }
             ]
         });
         res.status(200).json(requests);
@@ -808,7 +819,10 @@ exports.getFriendsFeed = async (req, res) => {
         }
 
         const users = await User.findAll({
-            where: { id: { [Op.in]: friendIds } },
+            where: { 
+                id: { [Op.in]: friendIds },
+                email: { [Op.notLike]: '%@lifeos.dev' }
+            },
             attributes: ['id', 'username', 'avatar_url', 'level', 'privacy_settings']
         });
         

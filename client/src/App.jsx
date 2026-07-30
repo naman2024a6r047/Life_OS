@@ -24,6 +24,7 @@ import CalendarDashboard from './pages/CalendarDashboard';
 import KnowledgeDashboard from './pages/KnowledgeDashboard';
 import AICoachDashboard from './pages/AICoachDashboard';
 import NotificationsDashboard from './pages/NotificationsDashboard';
+import NotificationCenter from './pages/NotificationCenter';
 import GoalWorkspace from './pages/GoalWorkspace';
 import PartnerDashboard from './pages/PartnerDashboard';
 
@@ -94,7 +95,8 @@ function AppRoutes() {
         <Route path="/calendar" element={<ProtectedRoute><CalendarDashboard /></ProtectedRoute>} />
         <Route path="/knowledge" element={<ProtectedRoute><KnowledgeDashboard /></ProtectedRoute>} />
         <Route path="/ai-coach" element={<ProtectedRoute><AICoachDashboard /></ProtectedRoute>} />
-        <Route path="/notifications" element={<ProtectedRoute><NotificationsDashboard /></ProtectedRoute>} />
+        <Route path="/notifications" element={<ProtectedRoute><NotificationCenter /></ProtectedRoute>} />
+        <Route path="/penalties" element={<ProtectedRoute><NotificationsDashboard /></ProtectedRoute>} />
         <Route path="/goals/workspace/:goalId" element={<ProtectedRoute><GoalWorkspace /></ProtectedRoute>} />
       </Routes>
       {user && (

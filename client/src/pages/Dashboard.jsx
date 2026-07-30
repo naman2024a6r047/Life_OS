@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   FiTarget, FiZap, FiAward, FiUsers, FiTerminal, FiActivity,
   FiBookOpen, FiBarChart2, FiCheckSquare, FiArrowRight, FiShield,
-  FiTrendingUp, FiClock, FiHeart, FiEye
+  FiTrendingUp, FiClock, FiHeart, FiEye, FiBell
 } from 'react-icons/fi';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
@@ -319,6 +319,12 @@ export default function Dashboard() {
               <p className="text-[9px] text-text-muted">Total XP</p>
             </div>
           </div>
+          <Link to="/notifications" className="relative p-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border-subtle text-text-muted hover:text-primary transition-colors ml-2">
+            <FiBell size={18} />
+            {analytics?.pendingReviews > 0 && (
+              <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-danger"></span>
+            )}
+          </Link>
           <div className="flex items-center gap-2 ml-2 card px-3 py-2">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple flex items-center justify-center">
               <span className="text-white text-xs font-bold">{(user?.username || 'U')[0].toUpperCase()}</span>

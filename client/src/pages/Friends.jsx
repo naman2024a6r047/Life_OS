@@ -174,6 +174,81 @@ function ActivityCalendar({ telemetry }) {
   );
 }
 
+function AddPartnerModal({ isOpen, onClose, friends }) {
+  const [query, setQuery] = useState('');
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen) { setQuery(''); setResults([]); return; }
+    handleSearch('');
+  }, [isOpen]);
+
+  const handleSearch = async (q) => {
+    try {
+      setLoading(true);
+      const res = await axios.get(`/api/friends/search?q=${q}`);
+      const existingIds = new Set(friends.map(f => f.id));
+      setResults(res.data.filter(u => !existingIds.has(u.id)));
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const sendRequest = async (id) => {
+    try {
+      await axios.post('/api/friends/request', { friend_id: id });
+      window.location.reload();
+    } catch (err) {
+      alert(err.response?.data?.error || err.response?.data?.message || 'Error sending request');
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+      <div className="bg-surface rounded-2xl w-full max-w-md p-5 border border-border-subtle shadow-xl">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-text-primary">Add New Partner</h2>
+          <button onClick={onClose} className="text-text-muted hover:text-text-primary text-xl">&times;</button>
+        </div>
+        <div className="relative mb-4">
+          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
+          <input type="text" placeholder="Search username..." value={query}
+            onChange={e => { setQuery(e.target.value); handleSearch(e.target.value); }}
+            className="w-full pl-9 pr-3 py-2 rounded-lg bg-surface-elevated text-sm text-text-primary placeholder-text-muted border border-border-subtle focus:border-primary focus:outline-none" />
+        </div>
+        <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+          {loading ? <p className="text-xs text-text-muted text-center py-4">Searching...</p> :
+           results.length === 0 ? <p className="text-xs text-text-muted text-center py-4">No users found</p> :
+           results.map(u => (
+            <div key={u.id} className="flex items-center justify-between p-3 bg-surface-elevated rounded-xl border border-border-subtle">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">
+                  {(u.username || 'U')[0].toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-text-primary">{u.username}</p>
+                  <p className="text-[10px] text-text-muted">Level {u.level || 1}</p>
+                </div>
+              </div>
+              <button 
+                disabled={u.relationshipStatus === 'pending' || u.relationshipStatus === 'accepted'}
+                onClick={() => sendRequest(u.id)} 
+                className={`text-[10px] px-3 py-1.5 rounded-lg font-bold transition-all ${u.relationshipStatus === 'pending' || u.relationshipStatus === 'accepted' ? 'bg-surface border border-border-subtle text-text-muted' : 'btn-primary'}`}>
+                {u.relationshipStatus === 'pending' ? 'Pending' : u.relationshipStatus === 'accepted' ? 'Added' : 'Add Partner'}
+              </button>
+            </div>
+           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Friends() {
   const { user } = useContext(AuthContext);
   const [friends, setFriends] = useState([]);
@@ -182,6 +257,7 @@ export default function Friends() {
   const [activeTab, setActiveTab] = useState('overview');
   const [searchQuery, setSearchQuery] = useState('');
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   const [feed, setFeed] = useState([]);
   const [interventions, setInterventions] = useState([]);
@@ -286,7 +362,7 @@ export default function Friends() {
               <p className="text-[9px] text-text-muted">Grace Tokens</p>
             </div>
           </div>
-          <button className="btn-primary flex items-center gap-2">
+          <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center gap-2">
             <FiPlus size={16} /> Add Accountability Partner
           </button>
         </div>
@@ -326,7 +402,7 @@ export default function Friends() {
                   onClick={() => setSelectedId(partner.id)} />
               ))}
             </div>
-            <button className="w-full mt-3 py-2.5 rounded-lg border border-dashed border-border-hover text-text-muted hover:text-primary-light hover:border-primary/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
+            <button onClick={() => setIsAddModalOpen(true)} className="w-full mt-3 py-2.5 rounded-lg border border-dashed border-border-hover text-text-muted hover:text-primary-light hover:border-primary/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
               <FiPlus size={14} /> Add New Partner
             </button>
           </div>
@@ -654,6 +730,7 @@ export default function Friends() {
           </div>
         </div>
       </div>
+      <AddPartnerModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} friends={friends} />
     </div>
   );
 }

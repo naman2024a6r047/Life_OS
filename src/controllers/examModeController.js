@@ -154,20 +154,22 @@ exports.deactivateExamMode = async (req, res) => {
                     
                     console.log(`[ExamMode] Found ${tasks.length} tasks to shift.`);
 
-                    // Update all tasks in parallel
-                    const taskUpdatePromises = tasks.map(async (t) => {
-                        if (t.date) {
-                            const taskDate = new Date(t.date);
-                            taskDate.setDate(taskDate.getDate() + elapsedDays);
-                            return t.update({
-                                date: taskDate.toISOString().split('T')[0]
-                            });
-                        }
-                    });
-
-                    await Promise.all(taskUpdatePromises);
+                    // Update all tasks in chunks to avoid overwhelming the database connection pool
+                    const chunkSize = 50;
+                    for (let i = 0; i < tasks.length; i += chunkSize) {
+                        const chunk = tasks.slice(i, i + chunkSize);
+                        await Promise.all(chunk.map(async (t) => {
+                            if (t.date) {
+                                const taskDate = new Date(t.date);
+                                taskDate.setDate(taskDate.getDate() + elapsedDays);
+                                return t.update({
+                                    date: taskDate.toISOString().split('T')[0]
+                                });
+                            }
+                        }));
+                    }
                 }
-                console.log('[ExamMode] Milestones and tasks shifted in parallel.');
+                console.log('[ExamMode] Milestones and tasks shifted in chunks.');
             }
         }
 

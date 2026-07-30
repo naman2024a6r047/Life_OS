@@ -32,6 +32,17 @@ export default function MuscleDiagram({
 
   // SVG Data-Muscle -> Internal Tracker ID mapping
   const svgToInternalMap = {
+      chest: 'chest',
+      deltoids_front: 'deltoids_front',
+      deltoids_rear: 'deltoids_rear',
+      biceps: 'biceps',
+      triceps: 'triceps',
+      traps: 'traps',
+      upperBack: 'lats',
+      lowerBack: 'lower_back',
+      gluteal: 'glutes',
+      hamstring: 'hamstrings',
+      calves: 'calves',
     trapezius: 'traps',
     deltoids: 'deltoids_side', // Group them for display
     chest: 'chest',
@@ -399,36 +410,14 @@ export default function MuscleDiagram({
         The viewBox handles the overall layout of both figures. 
       */}
       {/* INVISIBLE DEFS FOR GRADIENTS */}
-      <svg width="0" height="0" className="absolute">
-        <defs>
-          <linearGradient id="primaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#7c3aed" />
-            <stop offset="100%" stopColor="#5b21b6" />
-          </linearGradient>
-
-          <linearGradient id="secondaryGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#a855f7" />
-            <stop offset="100%" stopColor="#8b5cf6" />
-          </linearGradient>
-
-          <linearGradient id="inactiveGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#3f3f46" />
-            <stop offset="100%" stopColor="#27272a" />
-          </linearGradient>
-
-          <linearGradient id="hoverGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#d8b4fe" />
-            <stop offset="100%" stopColor="#c084fc" />
-          </linearGradient>
-        </defs>
-      </svg>
+      
 
       <div className="relative w-full h-full flex justify-center items-center gap-4">
         {/* FRONT ANATOMY MODEL (High Fidelity) */}
         {(viewMode === 'both' || viewMode === 'front') && (
           <div 
             className={`h-full ${viewMode === 'both' ? 'w-1/2' : 'w-3/4 max-w-[400px]'} flex justify-center`}
-            dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="w-full h-full filter drop-shadow-xl" ') }} 
+            dangerouslySetInnerHTML={{ __html: anatomyFrontRaw.replace('<svg ', '<svg class="w-full h-full filter drop-shadow-xl" ').replace('</style>', `</style>${defsString}`) }} 
           />
         )}
 
@@ -436,7 +425,7 @@ export default function MuscleDiagram({
         {(viewMode === 'both' || viewMode === 'back') && (
           <div 
             className={`h-full ${viewMode === 'both' ? 'w-1/2' : 'w-3/4 max-w-[400px]'} flex justify-center`}
-            dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace('<svg ', '<svg class="w-full h-full filter drop-shadow-xl" ') }} 
+            dangerouslySetInnerHTML={{ __html: anatomyBackRaw.replace('<svg ', '<svg class="w-full h-full filter drop-shadow-xl" ').replace('</style>', `</style>${defsString}`) }} 
           />
         )}
       </div>

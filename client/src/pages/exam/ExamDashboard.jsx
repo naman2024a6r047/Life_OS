@@ -119,11 +119,11 @@ export default function ExamDashboard() {
 
             {/* Top Navigation Bar specific to Exam Mode */}
             <nav className="border-b border-white/10 bg-[#090A0F]/80 backdrop-blur-md sticky top-0 z-50">
-                <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3 text-cyan-400 font-bold text-xl cursor-pointer" onClick={() => setActiveTab('dashboard')}>
+                <div className="max-w-6xl mx-auto px-4 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 text-cyan-400 font-bold text-xl cursor-pointer shrink-0" onClick={() => setActiveTab('dashboard')}>
                         <FiShield className="w-6 h-6" /> Exam Shield
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide pb-1 w-full md:w-auto">
                         <button 
                             onClick={() => setActiveTab('dashboard')}
                             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'dashboard' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/5 hover:bg-white/10 text-slate-300'}`}
@@ -151,7 +151,7 @@ export default function ExamDashboard() {
                         
                         <button 
                             onClick={() => setShowNewExamModal(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-1.5 ml-2"
+                            className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-1.5 ml-1"
                         >
                             <FiPlus /> New Exam
                         </button>

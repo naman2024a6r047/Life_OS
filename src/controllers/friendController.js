@@ -517,29 +517,17 @@ exports.sendIntervention = async (req, res) => {
             const milestone = await resolveUserMilestone(receiver_id, item_title);
 
             if (milestone) {
-                // Instantly reset all tasks for this milestone to start from TODAY (Day 1)
+                // Instantly reset all tasks for this milestone (uncheck progress)
                 const tasks = await MilestoneTask.findAll({
                     where: { milestone_id: milestone.id },
                     order: [['createdAt', 'ASC']]
                 });
 
-                const today = new Date();
-                today.setHours(0, 0, 0, 0);
-
                 for (let i = 0; i < tasks.length; i++) {
-                    const taskDate = new Date(today);
-                    taskDate.setDate(today.getDate() + i);
-
                     tasks[i].is_completed = false;
-                    tasks[i].date = taskDate.toISOString().split('T')[0];
                     await tasks[i].save();
                 }
 
-                const endDate = new Date(today);
-                endDate.setDate(today.getDate() + Math.max(0, tasks.length - 1));
-
-                milestone.start_date = today;
-                milestone.deadline = endDate;
                 milestone.status = 'unlocked';
                 await milestone.save();
 
@@ -692,28 +680,16 @@ exports.resetMilestoneToDayOne = async (req, res) => {
             order: [['createdAt', 'ASC']]
         });
 
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
         for (let i = 0; i < tasks.length; i++) {
-            const taskDate = new Date(today);
-            taskDate.setDate(today.getDate() + i);
-
             tasks[i].is_completed = false;
-            tasks[i].date = taskDate.toISOString().split('T')[0];
             await tasks[i].save();
         }
 
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() + Math.max(0, tasks.length - 1));
-
-        milestone.start_date = today;
-        milestone.deadline = endDate;
         milestone.status = 'unlocked';
         await milestone.save();
 
         res.status(200).json({ 
-            message: `Milestone "${milestone.title}" restarted to Day 1! Tasks reset starting from today.`,
+            message: `Milestone "${milestone.title}" restarted to Task 1! Tasks progress reset.`,
             milestone,
             taskCount: tasks.length
         });
@@ -746,32 +722,21 @@ exports.resetMilestoneFromIntervention = async (req, res) => {
         });
 
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
         for (let i = 0; i < tasks.length; i++) {
-            const taskDate = new Date(today);
-            taskDate.setDate(today.getDate() + i);
-
             tasks[i].is_completed = false;
-            tasks[i].date = taskDate.toISOString().split('T')[0];
             await tasks[i].save();
         }
 
-        const endDate = new Date(today);
-        endDate.setDate(today.getDate() + Math.max(0, tasks.length - 1));
-
-        milestone.start_date = today;
-        milestone.deadline = endDate;
         milestone.status = 'unlocked';
         await milestone.save();
 
         intervention.status = 'completed';
-        intervention.user_response = `⚡ Punishment executed: Milestone "${milestone.title}" restarted to Day 1 (Task 1).`;
+        intervention.user_response = `⚡ Punishment executed: Milestone "${milestone.title}" restarted to Task 1.`;
         intervention.sender_read = false;
         await intervention.save();
 
         res.status(200).json({ 
-            message: `Punishment Executed: Milestone "${milestone.title}" restarted to Day 1!`,
+            message: `Punishment Executed: Milestone "${milestone.title}" restarted to Task 1!`,
             intervention,
             milestone
         });

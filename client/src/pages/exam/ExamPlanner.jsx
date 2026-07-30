@@ -113,7 +113,7 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
 
             {/* Add Subject */}
             <div className="glass-panel p-6 rounded-2xl">
-                <form onSubmit={handleAddSubject} className="flex gap-4">
+                <form onSubmit={handleAddSubject} className="flex flex-col md:flex-row gap-4">
                     <input 
                         type="text" 
                         placeholder="Add a new subject (e.g., Operating Systems)" 
@@ -187,7 +187,7 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
                         </div>
 
                         {/* Add Topic Form */}
-                        <form onSubmit={(e) => handleAddTopic(subject.id, e)} className="flex gap-3 pt-2">
+                        <form onSubmit={(e) => handleAddTopic(subject.id, e)} className="flex flex-col sm:flex-row gap-3 pt-2">
                             <input 
                                 type="text" 
                                 placeholder="Add a topic (e.g., Process Scheduling)"

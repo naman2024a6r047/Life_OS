@@ -6,7 +6,7 @@ import { FiSend, FiUser } from 'react-icons/fi';
 import dayjs from 'dayjs';
 
 export default function ChatSystem({ partnerId }) {
-    const { user, token } = useContext(AuthContext);
+    const { user } = useContext(AuthContext);
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
     const [socket, setSocket] = useState(null);
@@ -39,21 +39,17 @@ export default function ChatSystem({ partnerId }) {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/${partnerId}`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/${partnerId}`);
                 setMessages(res.data);
                 
                 // Mark as read
-                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/${partnerId}/read`, {}, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/${partnerId}/read`);
             } catch (err) {
                 console.error('Failed to load chat history', err);
             }
         };
         fetchHistory();
-    }, [partnerId, token]);
+    }, [partnerId]);
 
     // Auto-scroll
     useEffect(() => {

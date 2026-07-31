@@ -49,3 +49,23 @@ exports.markAsRead = async (req, res) => {
         res.status(500).json({ message: 'Error marking messages as read' });
     }
 };
+
+exports.getUnreadMessages = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const messages = await ChatMessage.findAll({
+            where: {
+                receiver_id: userId,
+                is_read: false
+            },
+            include: [
+                { model: User, as: 'sender', attributes: ['id', 'username'] }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+        res.status(200).json(messages);
+    } catch (error) {
+        console.error('Error fetching unread messages:', error);
+        res.status(500).json({ message: 'Error fetching unread messages' });
+    }
+};

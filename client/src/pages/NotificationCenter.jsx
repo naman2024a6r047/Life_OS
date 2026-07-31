@@ -25,15 +25,52 @@ export default function NotificationCenter() {
           inquiriesRes,
           penaltiesRes,
           reviewsRes,
-          feedRes
+          feedRes,
+          chatRes
         ] = await Promise.allSettled([
           axios.get('/api/friends/interventions'),
           axios.get('/api/penalties/active'),
           axios.get('/api/reviews/pending'),
-          axios.get('/api/friends/feed')
+          axios.get('/api/friends/feed'),
+          axios.get('/api/chat/unread')
         ]);
 
         const notifs = [];
+
+        // 0. Chat Messages
+        if (chatRes.status === 'fulfilled' && chatRes.value.data) {
+          // Group by sender to avoid spamming the notification feed
+          const unreadMsgs = chatRes.value.data;
+          const groupedBySender = {};
+          
+          unreadMsgs.forEach(msg => {
+            const senderId = msg.sender?.id || msg.sender_id;
+            if (!groupedBySender[senderId]) {
+              groupedBySender[senderId] = {
+                count: 0,
+                senderName: msg.sender?.username || 'A friend',
+                latestMsg: msg.content,
+                date: msg.createdAt,
+                id: msg.id
+              };
+            }
+            groupedBySender[senderId].count += 1;
+            // Assuming they are sorted DESC from backend, the first one encountered is the latest
+          });
+
+          Object.values(groupedBySender).forEach(group => {
+            notifs.push({
+              id: `chat-${group.id}`,
+              type: 'chat',
+              title: group.count > 1 ? `New Messages (${group.count})` : 'New Message',
+              message: `${group.senderName}: "${group.latestMsg}"`,
+              date: group.date,
+              icon: <FiMessageSquare className="text-white" size={18} />,
+              iconBg: 'bg-gradient-to-br from-indigo-500 to-purple-600',
+              link: '/friends'
+            });
+          });
+        }
 
         // 1. Inquiries / Chat
         if (inquiriesRes.status === 'fulfilled' && inquiriesRes.value.data) {
@@ -45,8 +82,8 @@ export default function NotificationCenter() {
                 title: 'New Partner Inquiry',
                 message: `${inq.sender?.username || 'A partner'} asked about your progress: "${inq.message || 'Why did you miss your task?'}"`,
                 date: inq.createdAt,
-                icon: <FiMessageSquare className="text-white" size={18} />,
-                iconBg: 'bg-gradient-to-br from-blue-400 to-indigo-600',
+                icon: <FiInfo className="text-white" size={18} />,
+                iconBg: 'bg-gradient-to-br from-blue-400 to-cyan-500',
                 link: '/friends'
               });
             }

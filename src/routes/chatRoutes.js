@@ -3,6 +3,7 @@ const router = express.Router();
 const chatController = require('../controllers/chatController');
 const protect = require('../middlewares/authMiddleware');
 
+router.get('/unread', protect, chatController.getUnreadMessages);
 router.get('/:partnerId', protect, chatController.getChatHistory);
 router.put('/:partnerId/read', protect, chatController.markAsRead);
 

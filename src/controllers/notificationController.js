@@ -107,7 +107,7 @@ exports.markAllRead = async (req, res) => {
 
 exports.getUnreadCount = async (req, res) => {
     try {
-        const { ApprovalRequest, Penalty } = require('../models');
+        const { ApprovalRequest, Penalty, ChatMessage } = require('../models');
 
         // 1. Unread Interventions
         const interventionsCount = await PartnerIntervention.count({
@@ -121,13 +121,18 @@ exports.getUnreadCount = async (req, res) => {
 
         // 3. Active Penalties
         const penaltiesCount = await Penalty.count({
-            where: { user_id: req.user.id }
+            where: { user_id: req.user.id } // Active implies they haven't completed/restarted yet
+        });
+
+        // 4. Unread Chat Messages
+        const chatCount = await ChatMessage.count({
+            where: { receiver_id: req.user.id, is_read: false }
         });
 
         // We also check the static notificationsStore for any unread static items
         const staticUnread = notificationsStore.filter(n => !n.read).length;
 
-        const total = interventionsCount + reviewsCount + penaltiesCount + staticUnread;
+        const total = interventionsCount + reviewsCount + penaltiesCount + chatCount + staticUnread;
 
         res.status(200).json({ count: total });
     } catch (error) {

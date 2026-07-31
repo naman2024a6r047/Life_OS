@@ -17,7 +17,10 @@ let codeClient = null;
 export function extractFolderId(url) {
   if (!url) return null;
   const match = url.match(/\/folders\/([a-zA-Z0-9-_]+)/);
-  return match ? match[1] : null;
+  if (match) return match[1];
+  
+  const idMatch = url.match(/[?&]id=([a-zA-Z0-9-_]+)/);
+  return idMatch ? idMatch[1] : null;
 }
 
 let globalOnAuthSuccess = null;

@@ -229,6 +229,22 @@ async function startServer() {
     server.listen(PORT, () => {
         console.log(`Server and Socket.IO running on port ${PORT}`);
     });
+
+    // Graceful shutdown to prevent zombie processes
+    const gracefulShutdown = async () => {
+        console.log('Shutting down gracefully...');
+        try {
+            await sequelize.close();
+            console.log('Database connection closed.');
+        } catch (err) {
+            console.error('Error closing database connection:', err);
+        }
+        process.exit(0);
+    };
+
+    process.on('SIGTERM', gracefulShutdown);
+    process.on('SIGINT', gracefulShutdown);
+    process.on('SIGUSR2', gracefulShutdown); // For nodemon restarts
 }
 
 startServer();

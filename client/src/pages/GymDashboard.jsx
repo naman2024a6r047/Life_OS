@@ -1390,8 +1390,8 @@ export default function GymDashboard() {
                       </button>
                     </div>
                   </div>
-                  <button onClick={requestGoogleDriveAccess} className="px-4 py-2 bg-[#4285F4] hover:bg-[#357ae8] text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
-                    <span>{googleAccessToken ? 'Signed in to Google' : 'Sign in with Google'}</span>
+                  <button onClick={() => requestGoogleDriveAccess(true)} className="px-4 py-2 bg-[#4285F4] hover:bg-[#357ae8] text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
+                    <span>{googleAccessToken ? 'Reconnect Google Drive' : 'Sign in with Google'}</span>
                   </button>
                 </div>
               </div>

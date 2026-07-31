@@ -134,10 +134,17 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
       let driveData = {};
       if (inputMode === 'file' && selectedFile && googleAccessToken) {
         setLoadingState('Checking Drive Folder...');
-        const folderId = await getOrCreateAppFolder(googleAccessToken);
+        
+        let folderId = null;
+        if (userProfile?.resourceDriveFolderLink) {
+            folderId = extractFolderId(userProfile.resourceDriveFolderLink);
+        }
+        if (!folderId) {
+            folderId = await getOrCreateAppFolder(googleAccessToken);
+        }
         
         if (!folderId) {
-          alert('Failed to initialize Google Drive folder.');
+          alert('Failed to initialize Google Drive folder. Please check your folder link.');
           return;
         }
         
@@ -448,7 +455,7 @@ export default function AICoachDashboard() {
               {linkSaved ? <><FiCheck size={12} /> Saved</> : 'Save'}
             </button>
           </div>
-          <button onClick={requestGoogleDriveAccess}
+          <button onClick={() => requestGoogleDriveAccess(true)}
             className={`px-4 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-colors whitespace-nowrap w-full sm:w-auto ${googleAccessToken ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-[#4285F4] hover:bg-[#357ae8] text-white'}`}>
             {googleAccessToken ? <><FiCheck size={12} /> Google Connected</> : 'Connect Google'}
           </button>

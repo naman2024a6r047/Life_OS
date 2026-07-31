@@ -116,7 +116,7 @@ export default function NotificationsDashboard() {
       </div>
 
       {/* Top Metric Cards (4 cols) */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="card p-4 flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-danger/10 text-danger flex items-center justify-center flex-shrink-0 font-bold">
             <FiAlertCircle size={20} />
@@ -163,9 +163,9 @@ export default function NotificationsDashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-12 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column — Early Warning System (5 cols) */}
-        <div className={`col-span-5 card p-4 space-y-3 ${isDanger ? 'border-danger/40 bg-danger/5 shadow-glow-warning' : isWarning ? 'border-warning/40 bg-warning/5' : ''}`}>
+        <div className={`lg:col-span-5 card p-4 space-y-3 ${isDanger ? 'border-danger/40 bg-danger/5 shadow-glow-warning' : isWarning ? 'border-warning/40 bg-warning/5' : ''}`}>
           <div className="flex items-center justify-between">
             <h3 className="section-title flex items-center gap-2">
                 <FiClock className={isDanger ? 'text-danger' : isWarning ? 'text-warning' : 'text-purple'} /> 
@@ -210,7 +210,7 @@ export default function NotificationsDashboard() {
         </div>
 
         {/* Center Column — Active Penalty (4 cols) */}
-        <div className={`col-span-4 card p-5 space-y-4 ${activeCount > 0 ? 'bg-gradient-to-br from-danger/10 to-surface' : 'bg-surface'}`}>
+        <div className={`lg:col-span-4 card p-5 space-y-4 ${activeCount > 0 ? 'bg-gradient-to-br from-danger/10 to-surface' : 'bg-surface'}`}>
           <div className="flex items-center justify-between">
             <h3 className={`section-title ${activeCount > 0 ? 'text-danger' : 'text-success'}`}>
                 {activeCount > 0 ? 'Active Penalties' : 'No Active Penalties'}
@@ -268,7 +268,7 @@ export default function NotificationsDashboard() {
         </div>
 
         {/* Right Column — History (3 cols) */}
-        <div className="col-span-3 space-y-4">
+        <div className="lg:col-span-3 space-y-4">
           
           {/* Penalty History List */}
           <div className="card p-4 space-y-2.5 h-full overflow-y-auto" style={{ maxHeight: '400px' }}>

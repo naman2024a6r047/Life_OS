@@ -27,6 +27,7 @@ import NotificationsDashboard from './pages/NotificationsDashboard';
 import NotificationCenter from './pages/NotificationCenter';
 import GoalWorkspace from './pages/GoalWorkspace';
 import PartnerDashboard from './pages/PartnerDashboard';
+import SleepDashboard from './pages/SleepDashboard';
 
 import CommandPalette from './components/navigation/CommandPalette';
 import AppShell from './components/navigation/AppShell';
@@ -98,6 +99,7 @@ function AppRoutes() {
         <Route path="/notifications" element={<ProtectedRoute><NotificationCenter /></ProtectedRoute>} />
         <Route path="/penalties" element={<ProtectedRoute><NotificationsDashboard /></ProtectedRoute>} />
         <Route path="/goals/workspace/:goalId" element={<ProtectedRoute><GoalWorkspace /></ProtectedRoute>} />
+        <Route path="/sleep" element={<ProtectedRoute><SleepDashboard /></ProtectedRoute>} />
       </Routes>
       {user && (
         <CommandPalette isOpen={isCmdOpen} onClose={() => setIsCmdOpen(false)} />

@@ -238,10 +238,11 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const clearedAt = localStorage.getItem('notificationsClearedAt') || '';
         const [challRes, analyticsRes, unreadRes, partnersRes, inqRes, achRes, heatmapRes, trendRes, statsRes] = await Promise.allSettled([
           axios.get('/api/challenges'),
           axios.get('/api/analytics/summary'),
-          axios.get('/api/notifications/unread-count'),
+          axios.get(`/api/notifications/unread-count?clearedAt=${clearedAt}`),
           axios.get('/api/dashboard/partners'),
           axios.get('/api/dashboard/inquiries'),
           axios.get('/api/dashboard/achievements'),

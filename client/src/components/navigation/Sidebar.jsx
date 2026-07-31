@@ -43,7 +43,8 @@ export default function Sidebar({ isOpen, onClose }) {
   React.useEffect(() => {
     const fetchUnread = async () => {
       try {
-        const res = await axios.get('/api/notifications/unread-count');
+        const clearedAt = localStorage.getItem('notificationsClearedAt') || '';
+        const res = await axios.get(`/api/notifications/unread-count?clearedAt=${clearedAt}`);
         setUnreadCount(res.data.count);
       } catch (err) {
         console.error('Failed to fetch unread count', err);

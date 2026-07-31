@@ -142,7 +142,12 @@ export default function NotificationCenter() {
 
         // Sort all notifications by date (newest first)
         notifs.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setNotifications(notifs);
+
+        const clearedAtStr = localStorage.getItem('notificationsClearedAt');
+        const clearedAt = clearedAtStr ? new Date(clearedAtStr) : new Date(0);
+        
+        const filteredNotifs = notifs.filter(n => new Date(n.date) > clearedAt);
+        setNotifications(filteredNotifs);
       } catch (err) {
         console.error('Error fetching notifications:', err);
       } finally {
@@ -152,6 +157,20 @@ export default function NotificationCenter() {
 
     fetchAllNotifications();
   }, []);
+
+  const handleClearInbox = async () => {
+    if (!window.confirm("Are you sure you want to clear your inbox? This will hide all current notifications.")) return;
+    
+    try {
+      await axios.post('/api/notifications/read-all');
+      localStorage.setItem('notificationsClearedAt', new Date().toISOString());
+      setNotifications([]);
+      // Force a tiny reload to update sidebar badges without a full page refresh if possible, but simplest is to just reload
+      window.location.reload();
+    } catch (err) {
+      console.error('Failed to clear inbox', err);
+    }
+  };
 
   const groupNotifications = (notifs) => {
     const today = [];
@@ -221,14 +240,25 @@ export default function NotificationCenter() {
       {/* Dynamic Background Glow */}
       <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
-      <div className="relative z-10 flex items-center gap-4 mb-10 bg-slate-900/60 p-6 rounded-3xl border border-slate-800/80 backdrop-blur-xl shadow-2xl">
-        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
-          <FiBell size={28} />
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 bg-slate-900/60 p-6 rounded-3xl border border-slate-800/80 backdrop-blur-xl shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+            <FiBell size={28} />
+          </div>
+          <div>
+            <h1 className="text-3xl font-black text-white tracking-tight">Notification Center</h1>
+            <p className="text-slate-400 font-medium mt-1">Stay updated with accountability alerts and partner activity.</p>
+          </div>
         </div>
-        <div>
-          <h1 className="text-3xl font-black text-white tracking-tight">Notification Center</h1>
-          <p className="text-slate-400 font-medium mt-1">Stay updated with accountability alerts and partner activity.</p>
-        </div>
+        
+        {notifications.length > 0 && (
+          <button 
+            onClick={handleClearInbox}
+            className="shrink-0 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-500/10 text-slate-300 hover:text-rose-400 border border-slate-700 hover:border-rose-500/30 transition-all font-bold text-sm flex items-center gap-2"
+          >
+            Clear Inbox
+          </button>
+        )}
       </div>
 
       <div className="relative z-10">

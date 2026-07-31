@@ -90,10 +90,18 @@ exports.markRead = async (req, res) => {
 
 exports.markAllRead = async (req, res) => {
     try {
-        // Update all DB notifications
+        const { PartnerIntervention, ChatMessage } = require('../models');
+
+        // Update all DB notifications (interventions)
         await PartnerIntervention.update(
             { sender_read: true },
             { where: { receiver_id: req.user.id, sender_read: false } }
+        );
+
+        // Update chat messages
+        await ChatMessage.update(
+            { is_read: true },
+            { where: { receiver_id: req.user.id, is_read: false } }
         );
 
         // Update static store
@@ -107,32 +115,47 @@ exports.markAllRead = async (req, res) => {
 
 exports.getUnreadCount = async (req, res) => {
     try {
-        const { ApprovalRequest, Penalty, ChatMessage } = require('../models');
+        const { ApprovalRequest, Penalty, ChatMessage, PartnerIntervention } = require('../models');
+        const { Op } = require('sequelize');
+        
+        const clearedAt = req.query.clearedAt ? new Date(req.query.clearedAt) : new Date(0);
 
         // 1. Unread Interventions
         const interventionsCount = await PartnerIntervention.count({
-            where: { receiver_id: req.user.id, sender_read: false }
+            where: { 
+                receiver_id: req.user.id, 
+                sender_read: false,
+                createdAt: { [Op.gt]: clearedAt }
+            }
         });
 
         // 2. Pending Reviews
         const reviewsCount = await ApprovalRequest.count({
-            where: { reviewer_id: req.user.id, status: 'pending' }
+            where: { 
+                reviewer_id: req.user.id, 
+                status: 'pending',
+                createdAt: { [Op.gt]: clearedAt }
+            }
         });
 
         // 3. Active Penalties
         const penaltiesCount = await Penalty.count({
-            where: { user_id: req.user.id } // Active implies they haven't completed/restarted yet
+            where: { 
+                user_id: req.user.id,
+                createdAt: { [Op.gt]: clearedAt }
+            }
         });
 
         // 4. Unread Chat Messages
         const chatCount = await ChatMessage.count({
-            where: { receiver_id: req.user.id, is_read: false }
+            where: { 
+                receiver_id: req.user.id, 
+                is_read: false,
+                createdAt: { [Op.gt]: clearedAt }
+            }
         });
 
-        // We also check the static notificationsStore for any unread static items
-        const staticUnread = notificationsStore.filter(n => !n.read).length;
-
-        const total = interventionsCount + reviewsCount + penaltiesCount + chatCount + staticUnread;
+        const total = interventionsCount + reviewsCount + penaltiesCount + chatCount;
 
         res.status(200).json({ count: total });
     } catch (error) {

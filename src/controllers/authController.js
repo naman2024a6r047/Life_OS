@@ -165,17 +165,12 @@ const syncProfile = async (req, res) => {
 
         const activeExam = await ExamSession.findOne({ where: { user_id: user.id, is_active: true } });
 
+        const userObj = user.toJSON();
+        delete userObj.password_hash;
+        userObj.is_in_exam_mode = !!activeExam;
+
         res.status(200).json({
-            user: {
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                xp: user.xp,
-                level: user.level,
-                avatar_url: user.avatar_url,
-                current_streak: user.current_streak,
-                is_in_exam_mode: !!activeExam
-            }
+            user: userObj
         });
     } catch (error) {
         console.error('Sync profile error:', error);

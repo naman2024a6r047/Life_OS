@@ -131,21 +131,40 @@ export async function uploadPhotoToDrive(file, folderId, accessToken, filename =
     parents: folderId ? [folderId] : []
   };
 
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('file', file);
-
-  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink', {
+  // Step 1: Initialize resumable upload
+  const initRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,webViewLink', {
     method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`
+      'Authorization': `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'X-Upload-Content-Type': file.type,
+      'X-Upload-Content-Length': file.size.toString()
     },
-    body: form
+    body: JSON.stringify(metadata)
+  });
+
+  if (!initRes.ok) {
+    const errText = await initRes.text();
+    throw new Error(`Drive upload init failed: ${errText}`);
+  }
+
+  const uploadUrl = initRes.headers.get('Location');
+  if (!uploadUrl) {
+    throw new Error('Failed to get upload location from Google Drive API');
+  }
+
+  // Step 2: Upload actual file content
+  const response = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Range': `bytes 0-${file.size - 1}/${file.size}`
+    },
+    body: file
   });
 
   if (!response.ok) {
     const errText = await response.text();
-    throw new Error(`Upload failed: ${errText}`);
+    throw new Error(`Drive upload failed: ${errText}`);
   }
 
   return response.json();

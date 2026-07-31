@@ -87,7 +87,7 @@ export default function Sidebar({ isOpen, onClose }) {
         />
       )}
       
-      <aside className={`w-[240px] min-w-[240px] h-screen bg-surface border-r border-border-subtle flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
+      <aside className={`w-[240px] min-w-[240px] h-[100dvh] bg-surface border-r border-border-subtle flex flex-col fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:translate-x-0`}>
       {/* Branding */}
       <div className="px-4 pt-5 pb-3">
         <div className="flex items-center gap-2.5">
@@ -125,7 +125,7 @@ export default function Sidebar({ isOpen, onClose }) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto sidebar-scroll px-3 py-1 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto sidebar-scroll px-3 py-1 pb-6 space-y-0.5">
         {currentNavItems.map((item) => {
           const isActive = item.exact 
             ? location.pathname === item.path

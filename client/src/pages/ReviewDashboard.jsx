@@ -5,7 +5,8 @@ import { motion } from 'framer-motion';
 import {
   FiCheckCircle, FiXCircle, FiStar, FiSearch, FiFilter,
   FiExternalLink, FiClock, FiShield, FiZap, FiAward, FiAlertCircle,
-  FiInfo, FiChevronRight, FiHeart, FiCheck, FiThumbsUp, FiMessageSquare
+  FiInfo, FiChevronRight, FiHeart, FiCheck, FiThumbsUp, FiMessageSquare,
+  FiCheckSquare
 } from 'react-icons/fi';
 
 export default function ReviewDashboard() {
@@ -226,16 +227,18 @@ export default function ReviewDashboard() {
                 className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-surface-elevated text-xs text-text-primary placeholder-text-muted border border-border-subtle focus:border-purple focus:outline-none"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-2 max-h-[600px] overflow-y-auto custom-scrollbar pr-1">
               {loading ? (
                 <div className="text-center text-text-muted text-xs p-4">Loading requests...</div>
               ) : reviewsToDo.length === 0 ? (
-                <div className="text-center text-text-muted text-xs p-4 border border-dashed border-border-subtle rounded-xl">No pending reviews. You're all caught up!</div>
+                <div className="text-center text-text-muted text-xs p-4 border border-dashed border-border-subtle rounded-xl">No reviews found here.</div>
               ) : (
                 reviewsToDo.map(r => {
                   const isSelected = r.id === selectedReviewId;
                   const authorName = r.requester?.username || 'Unknown User';
                   const title = r.Milestone?.title || 'Unknown Milestone';
+                  const date = new Date(activeTab === 'history' ? r.updatedAt : r.createdAt).toLocaleDateString();
+                  
                   return (
                     <div
                       key={r.id}
@@ -244,15 +247,25 @@ export default function ReviewDashboard() {
                         isSelected ? 'border-purple bg-purple/10' : 'border-border-subtle bg-surface-elevated/40 hover:bg-surface-elevated'
                       }`}
                     >
-                      <div className="flex items-start gap-2.5">
-                        <div className="w-7 h-7 rounded-lg bg-warning/10 text-warning flex items-center justify-center font-mono text-xs flex-shrink-0 mt-0.5">
-                          🎯
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2.5 min-w-0">
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center font-mono text-xs flex-shrink-0 mt-0.5 ${r.status === 'approved' ? 'bg-success/10 text-success' : r.status === 'rejected' ? 'bg-danger/10 text-danger' : 'bg-warning/10 text-warning'}`}>
+                            {r.status === 'approved' ? '✓' : r.status === 'rejected' ? '✗' : '🎯'}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-text-primary truncate">{title}</p>
+                            <p className="text-[10px] text-text-muted mt-0.5">
+                              {activeTab === 'my-reviews' ? `Reviewer: ${r.reviewer?.username || '-'}` : `Friend: ${authorName}`}
+                            </p>
+                          </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-bold text-text-primary truncate">{title}</p>
-                          <p className="text-[10px] text-text-muted">
-                            {activeTab === 'my-reviews' ? `Reviewer: ${r.reviewer?.username || '-'}` : `By ${authorName}`}
-                          </p>
+                        <div className="text-right shrink-0">
+                           <span className="text-[9px] text-text-muted font-medium block mb-1">{date}</span>
+                           {activeTab !== 'to-do' && (
+                             <span className={`text-[8px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md ${r.status === 'approved' ? 'bg-success/20 text-success' : r.status === 'rejected' ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'}`}>
+                               {r.status}
+                             </span>
+                           )}
                         </div>
                       </div>
                     </div>
@@ -313,71 +326,104 @@ export default function ReviewDashboard() {
         {/* Center Column (6 cols) */}
         <div className="lg:col-span-6 space-y-4">
           {/* Active Review Detail */}
-          <div className="card p-5 space-y-4">
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-xl bg-warning/10 text-warning flex items-center justify-center font-mono font-bold">
-                  🎯
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="badge-purple text-[9px]">Milestone Review</span>
-                    <span className="badge-info text-[9px]">In Progress</span>
+          {/* Active Review Detail */}
+          <div className="card border-0 bg-slate-900/40 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+            {/* Ambient Background Glow */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+
+            <div className="p-6 relative z-10 space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                <div className="flex items-start gap-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white shrink-0">
+                    <FiCheckCircle size={24} />
                   </div>
-                  <h2 className="text-base font-bold text-text-primary mt-1">{selectedReview?.Milestone?.title || 'No review selected'}</h2>
-                  <p className="text-xs text-text-muted">
-                    By <span className="text-text-primary font-medium">{selectedReview?.requester?.username || '-'}</span>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span className="px-2 py-0.5 rounded-md bg-purple/10 text-purple text-[10px] font-bold uppercase tracking-wide border border-purple/20">Milestone Review</span>
+                      <span className="px-2 py-0.5 rounded-md bg-amber-400/10 text-amber-400 text-[10px] font-bold uppercase tracking-wide border border-amber-400/20">Pending Action</span>
+                    </div>
+                    <h2 className="text-xl font-bold text-white mb-1">{selectedReview?.Milestone?.title || 'No review selected'}</h2>
+                    <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                      Submitted by <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 font-bold">{selectedReview?.requester?.username || '-'}</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description & Notes Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
+                    <FiInfo size={12} /> Milestone Description
+                  </h4>
+                  <p className="text-sm text-slate-300 leading-relaxed">
+                    {selectedReview?.Milestone?.description || 'No description provided.'}
+                  </p>
+                </div>
+                
+                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-2 flex items-center gap-1.5">
+                    <FiMessageSquare size={12} /> {selectedReview?.requester?.username || 'Peer'}'s Reflection
+                  </h4>
+                  <p className="text-sm text-indigo-200/90 leading-relaxed italic">
+                    "{selectedReview?.reflection || 'No reflection provided.'}"
                   </p>
                 </div>
               </div>
-            </div>
 
-            {/* Description */}
-            <div>
-              <h4 className="text-xs font-bold text-text-primary mb-1">Milestone Description</h4>
-              <p className="text-xs text-text-secondary">{selectedReview?.description}</p>
-            </div>
-
-            {/* Submitted Work Link */}
-            {selectedReview?.evidence_url && (
-              <div className="p-3 rounded-xl bg-surface-elevated flex items-center justify-between">
+              {/* Tasks List */}
+              {selectedReview?.Milestone?.tasks && selectedReview.Milestone.tasks.length > 0 && (
                 <div>
-                  <p className="text-[10px] text-text-muted">Submitted Work</p>
-                  <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="text-xs text-info font-mono hover:underline flex items-center gap-1">
-                    {selectedReview?.evidence_url} <FiExternalLink size={11} />
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-1.5 pl-1">
+                    <FiCheckSquare size={12} /> Completed Tasks
+                  </h4>
+                  <div className="grid gap-2">
+                    {selectedReview.Milestone.tasks.map(task => (
+                      <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/30 border border-slate-700/50 transition-colors hover:bg-slate-800/50">
+                        <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                          <FiCheck size={14} />
+                        </div>
+                        <span className="text-sm font-medium text-slate-200 line-through opacity-70">{task.description}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submitted Work Link */}
+              {selectedReview?.evidence_url && (
+                <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Submitted Evidence</p>
+                    <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="text-sm text-blue-400 hover:text-blue-300 font-mono flex items-center gap-2 truncate transition-colors">
+                      <FiExternalLink size={14} className="shrink-0" /> {selectedReview?.evidence_url}
+                    </a>
+                  </div>
+                  <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="shrink-0 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                    Open Link <FiChevronRight size={14} />
                   </a>
                 </div>
-                <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="btn-outline text-xs px-3 py-1.5">
-                  View Submission
-                </a>
-              </div>
-            )}
+              )}
 
-            {/* Reviewer Feedback (If completed) */}
-            {selectedReview?.Review && (
-              <div>
-                <h4 className="text-xs font-bold text-text-primary mb-1.5">Reviewer Feedback</h4>
-                <div className="p-3 rounded-xl bg-surface-elevated/70 border-l-2 border-success text-xs text-text-secondary italic">
-                  "{selectedReview?.Review.comment}"
+              {/* Reviewer Feedback (If completed) */}
+              {selectedReview?.Review && (
+                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-1.5">
+                    <FiStar size={12} /> Evaluation Complete
+                  </h4>
+                  <div className="mb-4">
+                    <p className="text-sm text-emerald-100/90 leading-relaxed">
+                      "{selectedReview?.Review.comment}"
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-900/50 text-emerald-400 text-[10px] font-bold border border-emerald-500/10">Quality: {selectedReview?.Review.rating_quality}/5</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-900/50 text-emerald-400 text-[10px] font-bold border border-emerald-500/10">Consistency: {selectedReview?.Review.rating_consistency}/5</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-900/50 text-emerald-400 text-[10px] font-bold border border-emerald-500/10">Overall: {selectedReview?.Review.rating_overall}/5</span>
+                  </div>
                 </div>
-                <div className="flex gap-4 mt-2 text-[10px] text-text-muted">
-                   <span>Quality: {selectedReview?.Review.rating_quality}/5</span>
-                   <span>Consistency: {selectedReview?.Review.rating_consistency}/5</span>
-                   <span>Overall: {selectedReview?.Review.rating_overall}/5</span>
-                </div>
-              </div>
-            )}
-
-            {/* Peer Notes */}
-            {selectedReview?.reflection && (
-              <div>
-                <h4 className="text-xs font-bold text-text-primary mb-1.5">{selectedReview?.requester?.username || 'Peer'}'s Reflection</h4>
-                <div className="p-3 rounded-xl bg-surface-elevated/70 border-l-2 border-purple text-xs text-text-secondary italic">
-                  "{selectedReview?.reflection}"
-                </div>
-              </div>
-            )}
-
+              )}
+            </div>
           </div>
         </div>
 

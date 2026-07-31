@@ -59,6 +59,7 @@ function LifeScoreCircle({ score }) {
 
 function ActivityHeatmap({ heatmapData = [] }) {
   const [view, setView] = useState('yearly');
+  const [hoverInfo, setHoverInfo] = useState(null);
   const days = ['', 'Mon', '', 'Wed', '', 'Fri', '']; // Sunday-aligned
   
   const { cells, monthLabels } = useMemo(() => {
@@ -127,7 +128,7 @@ function ActivityHeatmap({ heatmapData = [] }) {
   }, [heatmapData, view]);
 
   return (
-    <div className="card p-4">
+    <div className="card p-4 relative">
       <div className="flex items-center justify-between mb-4">
         <h3 className="section-title !mb-0">Activity Heatmap</h3>
         <select 
@@ -139,7 +140,7 @@ function ActivityHeatmap({ heatmapData = [] }) {
           <option value="monthly">Monthly (5 weeks)</option>
         </select>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar relative">
         <div className="flex flex-col gap-[3px] pt-[20px] flex-shrink-0">
           {days.map((d, i) => (
             <div key={i} className="h-[12px] text-[9px] text-text-muted font-mono flex items-center">{d}</div>
@@ -151,11 +152,16 @@ function ActivityHeatmap({ heatmapData = [] }) {
               <span key={i} className="absolute bottom-1" style={{ left: `${m.weekIndex * (12 + 3)}px` }}>{m.label}</span>
             ))}
           </div>
-          <div className="grid grid-flow-col grid-rows-7 gap-[3px] w-max">
+          <div className="grid grid-flow-col grid-rows-7 gap-[3px] w-max" onMouseLeave={() => setHoverInfo(null)}>
             {cells.map((cell, i) => (
               <div 
                 key={i} 
-                title={cell.isFuture ? '' : cell.title} 
+                onMouseEnter={(e) => {
+                  if (!cell.isFuture) {
+                    const rect = e.target.getBoundingClientRect();
+                    setHoverInfo({ title: cell.title, top: rect.top - 35, left: rect.left + rect.width / 2 });
+                  }
+                }}
                 className={`w-[12px] h-[12px] rounded-[2px] transition-all ${cell.isFuture ? '' : 'cursor-pointer hover:ring-1 hover:ring-white/60 hover:z-10 relative'} ${cell.color}`} 
               />
             ))}
@@ -163,6 +169,17 @@ function ActivityHeatmap({ heatmapData = [] }) {
         </div>
       </div>
       <p className="text-[10px] text-text-muted mt-3 italic">"Consistency is the key to mastery."</p>
+
+      {hoverInfo && (
+        <div 
+          className="fixed z-50 px-2.5 py-1.5 bg-slate-800 text-slate-200 text-[11px] font-medium rounded shadow-xl border border-slate-700 pointer-events-none transform -translate-x-1/2 whitespace-nowrap"
+          style={{ top: hoverInfo.top, left: hoverInfo.left }}
+        >
+          {hoverInfo.title}
+          {/* Tooltip triangle pointer */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
+        </div>
+      )}
     </div>
   );
 }

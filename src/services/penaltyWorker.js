@@ -1,5 +1,5 @@
 const cron = require('node-cron');
-const { User, Challenge, Milestone, MilestoneTask, Penalty, ActivityLog, sequelize } = require('../models');
+const { User, Challenge, Milestone, MilestoneTask, Penalty, ActivityLog, Friend, PartnerIntervention, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 // Run every 1 minute
@@ -134,6 +134,27 @@ const startPenaltyWorker = () => {
                             action_type: 'penalty_applied',
                             xp_awarded: -xpDeducted
                         }, { transaction: t });
+                        
+                        // 5. Notify Partners/Friends
+                        const friends = await Friend.findAll({
+                            where: {
+                                [Op.or]: [{ user_id: user.id }, { friend_id: user.id }],
+                                status: 'accepted'
+                            },
+                            transaction: t
+                        });
+                        
+                        const friendIds = friends.map(f => f.user_id === user.id ? f.friend_id : f.user_id);
+                        for (const friendId of friendIds) {
+                            await PartnerIntervention.create({
+                                sender_id: user.id,
+                                receiver_id: friendId,
+                                type: 'message',
+                                item_type: 'Penalty',
+                                item_title: 'Missed Task Penalty',
+                                message: `System Alert: Your accountability partner ${user.username || 'your friend'} missed their task "${missedTasks[0].title}" on ${latestMissedDate} and received a ${challenge.penalty_mode.toUpperCase()} penalty.`
+                            }, { transaction: t });
+                        }
                     });
                     
                     console.log(`[PenaltyWorker] Penalty applied to user ${user.id} for challenge ${challenge.id}`);

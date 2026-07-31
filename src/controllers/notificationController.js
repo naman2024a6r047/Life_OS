@@ -34,9 +34,29 @@ let notificationsStore = [
     }
 ];
 
+const { PartnerIntervention, User } = require('../models');
+
 exports.getNotifications = async (req, res) => {
     try {
-        res.status(200).json(notificationsStore);
+        const interventions = await PartnerIntervention.findAll({
+            where: { receiver_id: req.user.id },
+            include: [{ model: User, as: 'sender', attributes: ['username'] }],
+            order: [['createdAt', 'DESC']]
+        });
+
+        const dynamicNotifications = interventions.map(inv => ({
+            id: inv.id,
+            category: inv.item_title || 'Accountability Alert',
+            priority: inv.type === 'punishment' || inv.item_type === 'Penalty' ? 'Critical' : 'High',
+            title: inv.type === 'message' ? 'System/Partner Alert' : 'Partner Intervention',
+            body: inv.message || `Your partner ${inv.sender?.username} sent you a ${inv.type}.`,
+            time: inv.createdAt,
+            read: inv.sender_read, // using sender_read as read status for receiver
+            actionable: inv.status === 'pending',
+            type: inv.item_type === 'Penalty' ? 'warning' : 'friend'
+        }));
+
+        res.status(200).json([...dynamicNotifications, ...notificationsStore]);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching notifications' });
@@ -46,6 +66,16 @@ exports.getNotifications = async (req, res) => {
 exports.markRead = async (req, res) => {
     try {
         const { id } = req.params;
+        
+        // Try updating DB notification
+        const dbIntervention = await PartnerIntervention.findOne({ where: { id, receiver_id: req.user.id } });
+        if (dbIntervention) {
+            dbIntervention.sender_read = true;
+            await dbIntervention.save();
+            return res.status(200).json({ message: 'Marked read in DB' });
+        }
+
+        // Fallback to static store
         const item = notificationsStore.find(n => n.id === id);
         if (item) {
             item.read = true;
@@ -60,6 +90,13 @@ exports.markRead = async (req, res) => {
 
 exports.markAllRead = async (req, res) => {
     try {
+        // Update all DB notifications
+        await PartnerIntervention.update(
+            { sender_read: true },
+            { where: { receiver_id: req.user.id, sender_read: false } }
+        );
+
+        // Update static store
         notificationsStore.forEach(n => n.read = true);
         res.status(200).json({ message: 'All notifications marked as read' });
     } catch (error) {

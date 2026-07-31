@@ -425,7 +425,7 @@ function ImportCurriculumModal({ isOpen, onClose, challengeId, milestoneIndex, o
           <textarea
             value={curriculumText}
             onChange={(e) => setCurriculumText(e.target.value)}
-            placeholder="Paste syllabus here (e.g. 📅 Day 1 \n MERN Stack \n ☐ React Lecture 1 \n Python \n ☐ Angela Yu Bootcamp...)"
+            placeholder="Paste syllabus here...&#10;&#10;Optional: Use 'days gap[1]' at the very top to automatically schedule tasks on alternate days!&#10;&#10;📅 Day 1&#10;MERN Stack&#10;☐ React Lecture 1"
             className="w-full h-64 p-3.5 rounded-xl bg-slate-900 border border-border-subtle text-xs text-text-primary font-mono focus:outline-none focus:border-primary resize-y leading-relaxed scrollbar-thin"
           />
         </div>

@@ -130,17 +130,28 @@ const parseRawCurriculum = (text) => {
     const days = [];
     let currentDay = null;
     let currentCategory = 'General';
+    let daysGap = 0; // New: track gap between days
 
     lines.forEach(rawLine => {
         const line = rawLine.trim();
         if (!line) return;
 
+        // Detect Gap syntax (e.g., "days gap[1]", "day gap [2]")
+        const gapMatch = line.match(/^days?\s*gap\s*\[(\d+)\]/i);
+        if (gapMatch) {
+            daysGap = parseInt(gapMatch[1], 10);
+            return;
+        }
+
         // Detect Day Header (e.g. 📅 Day 1, Day 1, Day 01, Day-1, DAY 1)
         const dayMatch = line.match(/^(?:📅\s*)?Day[\s\-]*(\d+)/i);
         if (dayMatch) {
-            const dayNum = parseInt(dayMatch[1], 10);
+            const rawDayNum = parseInt(dayMatch[1], 10);
+            // Apply the gap multiplier
+            const actualDayNum = 1 + (rawDayNum - 1) * (1 + daysGap);
+            
             currentDay = {
-                dayNum,
+                dayNum: actualDayNum,
                 tasks: []
             };
             days.push(currentDay);

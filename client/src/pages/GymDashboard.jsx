@@ -748,18 +748,50 @@ export default function GymDashboard() {
 
               {/* Day badges row — larger on mobile */}
               <div className="flex justify-between items-center">
-                {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
-                  <div key={day} className="flex flex-col items-center gap-1.5">
-                    <span className="text-[9px] text-text-muted font-mono uppercase">{day}</span>
-                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
-                      i <= 4 ? 'bg-success text-white shadow-[0_0_8px_rgba(34,197,94,0.4)]'
-                      : i === 5 ? 'bg-purple text-white shadow-[0_0_8px_rgba(168,85,247,0.4)]'
-                      : 'bg-surface-elevated text-text-muted border border-border-subtle'
-                    }`}>
-                      {i <= 5 ? '✓' : '•'}
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((fullDay) => {
+                  const shortDay = fullDay.slice(0, 3);
+                  
+                  // Logic to determine status
+                  const isFuture = isFutureDay(fullDay);
+                  const isToday = fullDay === currentWeekday;
+                  const dateStr = getDateForWeekday(fullDay);
+                  
+                  // Check if any exercises logged for this date
+                  const completions = dateStr ? (dailyCompletions[dateStr] || {}) : {};
+                  const isLogged = Object.values(completions).some(v => v === true);
+                  
+                  // Check if this day has any planned exercises
+                  const hasPlan = weeklyPlan[fullDay]?.exercises?.length > 0;
+                  
+                  let icon = '';
+                  let badgeClass = 'bg-surface-elevated text-text-muted border border-border-subtle';
+                  
+                  if (isLogged) {
+                    icon = '✓';
+                    badgeClass = 'bg-success text-white shadow-[0_0_8px_rgba(34,197,94,0.4)] border border-transparent';
+                  } else if (isFuture) {
+                    icon = '';
+                    badgeClass = 'bg-surface-elevated/20 text-transparent border border-border-subtle border-dashed';
+                  } else if (!hasPlan) {
+                    icon = '•'; // Rest day
+                    badgeClass = 'bg-surface-elevated/50 text-text-muted border border-border-subtle';
+                  } else if (isToday) {
+                    icon = '•'; // Pending today
+                    badgeClass = 'bg-surface-elevated text-purple border border-purple/30';
+                  } else {
+                    icon = '✕'; // Missed past workout
+                    badgeClass = 'bg-error/20 text-error border border-error/30 shadow-[0_0_8px_rgba(239,68,68,0.2)]';
+                  }
+
+                  return (
+                    <div key={fullDay} className="flex flex-col items-center gap-1.5">
+                      <span className="text-[9px] text-text-muted font-mono uppercase">{shortDay}</span>
+                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${badgeClass}`}>
+                        {icon}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Progress bar */}

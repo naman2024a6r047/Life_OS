@@ -9,8 +9,7 @@ router.get('/partners', authMiddleware, async (req, res) => {
     const { Op } = require('sequelize');
     const users = await User.findAll({
       where: { 
-        id: { [Op.ne]: req.user.id },
-        email: { [Op.notLike]: '%@lifeos.dev' }
+        id: { [Op.ne]: req.user.id }
       },
       attributes: ['id', 'username']
     });

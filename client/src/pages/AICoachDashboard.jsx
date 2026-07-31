@@ -9,7 +9,7 @@ import {
   FiStar, FiRefreshCw, FiUpload
 } from 'react-icons/fi';
 import axios from 'axios';
-import { initGoogleDriveApi, requestGoogleDriveAccess, extractFolderId, fetchFilesFromDrive, uploadPhotoToDrive as uploadFileToDrive } from '../utils/googleDriveApi';
+import { initGoogleDriveApi, requestGoogleDriveAccess, extractFolderId, getOrCreateAppFolder, fetchFilesFromDrive, uploadPhotoToDrive as uploadFileToDrive } from '../utils/googleDriveApi';
 
 const DEFAULT_ICONS = ['📁', '📚', '📝', '🎯', '💡', '🔬', '🎓', '🖥️', '🌐', '📊', '🎨', '🏆', '⭐', '🔖', '🗂️'];
 const DEFAULT_COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#EC4899', '#14B8A6', '#F97316'];
@@ -115,37 +115,46 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
   const [selectedFile, setSelectedFile] = useState(null);
   const [linkUrl, setLinkUrl] = useState('');
   const [inputMode, setInputMode] = useState('file');
-  const [loading, setLoading] = useState(false);
-  const [tempFolderLink, setTempFolderLink] = useState('');
+  const [loadingState, setLoadingState] = useState('');
   const fileRef = useRef();
 
   useEffect(() => {
     if (!isOpen) {
       setName(''); setDescription(''); setCategoryId(''); setTags('');
-      setSelectedFile(null); setLinkUrl(''); setLoading(false); setTempFolderLink('');
+      setSelectedFile(null); setLinkUrl(''); setLoadingState('');
     }
   }, [isOpen]);
 
-  const needsSetup = !googleAccessToken || !userProfile.resourceDriveFolderLink;
+  const needsSetup = !googleAccessToken;
 
   const handleSubmit = async () => {
     if (!name.trim()) return;
-    setLoading(true);
+    setLoadingState('Starting...');
     try {
       let driveData = {};
-      if (inputMode === 'file' && selectedFile && googleAccessToken && userProfile.resourceDriveFolderLink) {
-        const folderId = extractFolderId(userProfile.resourceDriveFolderLink);
-        if (folderId) {
-          const result = await uploadFileToDrive(selectedFile, folderId, googleAccessToken);
-          driveData = { drive_file_id: result.id, drive_web_view_link: result.webViewLink, mime_type: selectedFile.type, file_size: selectedFile.size };
+      if (inputMode === 'file' && selectedFile && googleAccessToken) {
+        setLoadingState('Checking Drive Folder...');
+        const folderId = await getOrCreateAppFolder(googleAccessToken);
+        
+        if (!folderId) {
+          alert('Failed to initialize Google Drive folder.');
+          return;
         }
+        
+        setLoadingState('Uploading to Drive...');
+        const result = await uploadFileToDrive(selectedFile, folderId, googleAccessToken);
+        driveData = { drive_file_id: result.id, drive_web_view_link: result.webViewLink, mime_type: selectedFile.type, file_size: selectedFile.size };
       } else if (inputMode === 'link' && linkUrl) {
         driveData = { drive_web_view_link: linkUrl, drive_web_content_link: linkUrl };
       }
+      setLoadingState('Saving to Database...');
       await onSave({ name: name.trim(), description: description.trim(), category_id: categoryId || null, tags: tags.split(',').map(t => t.trim()).filter(Boolean), ...driveData });
       onClose();
-    } catch (err) { console.error('Upload error:', err); }
-    finally { setLoading(false); }
+    } catch (err) { 
+      console.error('Upload error:', err);
+      alert('Error during ' + loadingState + ': ' + (err.message || 'Unknown error'));
+    }
+    finally { setLoadingState(''); }
   };
 
   if (!isOpen) return null;
@@ -156,16 +165,10 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
         <button onClick={onClose} className="absolute top-4 right-4 text-text-muted hover:text-text-primary"><FiX size={18} /></button>
         <h2 className="text-base font-bold text-text-primary mb-1">Add Resource</h2>
         <p className="text-[11px] text-text-muted mb-5">Upload a file to Google Drive or add a link.</p>
+        
         {needsSetup && (
           <div className="mb-4 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/30 space-y-2">
             <p className="text-[11px] font-semibold text-yellow-400 flex items-center gap-1.5"><FiAlertCircle size={12} /> Drive setup required for file uploads</p>
-            {!userProfile.resourceDriveFolderLink && (
-              <div className="flex gap-2">
-                <input value={tempFolderLink} onChange={e => setTempFolderLink(e.target.value)} placeholder="Paste Google Drive folder URL..."
-                  className="flex-1 px-2 py-1.5 text-[11px] bg-surface border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-purple" />
-                <button onClick={() => onSaveFolderLink(tempFolderLink)} className="px-3 py-1.5 text-[11px] bg-purple text-white rounded-lg font-bold">Save</button>
-              </div>
-            )}
             {!googleAccessToken && (
               <button onClick={requestGoogleAccess} className="px-3 py-1.5 bg-[#4285F4] text-white text-[11px] font-bold rounded-lg">Sign in with Google</button>
             )}
@@ -215,9 +218,9 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
             <input value={linkUrl} onChange={e => setLinkUrl(e.target.value)} placeholder="https://..."
               className="w-full px-3 py-2 text-xs bg-surface border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-purple" />
           )}
-          <button onClick={handleSubmit} disabled={loading || !name.trim()}
+          <button onClick={handleSubmit} disabled={!!loadingState || !name.trim()}
             className="w-full py-2.5 rounded-xl bg-purple text-white font-bold text-xs hover:bg-purple/80 disabled:opacity-50 flex items-center justify-center gap-2">
-            {loading ? <><FiRefreshCw className="animate-spin" size={13} /> Saving...</> : 'Add Resource'}
+            {loadingState ? <><FiRefreshCw className="animate-spin" size={13} /> {loadingState}</> : 'Add Resource'}
           </button>
         </div>
       </motion.div>

@@ -97,9 +97,9 @@ export function initGoogleDriveApi(onAuthSuccess, onAuthError) {
   }
 }
 
-export function requestGoogleDriveAccess() {
+export function requestGoogleDriveAccess(force = false) {
   const existingToken = localStorage.getItem('google_access_token');
-  if (existingToken && globalOnAuthSuccess) {
+  if (existingToken && globalOnAuthSuccess && !force) {
     globalOnAuthSuccess(existingToken);
     return;
   }
@@ -116,6 +116,45 @@ export function requestGoogleDriveAccess() {
   }
 }
 
+export async function getOrCreateAppFolder(accessToken) {
+  if (!accessToken || !CLIENT_ID) return 'mock-folder-id';
+
+  // Search for an existing folder created by the app
+  const query = encodeURIComponent(`mimeType = 'application/vnd.google-apps.folder' and name = 'Life OS Resources' and trashed = false`);
+  const searchUrl = `https://www.googleapis.com/drive/v3/files?q=${query}&fields=files(id,webViewLink)`;
+  
+  const searchRes = await fetch(searchUrl, { headers: { Authorization: `Bearer ${accessToken}` } });
+  if (searchRes.ok) {
+    const data = await searchRes.json();
+    if (data.files && data.files.length > 0) {
+      return data.files[0].id; // Return the first matching folder ID
+    }
+  }
+
+  // Create it if it doesn't exist
+  const metadata = {
+    name: 'Life OS Resources',
+    mimeType: 'application/vnd.google-apps.folder'
+  };
+
+  const createRes = await fetch('https://www.googleapis.com/drive/v3/files?fields=id,webViewLink', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(metadata)
+  });
+
+  if (!createRes.ok) {
+    const errText = await createRes.text();
+    throw new Error(`Failed to create app folder: ${errText}`);
+  }
+
+  const newFolder = await createRes.json();
+  return newFolder.id;
+}
+
 /**
  * Uploads a base64 or File object to the specified Google Drive folder.
  */
@@ -125,41 +164,36 @@ export async function uploadPhotoToDrive(file, folderId, accessToken, filename =
     return { id: 'mock-id-123', webViewLink: 'https://mock-drive-link.com' };
   }
 
+  const boundary = '-------314159265358979323846';
+  const delimiter = "\r\n--" + boundary + "\r\n";
+  const close_delim = "\r\n--" + boundary + "--";
+
+  const mimeType = file.type || 'application/octet-stream';
   const metadata = {
     name: filename || file.name,
-    mimeType: file.type,
+    mimeType: mimeType,
     parents: folderId ? [folderId] : []
   };
 
-  // Step 1: Initialize resumable upload
-  const initRes = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id,webViewLink', {
+  const multipartRequestBody =
+    "--" + boundary + "\r\n" +
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+    JSON.stringify(metadata) + "\r\n" +
+    "--" + boundary + "\r\n" +
+    'Content-Type: ' + mimeType + '\r\n\r\n';
+
+  const blob = new Blob([
+    multipartRequestBody,
+    file,
+    close_delim
+  ], { type: `multipart/related; boundary=${boundary}` });
+
+  const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,webViewLink&supportsAllDrives=true', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${accessToken}`,
-      'Content-Type': 'application/json',
-      'X-Upload-Content-Type': file.type,
-      'X-Upload-Content-Length': file.size.toString()
+      'Authorization': `Bearer ${accessToken}`
     },
-    body: JSON.stringify(metadata)
-  });
-
-  if (!initRes.ok) {
-    const errText = await initRes.text();
-    throw new Error(`Drive upload init failed: ${errText}`);
-  }
-
-  const uploadUrl = initRes.headers.get('Location');
-  if (!uploadUrl) {
-    throw new Error('Failed to get upload location from Google Drive API');
-  }
-
-  // Step 2: Upload actual file content
-  const response = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Range': `bytes 0-${file.size - 1}/${file.size}`
-    },
-    body: file
+    body: blob
   });
 
   if (!response.ok) {

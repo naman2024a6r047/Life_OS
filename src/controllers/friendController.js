@@ -103,25 +103,14 @@ exports.acceptRequest = async (req, res) => {
 
 exports.getFriends = async (req, res) => {
     try {
-        const friends = await Friend.findAll({
+        const users = await User.findAll({
             where: {
-                status: 'accepted',
-                [Op.or]: [
-                    { user_id: req.user.id },
-                    { friend_id: req.user.id }
-                ]
+                id: { [Op.ne]: req.user.id },
+                email: { [Op.notLike]: '%@lifeos.dev' }
             },
-            include: [
-                { model: User, as: 'requester', attributes: ['id', 'username', 'avatar_url', 'level', 'email'] },
-                { model: User, as: 'recipient', attributes: ['id', 'username', 'avatar_url', 'level', 'email'] }
-            ]
+            attributes: ['id', 'username', 'avatar_url', 'level', 'xp', 'current_streak', 'discipline_score', 'email']
         });
-
-        const formatted = friends
-            .map(f => f.user_id === req.user.id ? f.recipient : f.requester)
-            .filter(u => u && (!u.email || !u.email.endsWith('@lifeos.dev')));
-
-        res.status(200).json(formatted);
+        res.status(200).json(users);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching friends' });

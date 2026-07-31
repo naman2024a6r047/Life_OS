@@ -362,9 +362,6 @@ export default function Friends() {
               <p className="text-[9px] text-text-muted">Grace Tokens</p>
             </div>
           </div>
-          <button onClick={() => setIsAddModalOpen(true)} className="btn-primary flex items-center gap-2">
-            <FiPlus size={16} /> Add Accountability Partner
-          </button>
         </div>
       </div>
 
@@ -403,9 +400,6 @@ export default function Friends() {
                   onClick={() => setSelectedId(partner.id)} />
               ))}
             </div>
-            <button onClick={() => setIsAddModalOpen(true)} className="w-full mt-3 py-2.5 rounded-lg border border-dashed border-border-hover text-text-muted hover:text-primary-light hover:border-primary/30 text-xs font-semibold flex items-center justify-center gap-1.5 transition-all">
-              <FiPlus size={14} /> Add New Partner
-            </button>
           </div>
 
           {/* How it works */}
@@ -413,7 +407,7 @@ export default function Friends() {
             <h3 className="text-xs font-bold text-text-primary mb-2">How it works?</h3>
             <div className="space-y-1.5">
               {[
-                'Add someone you trust',
+                'Find a partner in the network',
                 "Monitor each other's progress",
                 'Ask inquiries for skipped tasks',
                 'Impose reset as punishment',

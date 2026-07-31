@@ -9,17 +9,20 @@ export const AuthProvider = ({ children }) => {
     const [session, setSession] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Configure axios to automatically attach the Supabase access token and keep localStorage token synced
+    // Configure axios to always fetch the latest Supabase session
     useEffect(() => {
-        if (session?.access_token) {
-            localStorage.setItem('token', session.access_token);
-        } else {
-            localStorage.removeItem('token');
-        }
-
-        const interceptor = axios.interceptors.request.use((config) => {
-            if (session?.access_token) {
-                config.headers.Authorization = `Bearer ${session.access_token}`;
+        const interceptor = axios.interceptors.request.use(async (config) => {
+            // Get session directly from Supabase to prevent React state race conditions
+            const { data: { session: currentSession } } = await supabase.auth.getSession();
+            
+            if (currentSession?.access_token) {
+                config.headers.Authorization = `Bearer ${currentSession.access_token}`;
+                localStorage.setItem('token', currentSession.access_token);
+            } else {
+                const localToken = localStorage.getItem('token');
+                if (localToken) {
+                    config.headers.Authorization = `Bearer ${localToken}`;
+                }
             }
             return config;
         });
@@ -27,7 +30,7 @@ export const AuthProvider = ({ children }) => {
         return () => {
             axios.interceptors.request.eject(interceptor);
         };
-    }, [session]);
+    }, []);
 
     // Sync the local user profile with the backend after authentication
     const syncUserProfile = async (supabaseUser, accessToken, providerRefreshToken) => {

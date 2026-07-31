@@ -37,6 +37,22 @@ export default function Sidebar({ isOpen, onClose }) {
   const navigate = useNavigate();
   const { user, setUser, logout, isExamMode } = useContext(AuthContext);
   const [isExiting, setIsExiting] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread count whenever sidebar mounts or user navigates
+  React.useEffect(() => {
+    const fetchUnread = async () => {
+      try {
+        const res = await axios.get('/api/notifications/unread-count');
+        setUnreadCount(res.data.count);
+      } catch (err) {
+        console.error('Failed to fetch unread count', err);
+      }
+    };
+    if (user) {
+      fetchUnread();
+    }
+  }, [location.pathname, user]);
 
   const xpForLevel = (user?.level || 1) * 100;
   const xpCurrent = user?.xp || 0;
@@ -113,11 +129,21 @@ export default function Sidebar({ isOpen, onClose }) {
             ? location.pathname === item.path
             : (location.pathname === item.path || (item.path !== '/' && location.pathname.startsWith(item.path)));
           const Icon = item.icon;
+          
           return (
             <Link key={item.path} to={item.path} onClick={onClose}>
               <div className={`sidebar-item ${isActive ? (isExamMode ? 'bg-info text-white font-semibold' : 'active') : ''}`}>
-                <Icon size={16} />
-                <span>{item.label}</span>
+                <div className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-3">
+                    <Icon size={16} />
+                    <span>{item.label}</span>
+                  </div>
+                  {item.path === '/notifications' && unreadCount > 0 && (
+                    <span className="bg-danger text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
               </div>
             </Link>
           );

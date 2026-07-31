@@ -51,7 +51,7 @@ exports.getNotifications = async (req, res) => {
             title: inv.type === 'message' ? 'System/Partner Alert' : 'Partner Intervention',
             body: inv.message || `Your partner ${inv.sender?.username} sent you a ${inv.type}.`,
             time: inv.createdAt,
-            read: inv.sender_read, // using sender_read as read status for receiver
+            read: inv.sender_read, 
             actionable: inv.status === 'pending',
             type: inv.item_type === 'Penalty' ? 'warning' : 'friend'
         }));
@@ -102,5 +102,36 @@ exports.markAllRead = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error marking all read' });
+    }
+};
+
+exports.getUnreadCount = async (req, res) => {
+    try {
+        const { ApprovalRequest, Penalty } = require('../models');
+
+        // 1. Unread Interventions
+        const interventionsCount = await PartnerIntervention.count({
+            where: { receiver_id: req.user.id, sender_read: false }
+        });
+
+        // 2. Pending Reviews
+        const reviewsCount = await ApprovalRequest.count({
+            where: { reviewer_id: req.user.id, status: 'pending' }
+        });
+
+        // 3. Active Penalties
+        const penaltiesCount = await Penalty.count({
+            where: { user_id: req.user.id }
+        });
+
+        // We also check the static notificationsStore for any unread static items
+        const staticUnread = notificationsStore.filter(n => !n.read).length;
+
+        const total = interventionsCount + reviewsCount + penaltiesCount + staticUnread;
+
+        res.status(200).json({ count: total });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error fetching unread count' });
     }
 };

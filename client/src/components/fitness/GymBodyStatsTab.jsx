@@ -5,7 +5,7 @@ import {
   FiCalendar, FiChevronDown, FiActivity, FiDroplet, FiHeart, FiCamera, FiPlus,
   FiInfo, FiTrendingUp, FiTrendingDown, FiShield, FiMoon, FiEdit2, FiCheck, FiX, FiUploadCloud
 } from 'react-icons/fi';
-import MuscleDiagram from './MuscleDiagram';
+import MuscleAtlas from './MuscleAtlas';
 import ProgressPhotos from './ProgressPhotos';
 
 export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLink }) {
@@ -445,8 +445,8 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
         </div>
 
         {/* Segmental Analysis */}
-        <div className="lg:col-span-4 card p-5 border border-border-subtle bg-surface relative">
-          <div className="flex justify-between items-center mb-6">
+        <div className="lg:col-span-4 card p-5 border border-border-subtle bg-surface relative overflow-hidden">
+          <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-bold text-text-primary">Segmental Analysis</h3>
             <div className="flex gap-2">
               <span className="text-[9px] bg-purple text-white px-2 py-0.5 rounded font-bold">Muscle Mass</span>
@@ -454,41 +454,11 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
             </div>
           </div>
 
-          <div className="flex">
-            <div className="w-48 h-[260px] relative flex items-center justify-center shrink-0 -ml-8 -mt-6 -mb-6">
-              <MuscleDiagram 
-                minimalMode={true} 
-                activeExercises={[{ primary: ['chest', 'core'], secondary: [] }]} 
-                className="scale-90"
-              />
-            </div>
-            
-            {/* Stats list */}
-            <div className="flex-1 flex flex-col justify-between py-4 space-y-4">
-              {[
-                { name: 'Arms', left: '0 kg', right: '0 kg', status: '-', statusColor: 'text-text-muted' },
-                { name: 'Chest', left: '0 kg', right: '', status: '-', statusColor: 'text-text-muted' },
-                { name: 'Legs', left: '0 kg', right: '0 kg', status: '-', statusColor: 'text-text-muted' },
-                { name: 'Core', left: '0 kg', right: '', status: '-', statusColor: 'text-text-muted' },
-              ].map((part, i) => (
-                <div key={i} className="flex justify-between items-center text-xs">
-                  <div>
-                    <span className="text-text-muted text-[10px] font-bold block">{part.name}</span>
-                    <span className="font-mono text-text-primary text-[10px]">
-                      {part.left} {part.right ? <span className="text-text-muted">| {part.right}</span> : ''}
-                    </span>
-                  </div>
-                  <span className={`text-[9px] font-bold ${part.statusColor}`}>{part.status}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="absolute bottom-4 right-4 flex gap-3 text-[8px] text-text-muted font-bold">
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-success rounded-sm"></div>Good</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-warning rounded-sm"></div>Average</span>
-            <span className="flex items-center gap-1"><div className="w-2 h-2 bg-danger rounded-sm"></div>Needs Work</span>
-          </div>
+          {/* Full MuscleAtlas — same look as the Gym Dashboard */}
+          <MuscleAtlas
+            activeExercises={[{ primary: ['chest', 'core'], secondary: ['triceps', 'deltoids_front'] }]}
+            className="embedded"
+          />
         </div>
       </div>
 

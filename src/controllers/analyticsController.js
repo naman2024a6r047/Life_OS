@@ -10,22 +10,41 @@ exports.getSummary = async (req, res) => {
             totalGoals,
             activeGoals,
             completedGoals,
-            totalMilestones,
-            completedMilestones,
-            totalTasks,
-            completedTasks,
-            activityLogCount
+            activityLogCount,
+            challenges
         ] = await Promise.all([
             User.findByPk(userId, { raw: true }),
             Challenge.count({ where: { user_id: userId } }),
             Challenge.count({ where: { user_id: userId, status: 'active' } }),
             Challenge.count({ where: { user_id: userId, status: 'completed' } }),
-            Milestone.count({ include: [{ model: Challenge, where: { user_id: userId } }] }),
-            Milestone.count({ include: [{ model: Challenge, where: { user_id: userId } }], where: { status: 'completed' } }),
-            MilestoneTask.count({ include: [{ model: Milestone, include: [{ model: Challenge, where: { user_id: userId } }] }] }),
-            MilestoneTask.count({ include: [{ model: Milestone, include: [{ model: Challenge, where: { user_id: userId } }] }], where: { is_completed: true } }),
-            ActivityLog.count({ where: { user_id: userId } })
+            ActivityLog.count({ where: { user_id: userId } }),
+            Challenge.findAll({
+                where: { user_id: userId },
+                include: [{
+                    model: Milestone,
+                    as: 'milestones',
+                    include: [{ model: MilestoneTask, as: 'tasks' }]
+                }]
+            })
         ]);
+
+        let totalMilestones = 0;
+        let completedMilestones = 0;
+        let totalTasks = 0;
+        let completedTasks = 0;
+
+        const challengesJson = challenges.map(c => typeof c.toJSON === 'function' ? c.toJSON() : c);
+        
+        challengesJson.forEach(c => {
+            (c.milestones || []).forEach(m => {
+                totalMilestones++;
+                if (m.status === 'completed') completedMilestones++;
+                (m.tasks || []).forEach(t => {
+                    totalTasks++;
+                    if (t.is_completed) completedTasks++;
+                });
+            });
+        });
 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });

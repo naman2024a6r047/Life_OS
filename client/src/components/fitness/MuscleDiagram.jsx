@@ -537,20 +537,16 @@ export default function MuscleDiagram({
 
   // Standalone Card Mode (showFullCard = true)
   return (
-    <div className={`card p-5 space-y-5 bg-gradient-to-br from-surface to-surface-elevated relative overflow-visible border border-border-subtle ${className}`}>
+    <div className={`rounded-2xl bg-[#17191d] border border-border-subtle p-6 overflow-hidden ${className}`}>
       {/* TOP HEADER: TITLE & CONTROLS */}
       {!minimalMode && (
-        <div className="flex items-center justify-between pb-3 border-b border-border-subtle">
-          <div>
-            <h3 className="text-sm font-bold text-text-primary flex items-center gap-2">
-              <FiActivity className="text-purple" />
-              Targeted Muscles
-            </h3>
-            <p className="text-[10px] text-text-muted mt-0.5">Muscles engaged in current routine</p>
-          </div>
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-[13px] font-bold text-white tracking-[0.15em] uppercase flex items-center gap-2">
+            Muscle Activation
+          </h3>
 
           {/* Modern Segmented Control: Both | Front | Back */}
-          <div className="flex items-center p-1.5 rounded-xl bg-surface-elevated border border-border-subtle gap-1">
+          <div className="flex items-center p-1 rounded-full bg-[#1d2025] border border-border-subtle shadow-inner">
             {[
               { id: 'both', label: 'Both' },
               { id: 'front', label: 'Front' },
@@ -559,10 +555,10 @@ export default function MuscleDiagram({
               <button
                 key={tab.id}
                 onClick={() => setViewMode(tab.id)}
-                className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all duration-300 ${
+                className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-full transition-all duration-300 ${
                   viewMode === tab.id
-                    ? 'bg-gradient-to-r from-purple to-purple-accent text-white shadow-glow-primary'
-                    : 'text-text-muted hover:text-text-primary'
+                    ? 'bg-[#a855f7] text-white shadow-md'
+                    : 'text-text-muted hover:text-white'
                 }`}
               >
                 {tab.label}
@@ -573,87 +569,24 @@ export default function MuscleDiagram({
       )}
 
       {/* CENTER SVG GRAPHIC */}
-      <div className="w-full h-[300px]">
+      <div className="w-full h-[420px] relative">
         {renderSVGGraphic()}
       </div>
 
-      {/* 4 STATISTIC CHIPS UNDER MODELS */}
+      {/* DOT LEGENDS */}
       {!minimalMode && (
-        <div className="grid grid-cols-4 gap-3 pt-1 border-t border-border-subtle/60">
-          <div className="p-2.5 rounded-xl bg-surface-elevated/40 border border-purple/20 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-text-muted font-medium">Primary Muscles</span>
-            <p className="text-base font-extrabold font-mono text-purple">{targetInfo.primary.length || 4}</p>
+        <div className="flex justify-center items-center gap-8 mt-8">
+          <div className="flex items-center gap-2.5">
+            <span className="w-3 h-3 rounded-full bg-[#a855f7] shadow-[0_0_8px_rgba(168,85,247,0.8)]" />
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.15em]">Primary</span>
           </div>
-
-          <div className="p-2.5 rounded-xl bg-surface-elevated/40 border border-info/20 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-text-muted font-medium">Secondary</span>
-            <p className="text-base font-extrabold font-mono text-info">{targetInfo.secondary.length || 3}</p>
+          <div className="flex items-center gap-2.5">
+            <span className="w-3 h-3 rounded-full bg-[#0ea5e9] shadow-[0_0_8px_rgba(14,165,233,0.8)]" />
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.15em]">Secondary</span>
           </div>
-
-          <div className="p-2.5 rounded-xl bg-surface-elevated/40 border border-success/20 flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-text-muted font-medium">Recovery Rate</span>
-            <p className="text-base font-extrabold font-mono text-success">82%</p>
-          </div>
-
-          <div className="p-2.5 rounded-xl bg-surface-elevated/40 border border-border-subtle flex flex-col items-center justify-center text-center">
-            <span className="text-[10px] text-text-muted font-medium">Active Exercises</span>
-            <p className="text-base font-extrabold font-mono text-text-primary">12</p>
-          </div>
-        </div>
-      )}
-
-      {/* EXACT REFERENCE LEGEND */}
-      {!minimalMode && (
-        <div className="flex items-center justify-center gap-10 pt-6 pb-2">
-          <div className="flex items-center gap-3">
-            <span className="w-5 h-5 rounded-full bg-[#5b21b6]" />
-            <span className="text-base font-medium text-text-primary">Primary</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="w-5 h-5 rounded-full bg-[#a855f7]" />
-            <span className="text-base font-medium text-text-primary">Secondary</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <span className="w-5 h-5 rounded-full bg-[#27272a]" />
-            <span className="text-base font-medium text-text-primary">Not Trained</span>
-          </div>
-        </div>
-      )}
-
-      {/* WEEKLY SUMMARY: WEEKLY MUSCLE DISTRIBUTION PROGRESS BARS */}
-      {!minimalMode && (
-        <div className="space-y-2 border-t border-border-subtle pt-3">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-text-primary">Weekly Muscle Distribution</span>
-            <span className="text-[10px] text-text-muted">Volume Breakdown</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-4 gap-y-2">
-            {[
-              { muscle: 'Chest', percent: 85, color: 'bg-purple', vol: '18,500 kg' },
-              { muscle: 'Back', percent: 68, color: 'bg-info', vol: '24,800 kg' },
-              { muscle: 'Legs', percent: 72, color: 'bg-success', vol: '22,400 kg' },
-              { muscle: 'Shoulders', percent: 55, color: 'bg-warning', vol: '12,200 kg' },
-              { muscle: 'Arms', percent: 60, color: 'bg-purple-accent', vol: '11,400 kg' },
-              { muscle: 'Core', percent: 42, color: 'bg-slate-500', vol: '6,000 kg' },
-            ].map(item => (
-              <div key={item.muscle} className="space-y-1">
-                <div className="flex items-center justify-between text-[10px]">
-                  <span className="text-text-muted font-medium">{item.muscle}</span>
-                  <span className="font-mono font-bold text-text-primary">{item.percent}%</span>
-                </div>
-                <div className="w-full h-1.5 rounded-full bg-background overflow-hidden">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${item.percent}%` }}
-                    transition={{ duration: 0.8, ease: 'easeOut' }}
-                    className={`h-full rounded-full ${item.color}`}
-                  />
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center gap-2.5">
+            <span className="w-3 h-3 rounded-full bg-[#52525b]" />
+            <span className="text-[10px] font-bold text-text-muted uppercase tracking-[0.15em]">Inactive</span>
           </div>
         </div>
       )}

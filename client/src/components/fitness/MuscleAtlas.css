@@ -1,0 +1,402 @@
+
+  :root {
+    --bg: #0e0f12;
+    --bg-panel: #17191d;
+    --bg-panel-2: #1d2025;
+    --line: #2a2d33;
+    --ink: #eceae4;
+    --ink-dim: #8b909a;
+    --ink-faint: #565b64;
+    --cool: #34d1c4;
+    --cool-dim: #1c5f5a;
+    --heat: #ff7a45;
+    --heat-soft: rgba(255, 122, 69, 0.18);
+    --heat-glow: rgba(255, 122, 69, 0.55);
+    --muscle-rest: #43474f;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: 'Inter', sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  
+
+  a { color: inherit; }
+
+  
+
+  header.top {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    padding-bottom: 22px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  .brand-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: var(--cool);
+    text-transform: uppercase;
+    margin: 0 0 6px;
+  }
+
+  h1.brand {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 30px;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .top-note {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-align: right;
+    line-height: 1.6;
+    max-width: 240px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 24px;
+    align-items: start;
+  }
+
+  .stage {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .stage-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .toggle {
+    display: inline-flex;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 3px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+
+  .toggle button {
+    appearance: none;
+    border: none;
+    background: transparent;
+    color: var(--ink-dim);
+    padding: 7px 16px;
+    border-radius: 999px;
+    cursor: pointer;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .toggle button.active {
+    background: var(--cool);
+    color: #06201d;
+    font-weight: 600;
+  }
+
+  .stage-hint {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    letter-spacing: 0.04em;
+  }
+
+  .canvas {
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 460px;
+    border-radius: 10px;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 100% 32px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 32px 100%;
+    background-size: 32px 32px;
+    background-color: #101216;
+    opacity: 1;
+  }
+
+  .canvas svg {
+    height: 620px;
+    max-height: 72vh;
+    width: auto;
+    display: block;
+    filter: drop-shadow(0 18px 40px rgba(0,0,0,0.55));
+  }
+
+  .canvas .scanline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--cool), transparent);
+    top: 0;
+    opacity: 0.9;
+    animation: sweep 1.6s ease-out 1;
+    pointer-events: none;
+  }
+
+  @keyframes sweep {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+  }
+
+  .muscle path {
+    fill: var(--muscle-rest);
+    stroke: #0e0f12;
+    stroke-width: 3.5;
+    cursor: pointer;
+    transition: fill 0.15s ease, filter 0.15s ease;
+  }
+  #front-svg .muscle path { stroke-width: 0.6; }
+
+  .muscle:hover path,
+  .muscle.pinned path,
+  .muscle.chip-hover path {
+    fill: var(--heat);
+    filter: drop-shadow(0 0 10px var(--heat-glow));
+  }
+
+  .muscle[data-muscle="hair"] path {
+    fill: var(--ink-faint);
+    cursor: default;
+    opacity: 0.5;
+  }
+  .muscle[data-muscle="hair"]:hover path { fill: var(--ink-faint); filter: none; }
+
+  .tooltip {
+    position: fixed;
+    pointer-events: none;
+    background: #0b0c0e;
+    border: 1px solid var(--heat);
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    letter-spacing: 0.03em;
+    z-index: 50;
+    opacity: 0;
+    transform: translate(-50%, -130%);
+    transition: opacity 0.1s ease;
+    white-space: nowrap;
+  }
+  .tooltip.show { opacity: 1; }
+
+  /* Detail panel */
+  .panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 22px;
+    position: sticky;
+    top: 20px;
+  }
+
+  .panel-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 10px;
+  }
+
+  .panel-name {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 600;
+    margin: 0 0 14px;
+    color: var(--ink);
+    min-height: 36px;
+  }
+
+  .panel-name.empty { color: var(--ink-faint); font-size: 18px; font-weight: 500; }
+
+  .panel-fn {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    margin: 0 0 20px;
+    min-height: 44px;
+  }
+
+  .panel-ex-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--cool);
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-ex-label::before {
+    content: "";
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cool);
+    box-shadow: 0 0 8px var(--cool);
+  }
+
+  .ex-list {
+    list-style: none;
+    margin: 0 0 24px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 40px;
+  }
+  .ex-list li {
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 9px 12px;
+  }
+
+  .legend-label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 4px 0 12px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+  }
+
+  .chip {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .chip:hover, .chip.active {
+    color: #1c0d06;
+    background: var(--heat);
+    border-color: var(--heat);
+  }
+
+  footer.foot {
+    margin-top: 26px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-align: center;
+    letter-spacing: 0.04em;
+  }
+
+  @media (max-width: 880px) {
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; }
+    .panel-name { font-size: 24px; }
+    .canvas svg { height: 480px; }
+    .top-note { text-align: left; max-width: none; }
+  }
+
+.muscle-atlas-container {
+  font-family: var(--font-body);
+  color: var(--ink);
+  background: #0b0c0e;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  position: relative;
+}
+.muscle-atlas-container .wrap {
+  padding: 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* Embedded / compact mode — used when MuscleAtlas is nested inside another card */
+.muscle-atlas-container.embedded {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+.muscle-atlas-container.embedded .wrap {
+  padding: 0;
+}
+.muscle-atlas-container.embedded header.top,
+.muscle-atlas-container.embedded .panel {
+  display: none;
+}
+.muscle-atlas-container.embedded .layout {
+  grid-template-columns: 1fr;
+}
+.muscle-atlas-container.embedded .stage {
+  border: none;
+  background: transparent;
+  padding: 0;
+}
+.muscle-atlas-container.embedded .canvas {
+  min-height: 340px;
+  border-radius: 8px;
+}
+.muscle-atlas-container.embedded .canvas svg {
+  height: 340px;
+}
+.muscle-atlas-container.embedded .chips {
+  display: none;
+}
+.muscle-atlas-container.embedded .legend-label {
+  display: none;
+}
+
+.muscle.primary-active:not(.chip-hover):not(.pinned) path {
+  fill: var(--heat);
+  filter: drop-shadow(0 0 5px var(--heat-soft));
+}
+.muscle.secondary-active:not(.chip-hover):not(.pinned) path {
+  fill: var(--cool);
+  filter: drop-shadow(0 0 5px var(--cool-dim));
+}
+.chip.primary-active {
+  background: var(--heat-soft);
+  color: var(--heat);
+  border-color: var(--heat);
+}
+.chip.secondary-active {
+  background: rgba(52, 209, 196, 0.15);
+  color: var(--cool);
+  border-color: var(--cool);
+}

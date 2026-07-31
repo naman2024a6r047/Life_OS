@@ -1,48 +1,67 @@
 import React from 'react';
-import { FiHome, FiActivity, FiBarChart2, FiUser, FiPlus, FiTrendingUp } from 'react-icons/fi';
+import { FiHome, FiTarget, FiBarChart2, FiUser } from 'react-icons/fi';
 
 export default function GymBottomNav({ activeTab, setActiveTab, onAddClick }) {
+  const tabs = [
+    { id: 'overview', icon: FiHome, label: 'Dashboard' },
+    { id: 'progress', icon: FiTarget, label: 'Goals' },
+    { id: 'workouts', icon: null, label: 'Gym', isCenter: true },
+    { id: 'body-stats', icon: FiBarChart2, label: 'Analytics' },
+    { id: 'settings', icon: FiUser, label: 'Profile' },
+  ];
+
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 h-[84px] bg-surface-elevated/90 backdrop-blur-md border-t border-border-subtle z-40 flex items-center justify-between px-6 pb-4 pt-2">
-      <button 
-        onClick={() => setActiveTab('overview')}
-        className={`flex flex-col items-center gap-1 flex-1 ${activeTab === 'overview' ? 'text-purple' : 'text-text-muted hover:text-text-primary'}`}
-      >
-        <FiHome size={22} className={activeTab === 'overview' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
-        <span className="text-[10px] font-bold">Overview</span>
-      </button>
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+      {/* Frosted glass background */}
+      <div className="bg-[#0e0f14]/95 backdrop-blur-xl border-t border-white/[0.06] flex items-center justify-around px-2 pb-safe pt-2 h-[72px]">
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
 
-      <button 
-        onClick={() => setActiveTab('workouts')}
-        className={`flex flex-col items-center gap-1 flex-1 ${activeTab === 'workouts' ? 'text-purple' : 'text-text-muted hover:text-text-primary'}`}
-      >
-        <FiActivity size={22} className={activeTab === 'workouts' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
-        <span className="text-[10px] font-bold">Workouts</span>
-      </button>
+          if (tab.isCenter) {
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className="flex flex-col items-center justify-center -mt-5 relative"
+              >
+                {/* Center gym button - glowing pill */}
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-300 ${
+                  isActive
+                    ? 'bg-gradient-to-br from-purple to-purple-accent shadow-[0_0_20px_rgba(168,85,247,0.6)]'
+                    : 'bg-gradient-to-br from-purple/80 to-purple-accent/80 shadow-[0_0_12px_rgba(168,85,247,0.35)]'
+                }`}>
+                  {/* Dumbbell icon using ASCII since GiDumbbell may not be imported */}
+                  <span className="text-2xl">🏋️</span>
+                </div>
+                <span className={`text-[10px] font-bold mt-1.5 ${isActive ? 'text-purple' : 'text-white/60'}`}>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          }
 
-      <button 
-        onClick={() => setActiveTab('body-stats')}
-        className={`flex flex-col items-center gap-1 flex-1 ${activeTab === 'body-stats' ? 'text-purple' : 'text-text-muted hover:text-text-primary'}`}
-      >
-        <FiTrendingUp size={22} className={activeTab === 'body-stats' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
-        <span className="text-[10px] font-bold">Body Stats</span>
-      </button>
-
-      <button 
-        onClick={() => setActiveTab('progress')}
-        className={`flex flex-col items-center gap-1 flex-1 ${activeTab === 'progress' ? 'text-purple' : 'text-text-muted hover:text-text-primary'}`}
-      >
-        <FiBarChart2 size={22} className={activeTab === 'progress' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
-        <span className="text-[10px] font-bold">Progress</span>
-      </button>
-
-      <button 
-        onClick={() => setActiveTab('settings')}
-        className={`flex flex-col items-center gap-1 flex-1 ${activeTab === 'settings' ? 'text-purple' : 'text-text-muted hover:text-text-primary'}`}
-      >
-        <FiUser size={22} className={activeTab === 'settings' ? 'drop-shadow-[0_0_8px_rgba(168,85,247,0.5)]' : ''} />
-        <span className="text-[10px] font-bold">Profile</span>
-      </button>
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex flex-col items-center gap-1 flex-1 py-1 transition-all duration-200 ${
+                isActive ? 'text-purple' : 'text-white/40'
+              }`}
+            >
+              <div className={`relative transition-all duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}>
+                <Icon size={20} />
+                {isActive && (
+                  <div className="absolute -inset-1.5 rounded-full bg-purple/15 blur-sm -z-10" />
+                )}
+              </div>
+              <span className={`text-[10px] font-semibold tracking-wide ${isActive ? 'text-purple' : ''}`}>
+                {tab.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

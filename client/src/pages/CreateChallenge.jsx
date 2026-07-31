@@ -14,7 +14,8 @@ export default function CreateChallenge() {
         duration_days: 30,
         difficulty: 'medium',
         penalty_mode: 'easy',
-        raw_curriculum: ''
+        raw_curriculum: '',
+        daily_minutes: 45
     });
     const [submitting, setSubmitting] = useState(false);
     const [showCurriculum, setShowCurriculum] = useState(false);
@@ -92,6 +93,16 @@ export default function CreateChallenge() {
                                 type="number" required min="1" max="365"
                                 value={formData.duration_days}
                                 onChange={e => setFormData({...formData, duration_days: e.target.value})}
+                                className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white"
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-sm font-medium text-textSecondary flex items-center gap-2">⏱️ Daily Study Target (Minutes)</label>
+                            <input 
+                                type="number" required min="1" max="1440"
+                                value={formData.daily_minutes}
+                                onChange={e => setFormData({...formData, daily_minutes: e.target.value})}
                                 className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary text-white"
                             />
                         </div>

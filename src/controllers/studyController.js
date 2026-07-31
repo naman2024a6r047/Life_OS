@@ -1,6 +1,6 @@
 const {
     StudyLog, ExamSession, ExamSubject, ExamTopic,
-    ActivityLog, User
+    ActivityLog, User, Challenge, Milestone, MilestoneTask
 } = require('../models');
 const { Op, fn, col, literal } = require('sequelize');
 
@@ -34,14 +34,33 @@ exports.getDashboard = async (req, res) => {
         const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
         // 3. Study logs for this month & week
-        const monthLogs = activeSession ? await StudyLog.findAll({
-            where: {
-                exam_session_id: activeSession.id,
-                createdAt: { [Op.gte]: startOfMonth }
-            },
-            include: [{ model: ExamSubject, as: 'Subject', attributes: ['id', 'subject_name'] }],
-            order: [['createdAt', 'DESC']]
-        }) : [];
+        const [dbMonthLogs, monthChallengeTasks] = await Promise.all([
+            StudyLog.findAll({
+                where: {
+                    createdAt: { [Op.gte]: startOfMonth }
+                },
+                include: [
+                    { model: ExamSubject, as: 'Subject', attributes: ['id', 'name'] },
+                    { model: ExamSession, attributes: [], where: { user_id: userId } }
+                ],
+                order: [['createdAt', 'DESC']]
+            }),
+            MilestoneTask.findAll({
+                where: { is_completed: true, updatedAt: { [Op.gte]: startOfMonth } },
+                include: [{ model: Milestone, required: true, include: [{ model: Challenge, required: true, where: { user_id: userId } }] }]
+            })
+        ]);
+
+        const mapTasksToLogs = (tasks) => tasks.map(t => ({
+            id: t.id,
+            duration_minutes: t.estimated_minutes || 0,
+            createdAt: t.updatedAt,
+            session_time: 'Afternoon',
+            Subject: { name: 'Goal: ' + (t.Milestone?.Challenge?.title || 'Task') },
+            chapters_covered: t.title
+        }));
+
+        const monthLogs = [...dbMonthLogs, ...mapTasksToLogs(monthChallengeTasks)].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         const weekLogs = monthLogs.filter(l => new Date(l.createdAt) >= startOfWeek);
 
@@ -54,8 +73,8 @@ exports.getDashboard = async (req, res) => {
         // 5. Recent sessions (last 5)
         const recentSessions = monthLogs.slice(0, 5).map(l => ({
             id: l.id,
-            title: l.chapters_covered || l.Subject?.subject_name || 'Study Session',
-            sub: l.Subject?.subject_name || '',
+            title: l.chapters_covered || l.Subject?.name || 'Study Session',
+            sub: l.Subject?.name || '',
             duration: fmtMins(l.duration_minutes),
             time: formatRelativeTime(l.createdAt),
             notes: l.notes || '',
@@ -70,7 +89,7 @@ exports.getDashboard = async (req, res) => {
             const doneCnt = topics.filter(t => t.is_completed).length;
             return {
                 id: sb.id,
-                name: sb.subject_name,
+                name: sb.name,
                 time: fmtMins(totalMins),
                 totalMins,
                 pct: topics.length > 0 ? Math.round((doneCnt / topics.length) * 100) : sb.progress_percentage || 0,
@@ -193,26 +212,48 @@ exports.getAnalytics = async (req, res) => {
 
         // Get all study logs in period
         const whereClause = { createdAt: { [Op.gte]: startDate } };
-        if (activeSession) whereClause.exam_session_id = activeSession.id;
-
         const prevWhereClause = {
             createdAt: { [Op.gte]: prevStartDate, [Op.lt]: startDate }
         };
-        if (activeSession) prevWhereClause.exam_session_id = activeSession.id;
 
-        const [logs, prevLogs, activityLogs, user] = await Promise.all([
-            activeSession ? StudyLog.findAll({
+        const [dbLogs, prevDbLogs, activityLogs, user, challengeTasks, prevChallengeTasks] = await Promise.all([
+            StudyLog.findAll({
                 where: whereClause,
-                include: [{ model: ExamSubject, as: 'Subject', attributes: ['id', 'subject_name'] }],
+                include: [
+                    { model: ExamSubject, as: 'Subject', attributes: ['id', 'name'] },
+                    { model: ExamSession, attributes: [], where: { user_id: userId } }
+                ],
                 order: [['createdAt', 'DESC']]
-            }) : Promise.resolve([]),
-            activeSession ? StudyLog.findAll({ where: prevWhereClause }) : Promise.resolve([]),
+            }),
+            StudyLog.findAll({
+                where: prevWhereClause,
+                include: [{ model: ExamSession, attributes: [], where: { user_id: userId } }]
+            }),
             ActivityLog.findAll({
                 where: { user_id: userId, createdAt: { [Op.gte]: startDate } },
                 order: [['createdAt', 'DESC']]
             }),
-            User.findByPk(userId, { attributes: ['current_streak', 'xp'] })
+            User.findByPk(userId, { attributes: ['current_streak', 'xp'] }),
+            MilestoneTask.findAll({
+                where: { is_completed: true, updatedAt: { [Op.gte]: startDate } },
+                include: [{ model: Milestone, required: true, include: [{ model: Challenge, required: true, where: { user_id: userId } }] }]
+            }),
+            MilestoneTask.findAll({
+                where: { is_completed: true, updatedAt: prevWhereClause.createdAt },
+                include: [{ model: Milestone, required: true, include: [{ model: Challenge, required: true, where: { user_id: userId } }] }]
+            })
         ]);
+
+        const mapTasksToLogs = (tasks) => tasks.map(t => ({
+            id: t.id,
+            duration_minutes: t.estimated_minutes || 0,
+            createdAt: t.updatedAt,
+            session_time: 'Afternoon',
+            Subject: { name: 'Goal: ' + (t.Milestone?.Challenge?.title || 'Task') }
+        }));
+
+        const logs = [...dbLogs, ...mapTasksToLogs(challengeTasks)].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        const prevLogs = [...prevDbLogs, ...mapTasksToLogs(prevChallengeTasks)];
 
         // Totals
         const totalMins = logs.reduce((s, l) => s + (l.duration_minutes || 0), 0);
@@ -232,7 +273,7 @@ exports.getAnalytics = async (req, res) => {
         // By subject distribution
         const subjectMap = {};
         logs.forEach(l => {
-            const name = l.Subject?.subject_name || 'Other';
+            const name = l.Subject?.name || 'Other';
             subjectMap[name] = (subjectMap[name] || 0) + (l.duration_minutes || 0);
         });
         const subjectDistribution = Object.entries(subjectMap)

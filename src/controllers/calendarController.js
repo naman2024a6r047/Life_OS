@@ -1,4 +1,5 @@
-const { ActivityLog, User, CalendarEvent } = require('../models');
+const { ActivityLog, User, CalendarEvent, MilestoneTask, Milestone, Challenge } = require('../models');
+const { Op } = require('sequelize');
 
 exports.getCalendarEvents = async (req, res) => {
     try {
@@ -6,7 +7,33 @@ exports.getCalendarEvents = async (req, res) => {
             where: { user_id: req.user.id },
             order: [['date', 'ASC'], ['time', 'ASC']]
         });
-        res.status(200).json(events);
+
+        const tasks = await MilestoneTask.findAll({
+            where: { date: { [Op.not]: null } },
+            include: [{
+                model: Milestone,
+                required: true,
+                include: [{
+                    model: Challenge,
+                    required: true,
+                    where: { user_id: req.user.id }
+                }]
+            }]
+        });
+
+        const taskEvents = tasks.map(task => ({
+            id: task.id,
+            title: task.title,
+            block_type: 'task',
+            date: task.date,
+            time: 'All Day',
+            category: 'Goal Task',
+            completed: task.is_completed,
+            color: '#F59E0B',
+            isTask: true
+        }));
+
+        res.status(200).json([...events, ...taskEvents]);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error fetching calendar events' });

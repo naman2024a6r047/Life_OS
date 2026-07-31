@@ -109,7 +109,8 @@ export default function CalendarDashboard() {
         return e.date.startsWith(dateStr);
       }).map(e => {
         let c = 'gray';
-        if(e.category === 'Coding' || e.category === 'Exam Prep') c = 'purple';
+        if(e.isTask || e.block_type === 'task') c = 'orange';
+        else if(e.category === 'Coding' || e.category === 'Exam Prep') c = 'purple';
         else if(e.category === 'Fitness') c = 'green';
         else if(e.category === 'Knowledge' || e.category === 'Reading') c = 'blue';
         else if(e.block_type === 'workout') c = 'green';
@@ -139,23 +140,24 @@ export default function CalendarDashboard() {
 
   const monthDays = generateMonthDays();
 
-  const upcomingEvents = events
+  const selectedDateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDay).padStart(2, '0')}`;
+  const selectedDayEvents = events
     .filter(e => {
-       const evDate = new Date(e.date);
-       return evDate >= new Date(new Date().setHours(0,0,0,0));
+       if (!e.date) return false;
+       return e.date.startsWith(selectedDateStr);
     })
     .sort((a,b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 5)
     .map(e => {
        let icon = '📖';
        let color = 'purple';
        if(e.category === 'Fitness' || e.block_type === 'workout') { icon = '🏋️'; color = 'green'; }
        else if(e.block_type === 'deep_work') { icon = '💻'; color = 'orange'; }
        else if(e.block_type === 'study' || e.category === 'Exam Prep') { icon = '📝'; color = 'blue'; }
+       else if(e.isTask || e.block_type === 'task') { icon = '🎯'; color = 'orange'; }
 
        return {
          title: e.title,
-         time: `${new Date(e.date).toLocaleDateString()} ${e.time || ''}`,
+         time: e.time ? e.time : 'All Day',
          icon,
          color
        };
@@ -199,7 +201,7 @@ export default function CalendarDashboard() {
             {filterOpen && (
               <div className="absolute top-full right-0 mt-2 w-48 bg-surface-elevated border border-border-subtle rounded-lg shadow-xl p-2 z-10">
                 <p className="text-xs text-text-muted px-2 py-1 mb-1">Filter by type</p>
-                {['All', 'deep_work', 'study', 'workout', 'reading', 'recovery'].map(t => (
+                {['All', 'deep_work', 'study', 'workout', 'reading', 'recovery', 'task'].map(t => (
                   <button 
                     key={t} 
                     onClick={() => { setActiveFilter(t); setFilterOpen(false); }} 
@@ -276,7 +278,7 @@ export default function CalendarDashboard() {
                       </div>
 
                       <div className="space-y-1 mt-1">
-                        {d.events?.map((ev, ei) => (
+                        {d.events?.slice(0, 3).map((ev, ei) => (
                           <div
                             key={ei}
                             title={ev.title}
@@ -293,6 +295,11 @@ export default function CalendarDashboard() {
                             {ev.time ? `${ev.time.split(' ')[0]} ` : ''}{ev.title}
                           </div>
                         ))}
+                        {d.events?.length > 3 && (
+                          <div className="text-[10px] text-text-muted text-center font-medium hover:text-white pt-1">
+                            +{d.events.length - 3} more
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -422,17 +429,16 @@ export default function CalendarDashboard() {
             </div>
           </div>
 
-          {/* Upcoming Events */}
+          {/* Events for Selected Day */}
           <div className="card p-4 space-y-3">
             <div className="section-header">
-              <h3 className="section-title">Upcoming Events</h3>
-              <span className="section-link">View All</span>
+              <h3 className="section-title">Events for {monthName} {selectedDay}</h3>
             </div>
 
-            <div className="space-y-2.5">
-              {upcomingEvents.length === 0 ? (
-                <div className="text-xs text-text-muted text-center py-2">No upcoming events</div>
-              ) : upcomingEvents.map((ev, i) => (
+            <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+              {selectedDayEvents.length === 0 ? (
+                <div className="text-xs text-text-muted text-center py-2">No events scheduled for this day</div>
+              ) : selectedDayEvents.map((ev, i) => (
                 <div key={i} className="flex items-start gap-2.5 p-2 rounded-xl bg-surface-elevated/40">
                   <span className="text-sm mt-0.5">{ev.icon}</span>
                   <div>

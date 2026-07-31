@@ -11,6 +11,7 @@ import {
   FiCamera, FiShare2, FiStar, FiRotateCcw, FiList, FiVideo, FiImage, FiExternalLink, FiMenu
 } from 'react-icons/fi';
 import MuscleDiagram from '../components/fitness/MuscleDiagram';
+import MuscleAtlas from '../components/fitness/MuscleAtlas';
 import GymProgressTab from '../components/fitness/GymProgressTab';
 import GymBodyStatsTab from '../components/fitness/GymBodyStatsTab';
 
@@ -510,21 +511,33 @@ export default function GymDashboard() {
         )}
       </AnimatePresence>
 
-      {/* MOBILE TOP HEADER */}
-      <div className="flex md:hidden items-center justify-between pb-2">
-        <div className="flex items-center gap-3">
-          <button 
+      {/* MOBILE TOP HEADER — matches reference image */}
+      <div className="flex md:hidden flex-col pb-1">
+        {/* Top bar: menu + logo + bell */}
+        <div className="flex items-center justify-between mb-1">
+          <button
             onClick={() => window.dispatchEvent(new Event('toggle-mobile-menu'))}
-            className="text-text-primary p-1"
+            className="w-9 h-9 rounded-xl bg-surface-elevated border border-border-subtle flex items-center justify-center text-text-primary"
           >
-            <FiMenu size={24} />
+            <FiMenu size={18} />
           </button>
-          <h2 className="text-sm font-bold text-text-primary">Good Morning, {user?.username || 'Naman'} 👋</h2>
+          {/* Logo pill */}
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-elevated border border-border-subtle">
+            <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple to-purple-accent flex items-center justify-center">
+              <span className="text-[10px] font-black text-white">L</span>
+            </div>
+            <span className="text-[11px] font-bold text-text-primary">LifeOS</span>
+          </div>
+          <button className="relative w-9 h-9 rounded-xl bg-surface-elevated border border-border-subtle flex items-center justify-center text-text-muted">
+            <FiBell size={16} />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-purple rounded-full border border-surface" />
+          </button>
         </div>
-        <button className="relative p-1 text-text-muted hover:text-text-primary">
-          <FiBell size={20} />
-          <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-purple text-white text-[8px] font-bold rounded-full flex items-center justify-center border border-surface">3</span>
-        </button>
+        {/* Page title */}
+        <div className="mt-3 mb-1">
+          <h1 className="text-2xl font-black text-text-primary tracking-tight leading-none">Gym &amp; Fitness</h1>
+          <p className="text-[11px] text-text-muted mt-1 font-medium">Track, Train, Transform</p>
+        </div>
       </div>
 
       {/* DENSE PRODUCTION PAGE HEADER (32px Title) - HIDDEN ON MOBILE */}
@@ -540,46 +553,29 @@ export default function GymDashboard() {
         </div>
       </div>
 
-      {/* 4 TOP METRICS CARDS BAR (ENLARGED HIIRARCHY & HOVER ANIMATION) */}
+      {/* 4 TOP METRICS BAR */}
       <div className="grid grid-cols-4 gap-2 md:gap-3">
-        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
-          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">🔥</div>
-          <div>
-            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{workoutsCountMonth}</h4>
-            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Workouts</p>
-            <span className="text-[6px] md:text-[9px] text-success font-bold font-mono">↑ 18% <span className="hidden md:inline">vs last mo</span></span>
-          </div>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
-          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">🏆</div>
-          <div>
-            <h4 className="text-sm md:text-2xl font-black font-mono text-purple leading-none">{totalVolumeLiftedStr}</h4>
-            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Volume</p>
-            <span className="text-[6px] md:text-[9px] text-success font-bold font-mono">↑ 24% <span className="hidden md:inline">vs last mo</span></span>
-          </div>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
-          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">⭐</div>
-          <div>
-            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{Object.keys(personalRecords).length}</h4>
-            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Records</p>
-            <span className="text-[6px] md:text-[9px] text-info font-bold font-mono">{Object.keys(personalRecords).length} Active PRs</span>
-          </div>
-        </motion.div>
-
-        <motion.div whileHover={{ y: -2 }} className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3">
-          <div className="w-6 h-6 md:w-10 md:h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-[10px] md:text-lg font-bold">⚡</div>
-          <div>
-            <h4 className="text-sm md:text-2xl font-black font-mono text-text-primary leading-none">{user?.current_streak ?? 0}</h4>
-            <p className="text-[7px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5 md:mt-1">Day Streak</p>
-            <span className="text-[6px] md:text-[9px] text-text-muted font-bold font-mono">Best: {user?.best_streak || 0} <span className="hidden md:inline">Days</span></span>
-          </div>
-        </motion.div>
+        {/* Mobile: icon + number + label stacked. Desktop: icon left + text right */}
+        {[
+          { emoji: '🔥', val: workoutsCountMonth, label: 'Workouts', sub: '↑ 18%', subColor: 'text-success' },
+          { emoji: '🏆', val: totalVolumeLiftedStr, label: 'Volume',   sub: '↑ 24%', subColor: 'text-success' },
+          { emoji: '⭐', val: Object.keys(personalRecords).length, label: 'Records', sub: `${Object.keys(personalRecords).length} PRs`, subColor: 'text-info' },
+          { emoji: '⚡', val: user?.current_streak ?? 0, label: 'Day Streak', sub: `Best: ${user?.best_streak || 0}`, subColor: 'text-text-muted' },
+        ].map((m, i) => (
+          <motion.div key={i} whileHover={{ y: -2 }}
+            className="p-2 md:p-3.5 rounded-2xl bg-surface border border-border-subtle hover:border-purple/40 shadow-sm flex flex-col md:flex-row items-center md:items-start text-center md:text-left gap-1 md:gap-3"
+          >
+            <div className="w-7 h-7 md:w-10 md:h-10 rounded-xl bg-purple/10 flex items-center justify-center text-sm md:text-lg">{m.emoji}</div>
+            <div>
+              <h4 className="text-base md:text-2xl font-black font-mono text-text-primary leading-none">{m.val}</h4>
+              <p className="text-[8px] md:text-[10px] font-bold text-text-muted uppercase tracking-wider mt-0.5">{m.label}</p>
+              <span className={`text-[8px] md:text-[9px] font-bold font-mono ${m.subColor}`}>{m.sub}</span>
+            </div>
+          </motion.div>
+        ))}
       </div>
 
-      {/* GLOWING NAVIGATION TABS BAR (SMOOTH UNDERLINE) */}
+      {/* GLOWING NAVIGATION TABS BAR (SMOOTH UNDERLINE) - DESKTOP ONLY */}
       <div className="hidden md:flex items-center gap-2 border-b border-border-subtle pb-1 overflow-x-auto sidebar-scroll">
         {[
           { id: 'overview', label: 'Overview' },
@@ -603,99 +599,162 @@ export default function GymDashboard() {
         ))}
       </div>
 
+      {/* MOBILE HORIZONTAL SCROLLABLE TAB BAR — matches reference image */}
+      <div className="md:hidden flex items-center gap-0 border-b border-border-subtle overflow-x-auto pb-0 -mx-4 px-4 sidebar-scroll">
+        {[
+          { id: 'overview',   label: 'Overview' },
+          { id: 'workouts',   label: 'Workouts' },
+          { id: 'progress',   label: 'Progress' },
+          { id: 'exercises',  label: 'Exercises' },
+          { id: 'body-stats', label: 'Body Stats' },
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`relative shrink-0 px-3.5 py-2.5 text-[11px] font-bold transition-all duration-200 whitespace-nowrap ${
+              activeTab === tab.id
+                ? 'text-purple border-b-2 border-purple'
+                : 'text-text-muted'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
+
       {/* SUB TAB 1: OVERVIEW */}
       {activeTab === 'overview' && (
         <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-          {/* Top Row Cards (Unified Heights, Balanced Densified Grid) */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            {/* CARD 1: TODAY'S SCHEDULED WORKOUT (PROMINENT FULL-HEIGHT SVG & COLOR CHIPS) */}
-            <div className="lg:col-span-5 card p-6 gap-6 bg-gradient-to-br from-surface to-surface-elevated relative overflow-visible flex flex-col border border-purple/30">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
-                <span className="text-xs font-bold text-text-primary tracking-wide">Today's Scheduled Workout</span>
-                <span className="badge-success text-[10px] px-2.5 py-0.5 font-bold">Push Day • Active Split</span>
-              </div>
-
-              {/* Title & Workout Header */}
-              <div className="flex flex-col gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-xl bg-purple/10 text-purple flex items-center justify-center text-2xl shrink-0">
+          {/* Top Row Cards */}
+          <div className="flex flex-col gap-5">
+            {/* CARD 1: TODAY'S SCHEDULED WORKOUT (PROMINENT FULL-WIDTH TOP HEADER) */}
+            {/* ── MOBILE: Quick Overview Card ── */}
+            <div className="block md:hidden rounded-2xl overflow-hidden border border-border-subtle bg-gradient-to-br from-[#1c1a2e] via-[#1a1a2e] to-[#16181f] shadow-lg">
+              <div className="p-4">
+                {/* Card header */}
+                <p className="text-[10px] font-bold text-purple/80 uppercase tracking-widest mb-1">Quick Overview</p>
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-11 h-11 rounded-2xl bg-purple/20 border border-purple/30 flex items-center justify-center text-xl shrink-0">
                     🏋️
                   </div>
-                  <div className="flex flex-col justify-center gap-1">
-                    <h3 className="text-xl font-extrabold text-text-primary leading-none">
+                  <div>
+                    <h3 className="text-base font-extrabold text-white leading-tight tracking-tight">
                       {weeklyPlan[currentWeekday]?.title || 'Rest Day'}
                     </h3>
-                    <p className="text-sm font-semibold text-purple leading-none mt-1">
+                    <p className="text-[11px] text-purple font-medium leading-none mt-0.5">
                       {weeklyPlan[currentWeekday]?.focus || 'Rest & Recovery'}
                     </p>
                   </div>
                 </div>
 
-                {/* Sleek Colored Metric Chips */}
-                <div className="grid grid-cols-4 gap-3">
-                  <div className="p-3 rounded-2xl bg-purple/10 border border-purple/20 flex flex-col items-center justify-center gap-2 aspect-square">
-                    <FiClock className="text-purple shrink-0" size={18} />
-                    <div className="flex flex-col items-center justify-center gap-1">
-                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Duration</p>
-                      <p className="text-sm font-bold font-mono text-purple leading-none">60 min</p>
+                {/* Metric row */}
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { icon: FiClock,        color: 'text-purple',  border: 'border-purple/20',  label: 'Duration',   val: '60 min' },
+                    { icon: FiActivity,     color: 'text-info',    border: 'border-info/20',    label: 'Exercises',  val: `${weeklyPlan[currentWeekday]?.exercises?.length || 0}` },
+                    { icon: FiZap,          color: 'text-warning', border: 'border-warning/20', label: 'Calories',   val: '550 kcal' },
+                    { icon: FiCheckCircle,  color: 'text-success', border: 'border-success/20', label: 'Target Vol', val: '7.5k kg' },
+                  ].map(({ icon: Icon, color, border, label, val }, i) => (
+                    <div key={i} className={`p-3 rounded-xl bg-white/[0.04] border ${border} flex items-center gap-2.5`}>
+                      <Icon className={`${color} shrink-0`} size={14} />
+                      <div>
+                        <p className="text-[8px] text-text-muted uppercase font-bold tracking-wider leading-none">{label}</p>
+                        <p className={`text-[13px] font-bold font-mono ${color} leading-tight mt-0.5`}>{val}</p>
+                      </div>
                     </div>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-info/10 border border-info/20 flex flex-col items-center justify-center gap-2 aspect-square">
-                    <FiActivity className="text-info shrink-0" size={18} />
-                    <div className="flex flex-col items-center justify-center gap-1">
-                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Exercises</p>
-                      <p className="text-sm font-bold font-mono text-info leading-none">{weeklyPlan[currentWeekday]?.exercises?.length || 0}</p>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-warning/10 border border-warning/20 flex flex-col items-center justify-center gap-2 aspect-square">
-                    <FiZap className="text-warning shrink-0" size={18} />
-                    <div className="flex flex-col items-center justify-center gap-1">
-                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Calories</p>
-                      <p className="text-sm font-bold font-mono text-warning leading-none">550 kcal</p>
-                    </div>
-                  </div>
-                  <div className="p-3 rounded-2xl bg-success/10 border border-success/20 flex flex-col items-center justify-center gap-2 aspect-square">
-                    <FiCheckCircle className="text-success shrink-0" size={18} />
-                    <div className="flex flex-col items-center justify-center gap-1">
-                      <p className="text-[9px] text-text-muted uppercase font-bold tracking-wider leading-none">Target Vol</p>
-                      <p className="text-sm font-bold font-mono text-success leading-none">7.5k kg</p>
-                    </div>
-                  </div>
+                  ))}
                 </div>
-              </div>
-
-              {/* ENLARGED PROMINENT ANATOMICAL SVG (320px Height, Zero Cropping) */}
-              <div className="w-full h-[460px] flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-6 overflow-hidden">
-                <MuscleDiagram activeExercises={todayExercises} className="w-full h-full" />
-              </div>
-
-              {/* View Weekly Plan Action */}
-              <div className="mt-auto pt-2">
-                <button onClick={() => setActiveTab('workouts')} className="btn-primary text-sm w-full py-4 bg-gradient-to-r from-purple via-purple-accent to-purple text-white font-bold flex items-center justify-center gap-2 shadow-glow-primary rounded-xl px-4">
-                  <FiCalendar size={18} />
-                  <span>View Weekly Plan & Schedule</span>
-                  <FiChevronRight size={18} className="ml-auto" />
-                </button>
               </div>
             </div>
 
-            {/* CARD 2: REDESIGNED COMPACT WEEKLY ACTIVITY CARD */}
-            <div className="lg:col-span-4 card p-5 space-y-4 flex flex-col justify-between bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
-              <div className="flex items-center justify-between border-b border-border-subtle pb-4">
-                <div>
-                  <h3 className="section-title text-base font-bold">Weekly Activity</h3>
-                  <p className="text-[10px] text-text-muted">83% Weekly Plan Completion</p>
+            {/* ── DESKTOP: old workout card ── */}
+            <div className="hidden md:flex flex-col gap-5 border border-border-subtle rounded-2xl p-6 bg-gradient-to-br from-surface to-surface-elevated">
+              {/* Title & Workout Header */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-[#1d2025] border border-border-subtle flex items-center justify-center text-3xl shrink-0 shadow-lg">
+                  🏋️
                 </div>
-                <span onClick={() => setActiveTab('workouts')} className="section-link text-xs">View Calendar</span>
+                <div className="flex flex-col justify-center gap-1.5">
+                  <h3 className="text-2xl font-bold text-white tracking-tight leading-none">
+                    {weeklyPlan[currentWeekday]?.title || 'Rest Day'}
+                  </h3>
+                  <p className="text-[13px] font-medium text-purple leading-none tracking-wide">
+                    {weeklyPlan[currentWeekday]?.focus || 'Rest & Recovery'}
+                  </p>
+                </div>
               </div>
 
-              {/* Weekday Row */}
-              <div className="flex justify-between items-center px-1">
+              {/* Sleek Colored Metric Chips */}
+              <div className="grid grid-cols-4 gap-4">
+                <div className="px-2 py-5 rounded-[14px] bg-[#1d2025] border border-purple/30 flex flex-col items-center justify-center gap-2 hover:border-purple/60 transition-colors shadow-md">
+                  <FiClock className="text-purple shrink-0 mb-1" size={20} />
+                  <p className="text-[9px] text-text-muted uppercase font-bold tracking-[0.15em] leading-none">Duration</p>
+                  <p className="text-[15px] font-bold font-mono text-purple leading-none tracking-tight">60 <span className="text-[11px] text-purple/70">min</span></p>
+                </div>
+                <div className="px-2 py-5 rounded-[14px] bg-[#1d2025] border border-info/30 flex flex-col items-center justify-center gap-2 hover:border-info/60 transition-colors shadow-md">
+                  <FiActivity className="text-info shrink-0 mb-1" size={20} />
+                  <p className="text-[9px] text-text-muted uppercase font-bold tracking-[0.15em] leading-none">Exercises</p>
+                  <p className="text-[15px] font-bold font-mono text-info leading-none tracking-tight">{weeklyPlan[currentWeekday]?.exercises?.length || 0}</p>
+                </div>
+                <div className="px-2 py-5 rounded-[14px] bg-[#1d2025] border border-[#ff7a45]/30 flex flex-col items-center justify-center gap-2 hover:border-[#ff7a45]/60 transition-colors shadow-md">
+                  <FiZap className="text-[#ff7a45] shrink-0 mb-1" size={20} />
+                  <p className="text-[9px] text-text-muted uppercase font-bold tracking-[0.15em] leading-none">Calories</p>
+                  <p className="text-[15px] font-bold font-mono text-[#ff7a45] leading-none tracking-tight">550 <span className="text-[11px] text-[#ff7a45]/70">kcal</span></p>
+                </div>
+                <div className="px-2 py-5 rounded-[14px] bg-[#1d2025] border border-success/30 flex flex-col items-center justify-center gap-2 hover:border-success/60 transition-colors shadow-md">
+                  <FiCheckCircle className="text-success shrink-0 mb-1" size={20} />
+                  <p className="text-[9px] text-text-muted uppercase font-bold tracking-[0.15em] leading-none">Target Vol</p>
+                  <p className="text-[15px] font-bold font-mono text-success leading-none tracking-tight">7.5k <span className="text-[11px] text-success/70">kg</span></p>
+                </div>
+              </div>
+            </div>
+
+            {/* MUSCLE ATLAS — mobile shows compact embedded version, desktop shows full */}
+            <div className="w-full">
+              {/* Mobile: compact atlas */}
+              <div className="block md:hidden rounded-2xl overflow-hidden border border-border-subtle bg-[#0e0f12]">
+                <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                  <div>
+                    <p className="text-[10px] font-bold text-text-muted uppercase tracking-widest">Muscle Atlas</p>
+                    <p className="text-[11px] text-text-muted/60">Interactive muscle heatmap</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab('body-stats')}
+                    className="flex items-center gap-1 text-purple text-[10px] font-bold"
+                  >
+                    View <FiChevronRight size={12} />
+                  </button>
+                </div>
+                <MuscleAtlas activeExercises={todayExercises} className="embedded" />
+              </div>
+
+              {/* Desktop: full atlas */}
+              <div className="hidden md:block">
+                <MuscleAtlas activeExercises={todayExercises} />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-7 gap-5 items-stretch">
+            {/* WEEKLY ACTIVITY — redesigned for mobile */}
+            <div className="lg:col-span-4 card p-5 space-y-4 flex flex-col justify-between bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-3.5">
+                <div>
+                  <h3 className="text-sm font-bold text-text-primary">Weekly Activity</h3>
+                  <p className="text-[10px] text-text-muted">83% Weekly Plan Completion</p>
+                </div>
+                <span onClick={() => setActiveTab('workouts')} className="section-link text-xs cursor-pointer">View Calendar</span>
+              </div>
+
+              {/* Day badges row — larger on mobile */}
+              <div className="flex justify-between items-center">
                 {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day, i) => (
                   <div key={day} className="flex flex-col items-center gap-1.5">
-                    <span className="text-[10px] text-text-muted font-mono uppercase">{day}</span>
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
-                      i <= 4 ? 'bg-success text-white shadow-glow-success' : i === 5 ? 'bg-purple text-white shadow-glow-primary' : 'bg-surface-elevated text-text-muted border border-border-subtle'
+                    <span className="text-[9px] text-text-muted font-mono uppercase">{day}</span>
+                    <div className={`w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold transition-all ${
+                      i <= 4 ? 'bg-success text-white shadow-[0_0_8px_rgba(34,197,94,0.4)]'
+                      : i === 5 ? 'bg-purple text-white shadow-[0_0_8px_rgba(168,85,247,0.4)]'
+                      : 'bg-surface-elevated text-text-muted border border-border-subtle'
                     }`}>
                       {i <= 5 ? '✓' : '•'}
                     </div>
@@ -703,19 +762,19 @@ export default function GymDashboard() {
                 ))}
               </div>
 
-              {/* Mini Completion Progress Bar */}
+              {/* Progress bar */}
               <div className="space-y-1.5 bg-surface-elevated/40 p-3 rounded-xl border border-border-subtle">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-text-muted font-medium">Weekly Target Progress</span>
-                  <span className="font-mono font-bold text-success">5 of 6 Sessions (83%)</span>
+                  <span className="text-text-muted font-medium text-[11px]">5 of 6 Sessions (83%)</span>
+                  <span className="font-mono font-bold text-success text-[11px]">83%</span>
                 </div>
                 <div className="w-full h-2 rounded-full bg-background overflow-hidden">
                   <div className="h-full rounded-full bg-gradient-to-r from-success to-purple w-[83%]" />
                 </div>
               </div>
 
-              {/* Stats Summary Bar */}
-              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-border-subtle text-center">
+              {/* Stats summary */}
+              <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border-subtle text-center">
                 <div className="p-2.5 rounded-xl bg-surface-elevated/40">
                   <p className="text-[9px] text-text-muted">Workouts</p>
                   <p className="text-sm font-extrabold font-mono text-text-primary">5 / 6</p>
@@ -731,39 +790,44 @@ export default function GymDashboard() {
               </div>
             </div>
 
-            {/* CARD 3: REDESIGNED ENLARGED CURRENT STREAK CARD */}
+            {/* CURRENT STREAK — redesigned for mobile */}
             <div className="lg:col-span-3 card p-5 flex flex-col items-center justify-between text-center space-y-3 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle">
-              <div className="w-full border-b border-border-subtle pb-3">
-                <h3 className="section-title text-base font-bold">Current Streak</h3>
-                <p className="text-[10px] text-text-muted">Consistency & Streak Metrics</p>
-              </div>
-
-              {/* ENLARGED CIRCULAR PROGRESS RING (+35% Diameter) */}
-              <div className="relative w-40 h-40 my-1 flex items-center justify-center">
-                <svg className="w-40 h-40 -rotate-90" viewBox="0 0 120 120">
-                  <circle cx="60" cy="60" r="48" stroke="#161A2E" strokeWidth="12" fill="none" />
-                  <circle cx="60" cy="60" r="48" stroke="#22C55E" strokeWidth="12" strokeDasharray="260 300" strokeLinecap="round" fill="none" className="filter drop-shadow-[0_0_10px_rgba(34,197,94,0.85)]" />
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center">
-                  <span className="text-3xl font-black font-mono text-text-primary">{streak}</span>
-                  <span className="text-[10px] font-extrabold text-success uppercase tracking-wider mt-0.5">Days Streak</span>
+              <div className="w-full flex items-center justify-between border-b border-border-subtle pb-3.5">
+                <div className="text-left">
+                  <h3 className="text-sm font-bold text-text-primary">Current Streak</h3>
+                  <p className="text-[10px] text-text-muted">Consistency &amp; Streak Metrics</p>
                 </div>
               </div>
 
-              {/* Best Streak Directly Below Ring */}
-              <div className="w-full p-2.5 rounded-xl bg-surface-elevated/50 border border-border-subtle text-xs text-text-muted flex justify-between items-center">
-                <span>Best Streak Record</span>
-                <strong className="text-text-primary font-mono text-sm font-bold">32 Days</strong>
+              {/* Circular progress ring */}
+              <div className="relative w-36 h-36 my-1 flex items-center justify-center">
+                <svg className="w-36 h-36 -rotate-90" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="48" stroke="#1a1d24" strokeWidth="10" fill="none" />
+                  <circle cx="60" cy="60" r="48" stroke="#22C55E" strokeWidth="10"
+                    strokeDasharray="260 300" strokeLinecap="round" fill="none"
+                    className="filter drop-shadow-[0_0_10px_rgba(34,197,94,0.85)]"
+                  />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-3xl font-black font-mono text-text-primary leading-none">{streak}</span>
+                  <span className="text-[9px] font-bold text-success uppercase tracking-wider mt-1">Day Streak</span>
+                </div>
               </div>
 
-              {/* Statistics Chips */}
-              <div className="grid grid-cols-2 gap-2 w-full text-[10px]">
+              {/* Best streak row */}
+              <div className="w-full p-2.5 rounded-xl bg-surface-elevated/50 border border-border-subtle text-xs text-text-muted flex justify-between items-center">
+                <span>Best Streak Record</span>
+                <strong className="text-text-primary font-mono font-bold">32 Days</strong>
+              </div>
+
+              {/* Stats chips */}
+              <div className="grid grid-cols-2 gap-2 w-full">
                 <div className="p-2 rounded-xl bg-surface-elevated/40 text-center">
-                  <span className="text-text-muted">Longest Month</span>
+                  <span className="text-[9px] text-text-muted">Longest Month</span>
                   <p className="font-bold text-text-primary font-mono text-xs">30 Days</p>
                 </div>
                 <div className="p-2 rounded-xl bg-surface-elevated/40 text-center">
-                  <span className="text-text-muted">Consistency Rate</span>
+                  <span className="text-[9px] text-text-muted">Consistency</span>
                   <p className="font-bold text-success font-mono text-xs">93%</p>
                 </div>
               </div>

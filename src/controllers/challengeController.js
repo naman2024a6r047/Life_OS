@@ -183,7 +183,7 @@ const parseRawCurriculum = (text) => {
 
 exports.createChallenge = async (req, res) => {
     try {
-        const { title, description, category, start_date, end_date, visibility, difficulty, penalty_mode, penalty_rule, color, icon, raw_curriculum } = req.body;
+        const { title, description, category, start_date, end_date, visibility, difficulty, penalty_mode, penalty_rule, color, icon, raw_curriculum, daily_minutes } = req.body;
         
         let parsedDays = [];
         if (raw_curriculum) {
@@ -241,12 +241,16 @@ exports.createChallenge = async (req, res) => {
                 const taskDate = addDays(startDate, dayOffsetIndex);
                 const dayData = parsedDays.find(pd => pd.dayNum === dNum);
 
+                const targetDailyMins = Number(daily_minutes) || 45;
+
                 if (dayData && dayData.tasks.length > 0) {
+                    const taskMins = Math.round(targetDailyMins / dayData.tasks.length);
                     dayData.tasks.forEach((t, tIdx) => {
                         allTasks.push({
                             milestone_id: milestone.id,
                             title: t.title,
                             priority: tIdx < 3 ? 'P1' : 'P2',
+                            estimated_minutes: taskMins,
                             date: taskDate
                         });
                     });
@@ -255,6 +259,7 @@ exports.createChallenge = async (req, res) => {
                         milestone_id: milestone.id,
                         title: `Daily Task - Day ${dNum}`,
                         priority: 'P1',
+                        estimated_minutes: targetDailyMins,
                         date: taskDate
                     });
                 }

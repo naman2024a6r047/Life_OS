@@ -241,7 +241,7 @@ export default function Dashboard() {
         const [challRes, analyticsRes, unreadRes, partnersRes, inqRes, achRes, heatmapRes, trendRes, statsRes] = await Promise.allSettled([
           axios.get('/api/challenges'),
           axios.get('/api/analytics/summary'),
-          axios.get('/api/friends/interventions/unread-count'),
+          axios.get('/api/notifications/unread-count'),
           axios.get('/api/dashboard/partners'),
           axios.get('/api/dashboard/inquiries'),
           axios.get('/api/dashboard/achievements'),
@@ -321,8 +321,10 @@ export default function Dashboard() {
           </div>
           <Link to="/notifications" className="relative p-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border-subtle text-text-muted hover:text-primary transition-colors ml-2">
             <FiBell size={18} />
-            {analytics?.pendingReviews > 0 && (
-              <span className="absolute top-1.5 right-2 w-2 h-2 rounded-full bg-danger"></span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-danger text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {unreadCount}
+              </span>
             )}
           </Link>
           <div className="flex items-center gap-2 ml-2 card px-3 py-2">

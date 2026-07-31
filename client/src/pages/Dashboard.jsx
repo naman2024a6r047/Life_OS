@@ -58,10 +58,10 @@ function LifeScoreCircle({ score }) {
 }
 
 function ActivityHeatmap({ heatmapData = [] }) {
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug'];
+  const [view, setView] = useState('yearly');
   const days = ['', 'Mon', '', 'Wed', '', 'Fri', '']; // Sunday-aligned
   
-  const cells = useMemo(() => {
+  const { cells, monthLabels } = useMemo(() => {
     const result = [];
     const countMap = {};
     if (Array.isArray(heatmapData)) {
@@ -70,21 +70,34 @@ function ActivityHeatmap({ heatmapData = [] }) {
       });
     }
 
+    const weeks = view === 'yearly' ? 52 : 5; // 5 weeks covers roughly a month
     const today = new Date();
     today.setHours(0,0,0,0);
-    // Find the Sunday of the current week
+    // Find the Saturday of the current week (end of week)
     const currentDayOfWeek = today.getDay(); // 0 is Sunday
     const endOfWeek = new Date(today);
-    endOfWeek.setDate(today.getDate() + (6 - currentDayOfWeek)); // Next Saturday
+    endOfWeek.setDate(today.getDate() + (6 - currentDayOfWeek)); 
 
     const startDate = new Date(endOfWeek);
-    startDate.setDate(endOfWeek.getDate() - (32 * 7) + 1); // 32 weeks ago, starting on a Sunday
+    startDate.setDate(endOfWeek.getDate() - (weeks * 7) + 1); // weeks ago, starting on Sunday
 
-    for (let week = 0; week < 32; week++) {
+    const monthLabelsArray = [];
+    let currentMonth = -1;
+
+    for (let week = 0; week < weeks; week++) {
+      let monthAddedForWeek = false;
       for (let day = 0; day < 7; day++) {
         const cellDate = new Date(startDate);
         cellDate.setDate(startDate.getDate() + (week * 7) + day);
-        // Ensure local YYYY-MM-DD instead of UTC offset shifting
+        
+        // Month label logic
+        const m = cellDate.getMonth();
+        if (m !== currentMonth && !monthAddedForWeek) {
+            monthLabelsArray.push({ label: cellDate.toLocaleString('default', { month: 'short' }), weekIndex: week });
+            currentMonth = m;
+            monthAddedForWeek = true;
+        }
+
         const dateStr = [
           cellDate.getFullYear(),
           String(cellDate.getMonth() + 1).padStart(2, '0'),
@@ -92,39 +105,59 @@ function ActivityHeatmap({ heatmapData = [] }) {
         ].join('-');
         
         const intensity = countMap[dateStr] || 0;
-        let color = 'bg-surface-elevated';
-        if (intensity >= 4) color = 'bg-primary';
-        else if (intensity >= 3) color = 'bg-indigo-400';
-        else if (intensity >= 2) color = 'bg-indigo-600';
-        else if (intensity === 1) color = 'bg-indigo-800';
+        
+        // GitHub Dark Mode Greens
+        let color = 'bg-[#161b22] border border-[rgba(255,255,255,0.05)]';
+        if (intensity >= 4) color = 'bg-[#39d353]';
+        else if (intensity >= 3) color = 'bg-[#26a641]';
+        else if (intensity >= 2) color = 'bg-[#006d32]';
+        else if (intensity === 1) color = 'bg-[#0e4429]';
         
         const title = intensity === 0 ? `No activity on ${dateStr}` : `${intensity} activities on ${dateStr}`;
-        result.push({ week, day, color, title });
+        // Hide future dates
+        const isFuture = cellDate > today;
+        if (isFuture) {
+           color = 'bg-transparent';
+        }
+
+        result.push({ week, day, color, title, isFuture });
       }
     }
-    return result;
-  }, [heatmapData]);
+    return { cells: result, monthLabels: monthLabelsArray };
+  }, [heatmapData, view]);
 
   return (
     <div className="card p-4">
-      <div className="section-header">
-        <h3 className="section-title">Activity Heatmap</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="section-title !mb-0">Activity Heatmap</h3>
+        <select 
+          value={view}
+          onChange={(e) => setView(e.target.value)}
+          className="bg-slate-800 text-slate-300 text-[10px] font-bold px-2 py-1 rounded-md border border-slate-700 outline-none focus:border-indigo-500 cursor-pointer"
+        >
+          <option value="yearly">Yearly (52 weeks)</option>
+          <option value="monthly">Monthly (5 weeks)</option>
+        </select>
       </div>
-      <div className="flex gap-3">
-        <div className="flex flex-col gap-[3px] pt-5">
+      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+        <div className="flex flex-col gap-[3px] pt-[20px] flex-shrink-0">
           {days.map((d, i) => (
             <div key={i} className="h-[12px] text-[9px] text-text-muted font-mono flex items-center">{d}</div>
           ))}
         </div>
-        <div className="flex-1 overflow-x-auto pb-2 min-w-0">
-          <div className="flex gap-[3px] mb-1 min-w-max">
-            {months.map((m, i) => (
-              <div key={i} className="text-[9px] text-text-muted font-mono" style={{ width: `${100/8}%` }}>{m}</div>
+        <div className="flex-1 min-w-max">
+          <div className="relative h-[20px] w-full text-[9px] text-text-muted font-mono">
+            {monthLabels.map((m, i) => (
+              <span key={i} className="absolute bottom-1" style={{ left: `${m.weekIndex * (12 + 3)}px` }}>{m.label}</span>
             ))}
           </div>
-          <div className="grid grid-flow-col grid-rows-7 gap-[3px] min-w-max">
+          <div className="grid grid-flow-col grid-rows-7 gap-[3px] w-max">
             {cells.map((cell, i) => (
-              <div key={i} title={cell.title} className={`w-[12px] h-[12px] rounded-[2px] transition-all cursor-pointer hover:ring-1 hover:ring-white/40 ${cell.color}`} />
+              <div 
+                key={i} 
+                title={cell.isFuture ? '' : cell.title} 
+                className={`w-[12px] h-[12px] rounded-[2px] transition-all ${cell.isFuture ? '' : 'cursor-pointer hover:ring-1 hover:ring-white/60 hover:z-10 relative'} ${cell.color}`} 
+              />
             ))}
           </div>
         </div>

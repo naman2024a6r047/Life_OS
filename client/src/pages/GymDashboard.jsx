@@ -665,7 +665,7 @@ export default function GymDashboard() {
               </div>
 
               {/* ENLARGED PROMINENT ANATOMICAL SVG (320px Height, Zero Cropping) */}
-              <div className="w-full h-[460px] flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-6 overflow-visible">
+              <div className="w-full h-[460px] flex items-center justify-center bg-surface-elevated/30 rounded-2xl border border-border-subtle/50 p-6 overflow-hidden">
                 <MuscleDiagram activeExercises={todayExercises} className="w-full h-full" />
               </div>
 

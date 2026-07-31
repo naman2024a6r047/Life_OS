@@ -408,7 +408,7 @@ export default function MuscleDiagram({
 
   // Render SVG Anatomical Graphic Component
   const renderSVGGraphic = () => (
-    <div ref={svgContainerRef} className="relative w-full h-full flex flex-col items-center justify-center select-none overflow-visible">
+    <div ref={svgContainerRef} className="relative w-full h-full flex flex-col items-center justify-center select-none overflow-hidden">
       {/* PERFECT CENTER DIVIDER */}
       {viewMode === 'both' && (
         <div className="absolute left-1/2 top-4 bottom-12 w-px bg-border-subtle -translate-x-1/2 pointer-events-none" />
@@ -512,7 +512,7 @@ export default function MuscleDiagram({
         </div>
 
         {/* SVG fills remaining space */}
-        <div className="flex-1 min-h-0 flex items-center justify-center overflow-visible">
+        <div className="flex-1 min-h-0 flex items-center justify-center overflow-hidden">
           {renderSVGGraphic()}
         </div>
 

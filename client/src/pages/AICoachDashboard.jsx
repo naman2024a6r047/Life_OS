@@ -435,25 +435,25 @@ export default function AICoachDashboard() {
           <h3 className="text-sm font-bold text-text-primary flex items-center gap-2"><FiFolder className="text-purple" /> Resource Drive Integration</h3>
           <p className="text-[11px] text-text-muted mt-0.5">Connect a Google Drive folder to store and access your files.</p>
         </div>
-        <div className="flex flex-col sm:flex-row items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
           <div className="flex gap-2 w-full sm:w-auto">
             <input type="text" placeholder="Paste Drive folder URL..." value={userProfile.resourceDriveFolderLink || ''}
               onChange={e => setUserProfile({ ...userProfile, resourceDriveFolderLink: e.target.value })}
               className="w-full sm:w-64 px-3 py-2 text-xs bg-surface border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-purple" />
             <button onClick={() => saveFolderLink()}
-              className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors whitespace-nowrap flex items-center gap-1.5 ${linkSaved ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-surface-elevated text-text-primary hover:bg-surface border border-border-subtle'}`}>
+              className={`px-3 py-2 text-xs font-bold rounded-lg transition-colors whitespace-nowrap flex items-center justify-center gap-1.5 ${linkSaved ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-surface-elevated text-text-primary hover:bg-surface border border-border-subtle'}`}>
               {linkSaved ? <><FiCheck size={12} /> Saved</> : 'Save'}
             </button>
           </div>
           <button onClick={requestGoogleDriveAccess}
-            className={`px-4 py-2 text-xs font-bold rounded-lg flex items-center gap-2 transition-colors whitespace-nowrap ${googleAccessToken ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-[#4285F4] hover:bg-[#357ae8] text-white'}`}>
+            className={`px-4 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-colors whitespace-nowrap w-full sm:w-auto ${googleAccessToken ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-[#4285F4] hover:bg-[#357ae8] text-white'}`}>
             {googleAccessToken ? <><FiCheck size={12} /> Google Connected</> : 'Connect Google'}
           </button>
         </div>
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center"><FiDatabase size={22} /></div>
           <div>
@@ -461,20 +461,22 @@ export default function AICoachDashboard() {
             <p className="text-xs text-text-muted">{resources.length} resources · {categories.length} categories</p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <div className="relative">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
+          <div className="relative w-full sm:w-auto">
             <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" size={14} />
             <input type="text" placeholder="Search resources..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
-              className="pl-9 pr-4 py-2 rounded-xl bg-surface-elevated text-xs text-text-primary placeholder-text-muted border border-border-subtle focus:border-purple focus:outline-none w-56" />
+              className="pl-9 pr-4 py-2 rounded-xl bg-surface-elevated text-xs text-text-primary placeholder-text-muted border border-border-subtle focus:border-purple focus:outline-none w-full sm:w-56" />
           </div>
-          <button onClick={() => setCatModal({ open: true, editData: null })}
-            className="px-4 py-2 text-xs font-bold rounded-xl border border-purple/40 text-purple hover:bg-purple/10 flex items-center gap-1.5 transition-all">
-            <FiPlus size={14} /> New Category
-          </button>
-          <button onClick={() => setUploadModal(true)}
-            className="px-4 py-2 text-xs font-bold rounded-xl bg-purple text-white hover:bg-purple/80 flex items-center gap-1.5 transition-all">
-            <FiPlus size={14} /> Add Resource
-          </button>
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button onClick={() => setCatModal({ open: true, editData: null })}
+              className="flex-1 sm:flex-none justify-center px-4 py-2 text-xs font-bold rounded-xl border border-purple/40 text-purple hover:bg-purple/10 flex items-center gap-1.5 transition-all">
+              <FiPlus size={14} /> New Category
+            </button>
+            <button onClick={() => setUploadModal(true)}
+              className="flex-1 sm:flex-none justify-center px-4 py-2 text-xs font-bold rounded-xl bg-purple text-white hover:bg-purple/80 flex items-center gap-1.5 transition-all">
+              <FiPlus size={14} /> Add Resource
+            </button>
+          </div>
         </div>
       </div>
 
@@ -523,12 +525,12 @@ export default function AICoachDashboard() {
 
       {/* Library */}
       <div className="card overflow-hidden">
-        <div className="p-4 border-b border-border-subtle flex items-center justify-between">
-          <h3 className="text-sm font-bold text-text-primary">
+        <div className="p-4 border-b border-border-subtle flex flex-wrap gap-2 items-center justify-between">
+          <h3 className="text-sm font-bold text-text-primary break-all">
             {allTabs.find(t => t.id === selectedCategory)?.label || 'All Resources'}
-            <span className="ml-2 text-[11px] text-text-muted font-normal">({resources.length})</span>
+            <span className="ml-2 text-[11px] text-text-muted font-normal whitespace-nowrap">({resources.length})</span>
           </h3>
-          <div className="flex items-center border border-border-subtle rounded-lg overflow-hidden">
+          <div className="flex items-center border border-border-subtle rounded-lg overflow-hidden shrink-0">
             <button onClick={() => setViewMode('table')} className={`px-2 py-1.5 transition-all ${viewMode === 'table' ? 'bg-purple text-white' : 'text-text-muted hover:text-text-primary'}`}><FiList size={13} /></button>
             <button onClick={() => setViewMode('grid')} className={`px-2 py-1.5 transition-all ${viewMode === 'grid' ? 'bg-purple text-white' : 'text-text-muted hover:text-text-primary'}`}><FiGrid size={13} /></button>
           </div>

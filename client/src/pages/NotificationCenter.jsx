@@ -210,19 +210,19 @@ export default function NotificationCenter() {
               {/* Subtle hover glow effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
-              <div className="flex items-start gap-4 relative z-10">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${n.iconBg}`}>
+              <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 relative z-10">
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${n.iconBg}`}>
                   {n.icon}
                 </div>
-                <div className="flex-1 min-w-0 pt-0.5">
-                  <div className="flex items-center justify-between gap-3 mb-1.5">
-                    <h3 className="text-base font-bold text-white truncate">{n.title}</h3>
-                    <span className="text-xs font-medium text-slate-400 whitespace-nowrap bg-slate-800/80 px-2.5 py-1 rounded-full border border-slate-700/50">
+                <div className="flex-1 min-w-0 pt-0.5 w-full">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3 mb-2">
+                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight break-words pr-2">{n.title}</h3>
+                    <span className="text-[10px] sm:text-xs font-medium text-slate-400 whitespace-nowrap bg-slate-800/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-slate-700/50 self-start sm:self-auto mt-1 sm:mt-0">
                       {dayjs(n.date).fromNow()}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-300 leading-relaxed mb-4">{n.message}</p>
-                  <Link to={n.link} className="inline-flex items-center gap-2 text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors group/link">
+                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3 sm:mb-4">{n.message}</p>
+                  <Link to={n.link} className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors group/link">
                     View Details 
                     <FiArrowRight size={12} className="group-hover/link:translate-x-1 transition-transform" />
                   </Link>

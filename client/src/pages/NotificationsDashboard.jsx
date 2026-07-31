@@ -246,6 +246,11 @@ export default function NotificationsDashboard() {
                         <span>{p.title}</span>
                         <span>-{p.xp_deducted} XP</span>
                     </div>
+                    {p.challenge && p.challenge.title && (
+                        <div className="text-[10px] text-purple font-bold bg-purple/10 inline-block px-1.5 py-0.5 rounded">
+                            Goal: {p.challenge.title}
+                        </div>
+                    )}
                     <p className="text-[10px] text-text-muted">{p.description}</p>
                     <button 
                         onClick={() => acknowledgePenalty(p.id)}
@@ -285,6 +290,11 @@ export default function NotificationsDashboard() {
                           {item.severity}
                         </span>
                       </div>
+                      {item.challenge && item.challenge.title && (
+                          <div className="text-[9px] text-purple font-bold bg-purple/10 inline-block px-1.5 py-0.5 rounded mt-1">
+                              Goal: {item.challenge.title}
+                          </div>
+                      )}
                       <p className="text-[9px] text-text-muted mt-1">{item.description}</p>
                       <p className="text-[8px] text-text-muted mt-0.5">{dayjs(item.createdAt).format('MMM D, YYYY h:mm A')}</p>
                     </div>

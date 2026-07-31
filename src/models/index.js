@@ -30,6 +30,10 @@ const sequelize = require('../config/db');
 User.hasMany(Penalty, { foreignKey: 'user_id' });
 Penalty.belongsTo(User, { foreignKey: 'user_id' });
 
+// Penalty & Challenge
+Penalty.belongsTo(Challenge, { foreignKey: 'challenge_id', as: 'challenge' });
+Challenge.hasMany(Penalty, { foreignKey: 'challenge_id' });
+
 // User & Challenge
 User.hasMany(Challenge, { foreignKey: 'user_id' });
 Challenge.belongsTo(User, { foreignKey: 'user_id' });

@@ -1,10 +1,11 @@
-const { Penalty, User } = require('../models');
+const { Penalty, User, Challenge } = require('../models');
 
 exports.getPenaltyAuditLog = async (req, res) => {
     try {
         const penalties = await Penalty.findAll({
             where: { user_id: req.user.id },
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'DESC']],
+            include: [{ model: Challenge, as: 'challenge', attributes: ['title'] }]
         });
         res.status(200).json(penalties);
     } catch (error) {
@@ -17,7 +18,8 @@ exports.getActivePenalties = async (req, res) => {
     try {
         const penalties = await Penalty.findAll({
             where: { user_id: req.user.id, status: 'Active' },
-            order: [['createdAt', 'DESC']]
+            order: [['createdAt', 'DESC']],
+            include: [{ model: Challenge, as: 'challenge', attributes: ['title'] }]
         });
         res.status(200).json(penalties);
     } catch (error) {

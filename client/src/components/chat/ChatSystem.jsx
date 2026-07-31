@@ -39,11 +39,11 @@ export default function ChatSystem({ partnerId }) {
     useEffect(() => {
         const fetchHistory = async () => {
             try {
-                const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/${partnerId}`);
+                const res = await axios.get(`/api/chat/${partnerId}`);
                 setMessages(res.data);
                 
                 // Mark as read
-                await axios.put(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/chat/${partnerId}/read`);
+                await axios.put(`/api/chat/${partnerId}/read`);
             } catch (err) {
                 console.error('Failed to load chat history', err);
             }

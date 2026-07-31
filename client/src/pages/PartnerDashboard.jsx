@@ -7,7 +7,7 @@ import {
     FiArrowLeft, FiTarget, FiCheckCircle, FiXCircle, FiAlertTriangle, 
     FiMessageCircle, FiZap, FiTrendingUp, FiCalendar, FiClock,
     FiSend, FiUser, FiAward, FiActivity, FiAlertOctagon, FiChevronDown, FiChevronUp,
-    FiRefreshCw, FiMessageSquare
+    FiRefreshCw, FiMessageSquare, FiCheckSquare, FiCircle
 } from 'react-icons/fi';
 import BackButton from '../components/ui/BackButton';
 import ChatSystem from '../components/chat/ChatSystem';
@@ -20,6 +20,7 @@ export default function PartnerDashboard() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState(location.state?.tab || 'overview');
     const [timeRange, setTimeRange] = useState('all'); // 'daily', 'weekly', 'monthly', 'yearly', 'all'
+    const [expandedOverviewChallenges, setExpandedOverviewChallenges] = useState({});
 
     // Intervention modal state
     const [showInterventionModal, setShowInterventionModal] = useState(false);
@@ -54,6 +55,10 @@ export default function PartnerDashboard() {
 
     const toggleChallenge = (id) => {
         setExpandedChallenges(prev => ({ ...prev, [id]: !prev[id] }));
+    };
+
+    const toggleOverviewChallenge = (title) => {
+        setExpandedOverviewChallenges(prev => ({ ...prev, [title]: !prev[title] }));
     };
 
     const openInterventionFor = (itemType, itemTitle) => {
@@ -143,7 +148,27 @@ export default function PartnerDashboard() {
     }
 
     const { user: partner, stats, challenges, skippedTasks, skippedMilestones, activityLogs, interventions } = data;
-    const completionRate = stats.totalTasks > 0 ? ((stats.completedTasksCount / stats.totalTasks) * 100).toFixed(0) : 0;
+
+    const allFilteredTasks = [];
+    if (challenges) {
+        challenges.forEach(c => {
+            c.milestones?.forEach(m => {
+                m.tasks?.forEach(t => {
+                    if (filterByTime(t.date)) {
+                        allFilteredTasks.push({ ...t, challengeTitle: c.title, milestoneTitle: m.title });
+                    }
+                });
+            });
+        });
+    }
+    
+    // Sort tasks: uncompleted first, then by date
+    allFilteredTasks.sort((a, b) => {
+        if (a.completed === b.completed) {
+            return new Date(a.date) - new Date(b.date);
+        }
+        return a.completed ? 1 : -1;
+    });    const completionRate = stats.totalTasks > 0 ? ((stats.completedTasksCount / stats.totalTasks) * 100).toFixed(0) : 0;
 
     // Filter skipped tasks by time range
     const filteredSkippedTasks = skippedTasks.filter(t => filterByTime(t.date));
@@ -365,6 +390,77 @@ export default function PartnerDashboard() {
                                 </button>
                             </div>
                         )}
+
+                        {/* Detailed Tasks List */}
+                        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
+                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                <FiCheckSquare className="text-emerald-400" /> Filtered Tasks ({allFilteredTasks.length})
+                            </h3>
+                            {allFilteredTasks.length > 0 ? (
+                                <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                                    {Object.entries(
+                                        allFilteredTasks.reduce((acc, task) => {
+                                            if (!acc[task.challengeTitle]) acc[task.challengeTitle] = [];
+                                            acc[task.challengeTitle].push(task);
+                                            return acc;
+                                        }, {})
+                                    ).map(([challengeTitle, tasks]) => {
+                                        const isExpanded = expandedOverviewChallenges[challengeTitle];
+                                        return (
+                                            <div key={challengeTitle} className="border border-slate-800 rounded-xl overflow-hidden bg-slate-900/30">
+                                                <button 
+                                                    onClick={() => toggleOverviewChallenge(challengeTitle)}
+                                                    className="w-full bg-slate-800/40 hover:bg-slate-800/80 transition p-3 flex justify-between items-center border-b border-slate-800/50"
+                                                >
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="font-bold text-sm text-slate-200">{challengeTitle}</span>
+                                                        <span className="bg-slate-800 text-xs text-slate-400 px-2 py-0.5 rounded-full">{tasks.length} tasks</span>
+                                                    </div>
+                                                    {isExpanded ? <FiChevronUp className="text-slate-400" /> : <FiChevronDown className="text-slate-400" />}
+                                                </button>
+                                                
+                                                {isExpanded && (
+                                                    <div className="p-3 space-y-2">
+                                                        {tasks.map((task, i) => (
+                                                            <div key={i} className={`p-3 rounded-xl border flex items-start gap-3 ${task.completed ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-slate-800/80 bg-slate-900/50'}`}>
+                                                                <div className="mt-0.5">
+                                                                    {task.completed ? (
+                                                                        <FiCheckCircle className="text-emerald-400" size={16} />
+                                                                    ) : (
+                                                                        <FiCircle className="text-slate-500" size={16} />
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex-1">
+                                                                    <div className="flex justify-between items-start gap-2">
+                                                                        <h4 className={`text-sm font-bold ${task.completed ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
+                                                                            {task.title}
+                                                                        </h4>
+                                                                        <span className="text-[10px] text-slate-500 font-mono whitespace-nowrap">
+                                                                            {dayjs(task.date).format('MMM DD')}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
+                                                                        <span className="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">{task.milestoneTitle}</span>
+                                                                        {task.estimated_minutes > 0 && (
+                                                                            <>
+                                                                                <span>•</span>
+                                                                                <span>{task.estimated_minutes} min</span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-slate-600 text-sm">No tasks scheduled for this period.</div>
+                            )}
+                        </div>
 
                         {/* Activity Log (last 30 days) */}
                         <div className="glass-panel p-6 rounded-2xl border border-slate-800">

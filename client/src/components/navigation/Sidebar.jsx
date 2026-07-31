@@ -5,7 +5,7 @@ import axios from 'axios';
 import {
   FiHome, FiTarget, FiUsers, FiCheckSquare, FiShield,
   FiActivity, FiTerminal, FiBookOpen, FiBarChart2,
-  FiCalendar, FiDatabase, FiAlertTriangle, FiSettings, FiLogOut, FiZap, FiXCircle
+  FiCalendar, FiDatabase, FiAlertTriangle, FiSettings, FiLogOut, FiZap, FiXCircle, FiBell
 } from 'react-icons/fi';
 
 const navItems = [
@@ -18,7 +18,8 @@ const navItems = [
   { path: '/dev', label: 'Developer Profile', icon: FiTerminal },
   { path: '/knowledge', label: 'Study Tracker', icon: FiBookOpen },
   { path: '/analytics', label: 'Analytics', icon: FiBarChart2 },
-  { path: '/notifications', label: 'Penalty System', icon: FiAlertTriangle },
+  { path: '/penalties', label: 'Penalty System', icon: FiAlertTriangle },
+  { path: '/notifications', label: 'Notifications', icon: FiBell },
   { path: '/calendar', label: 'Calendar', icon: FiCalendar },
   { path: '/ai-coach', label: 'Resources', icon: FiDatabase },
 ];

@@ -131,6 +131,7 @@ const parseRawCurriculum = (text) => {
     let currentDay = null;
     let currentCategory = 'General';
     let daysGap = 0; // New: track gap between days
+    const currentYear = new Date().getFullYear();
 
     lines.forEach(rawLine => {
         const line = rawLine.trim();
@@ -148,12 +149,27 @@ const parseRawCurriculum = (text) => {
         const dayMatch = line.match(/^(?:📅\s*)?Day[\s\-]*(\d+)(?:\s*\((.*?)\))?/i);
         if (dayMatch) {
             const rawDayNum = parseInt(dayMatch[1], 10);
+            const dateStr = dayMatch[2];
+            let explicitDate = null;
+
+            if (dateStr) {
+                const cleanDateStr = dateStr.replace(/^[A-Za-z]+,\s*/, '').trim(); 
+                const nativeDate = new Date(`${cleanDateStr}, ${currentYear}`);
+                if (!isNaN(nativeDate.getTime())) {
+                    // format as YYYY-MM-DD in local time
+                    const offset = nativeDate.getTimezoneOffset()
+                    const localDate = new Date(nativeDate.getTime() - (offset*60*1000))
+                    explicitDate = localDate.toISOString().split('T')[0];
+                }
+            }
+
             // Apply the gap multiplier
             const actualDayNum = 1 + (rawDayNum - 1) * (1 + daysGap);
             
             currentDay = {
                 dayNum: actualDayNum,
-                explicitDateStr: dayMatch[2] ? dayMatch[2].trim() : null,
+                explicitDateStr: dateStr ? dateStr.trim() : null,
+                explicitDate,
                 tasks: []
             };
             days.push(currentDay);
@@ -251,8 +267,9 @@ exports.createChallenge = async (req, res) => {
 
             for (let dNum = milestoneStartDay; dNum <= Math.min(calculatedDuration, milestoneEndDay); dNum++) {
                 const dayOffsetIndex = dNum - 1;
-                const taskDate = addDays(startDate, dayOffsetIndex);
                 const dayData = parsedDays.find(pd => pd.dayNum === dNum);
+                
+                const taskDate = (dayData && dayData.explicitDate) ? new Date(dayData.explicitDate) : addDays(startDate, dayOffsetIndex);
 
                 const targetDailyMins = Number(daily_minutes) || 45;
 
@@ -502,6 +519,7 @@ exports.importCurriculum = async (req, res) => {
             
             if (targetMs && dayData.tasks.length > 0) {
                 const dayOffsetIndex = dayData.dayNum - 1;
+<<<<<<< HEAD
                 let taskDate = addDays(startDate, dayOffsetIndex);
                 
                 // Override with explicit date if provided and valid
@@ -517,6 +535,9 @@ exports.importCurriculum = async (req, res) => {
                         }
                     }
                 }
+=======
+                const taskDate = (dayData && dayData.explicitDate) ? new Date(dayData.explicitDate) : addDays(startDate, dayOffsetIndex);
+>>>>>>> 893eff0 (Support parsing and assigning explicit dates from raw curriculum)
 
                 dayData.tasks.forEach((t, tIdx) => {
                     allTasks.push({

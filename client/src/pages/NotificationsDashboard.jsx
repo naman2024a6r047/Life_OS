@@ -13,7 +13,8 @@ export default function NotificationsDashboard() {
   const { user } = useContext(AuthContext);
   const [penalties, setPenalties] = useState([]);
   const [activePenalties, setActivePenalties] = useState([]);
-  const [todayTasks, setTodayTasks] = useState([]);
+  const [hardTasks, setHardTasks] = useState([]);
+  const [mediumTasks, setMediumTasks] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const streak = user?.current_streak || 0;
@@ -29,11 +30,13 @@ export default function NotificationsDashboard() {
       setActivePenalties(activeRes.data);
 
       const todayStr = dayjs().format('YYYY-MM-DD');
-      let tasksForToday = [];
+      let hardTasksArr = [];
+      let mediumTasksArr = [];
       const challenges = challengesRes.data || [];
       
       challenges.forEach(challenge => {
           if (challenge.status !== 'active') return;
+          if (challenge.penalty_mode === 'easy') return;
           const activeMilestone = challenge.milestones?.find(m => m.status === 'unlocked' || !m.status);
           if (!activeMilestone) return;
           const tasks = activeMilestone.tasks || activeMilestone.MilestoneTasks || activeMilestone.milestone_tasks || [];
@@ -41,15 +44,20 @@ export default function NotificationsDashboard() {
           
           tasks.forEach(task => {
               if (task.date) {
-                  // Direct string comparison since DB dates are YYYY-MM-DD strings
                   const tDate = typeof task.date === 'string' ? task.date.split('T')[0] : dayjs(task.date).format('YYYY-MM-DD');
                   if (tDate === todayStr) {
-                      tasksForToday.push({ ...task, challengeTitle: challenge.title });
+                      const taskObj = { ...task, challengeTitle: challenge.title, penaltyMode: challenge.penalty_mode };
+                      if (challenge.penalty_mode === 'hard') {
+                          hardTasksArr.push(taskObj);
+                      } else if (challenge.penalty_mode === 'medium') {
+                          mediumTasksArr.push(taskObj);
+                      }
                   }
               }
           });
       });
-      setTodayTasks(tasksForToday);
+      setHardTasks(hardTasksArr);
+      setMediumTasks(mediumTasksArr);
     } catch (error) {
       console.error('Failed to fetch dashboard data', error);
     } finally {
@@ -71,8 +79,9 @@ export default function NotificationsDashboard() {
   };
 
   const rules = [
-    { rule: 'Medium Mode - Miss 2 Consecutive Days', cond: 'Fail to complete all tasks for 2 days in a row', cons: 'Restart current milestone from Day 1', sev: 'Medium' },
-    { rule: 'Hard Mode - Miss 1 Day', cond: 'Fail to complete all tasks for 1 day', cons: 'Restart current milestone from Day 1. No mercy.', sev: 'High' }
+    { rule: 'Easy Mode - No Skip Penalties', cond: 'No penalty on skips. Tasks are simply marked as overdue.', cons: 'No milestone restart, no XP loss.', sev: 'Low' },
+    { rule: 'Medium Mode - 2 Consecutive Skips', cond: 'Fail to complete all tasks for 2 consecutive days', cons: 'Restart current milestone from Day 1 & lose 50 XP.', sev: 'Medium' },
+    { rule: 'Hard Mode - 1 Skip', cond: 'Fail to complete all tasks for 1 day', cons: 'Restart current milestone from Day 1 & lose 100 XP. No mercy.', sev: 'High' }
   ];
 
   const totalPenalties = penalties.length;
@@ -85,14 +94,80 @@ export default function NotificationsDashboard() {
   const endOfDay = dayjs().endOf('day');
   const hoursLeft = endOfDay.diff(dayjs(), 'hour');
   const minutesLeft = endOfDay.diff(dayjs(), 'minute') % 60;
-  const uncompletedTasks = todayTasks.filter(t => !t.is_completed && !t.completed);
-  const isDanger = uncompletedTasks.length > 0 && hoursLeft < 6;
-  const isWarning = uncompletedTasks.length > 0 && hoursLeft >= 6 && hoursLeft <= 12;
-  const isSafe = uncompletedTasks.length === 0;
+
+  const uncompletedHard = hardTasks.filter(t => !t.is_completed && !t.completed);
+  const uncompletedMedium = mediumTasks.filter(t => !t.is_completed && !t.completed);
+
+  const hardDanger = uncompletedHard.length > 0 && hoursLeft < 6;
+  const hardWarning = uncompletedHard.length > 0 && hoursLeft >= 6 && hoursLeft <= 12;
+  const mediumDanger = uncompletedMedium.length > 0 && hoursLeft < 6;
+  const mediumWarning = uncompletedMedium.length > 0 && hoursLeft >= 6 && hoursLeft <= 12;
+
+  // Combined for top-level glow
+  const isDanger = hardDanger || mediumDanger;
+  const isWarning = hardWarning || mediumWarning;
 
   if (loading) {
       return <div className="p-6 text-text-muted">Loading penalty system...</div>;
   }
+
+  // Reusable task list renderer
+  const renderTaskList = (tasks, label, mode, modeColor, modeBg, modeBorder, dangerState, warningState, uncompleted, penaltyRule) => (
+    <div className={`card p-4 space-y-3 ${dangerState ? `border-${modeColor}/40 bg-${modeColor}/5 shadow-glow-warning` : warningState ? `border-warning/40 bg-warning/5` : ''}`}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className="section-title flex items-center gap-2">
+              <FiClock className={dangerState ? `text-${modeColor}` : warningState ? 'text-warning' : `text-${modeColor}`} /> 
+              {label}
+          </h3>
+          <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${modeBg} ${modeBorder} border`}>
+            {mode}
+          </span>
+        </div>
+        {uncompleted.length > 0 ? (
+            <div className={`px-2 py-1 rounded text-[10px] font-bold ${dangerState ? `bg-${modeColor} text-white animate-pulse` : warningState ? 'bg-warning text-white' : 'bg-surface-elevated text-text-primary'}`}>
+                {hoursLeft}h {minutesLeft}m left
+            </div>
+        ) : (
+            <div className="px-2 py-1 rounded text-[10px] font-bold bg-success text-white">Safe!</div>
+        )}
+      </div>
+
+      <p className="text-[9px] text-text-muted border-l-2 pl-2" style={{ borderColor: `var(--color-${modeColor}, #EF4444)` }}>
+        {penaltyRule}
+      </p>
+      
+      <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '220px' }}>
+        {tasks.length === 0 ? (
+            <p className="text-xs text-text-muted text-center py-4">No {mode} mode tasks for today.</p>
+        ) : tasks.map(t => {
+            const isDone = t.is_completed || t.completed;
+            return (
+                <div key={t.id} className={`p-2.5 rounded-xl border flex items-center justify-between ${isDone ? 'bg-success/5 border-success/20 opacity-60' : 'bg-surface-elevated border-border-subtle'}`}>
+                    <div className="flex items-center gap-2.5">
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isDone ? 'bg-success border-success text-white' : 'border-text-muted'}`}>
+                            {isDone && <FiCheckCircle size={10} />}
+                        </div>
+                        <div>
+                            <p className={`text-[11px] font-bold ${isDone ? 'line-through text-text-muted' : 'text-text-primary'}`}>{t.title}</p>
+                            <p className="text-[9px] text-text-muted">{t.challengeTitle}</p>
+                        </div>
+                    </div>
+                    {!isDone && (
+                        <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold ${mode === 'hard' ? 'bg-danger/20 text-danger' : 'bg-warning/20 text-warning'}`}>
+                          {mode === 'hard' ? '1 skip = penalty' : '2 skips = penalty'}
+                        </span>
+                    )}
+                </div>
+            );
+        })}
+      </div>
+
+      <p className="text-[10px] text-text-muted flex items-center gap-1 pt-2 border-t border-border-subtle">
+        <FiInfo size={12} className={`text-${modeColor}`} /> Background workers check your tasks every minute.
+      </p>
+    </div>
+  );
 
   return (
     <div className="p-6 space-y-5">
@@ -162,55 +237,27 @@ export default function NotificationsDashboard() {
         </div>
       </div>
 
+      {/* Hard & Medium Task Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {renderTaskList(
+          hardTasks, "Hard Mode Tasks", "hard",
+          "danger", "bg-danger/10", "border-danger/30",
+          hardDanger, hardWarning, uncompletedHard,
+          "⚡ 1 missed day → Milestone restart + 100 XP deducted. No mercy."
+        )}
+        {renderTaskList(
+          mediumTasks, "Medium Mode Tasks", "medium",
+          "warning", "bg-warning/10", "border-warning/30",
+          mediumDanger, mediumWarning, uncompletedMedium,
+          "⏳ 2 consecutive missed days → Milestone restart + 50 XP deducted."
+        )}
+      </div>
+
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* Left Column — Early Warning System (5 cols) */}
-        <div className={`lg:col-span-5 card p-4 space-y-3 ${isDanger ? 'border-danger/40 bg-danger/5 shadow-glow-warning' : isWarning ? 'border-warning/40 bg-warning/5' : ''}`}>
-          <div className="flex items-center justify-between">
-            <h3 className="section-title flex items-center gap-2">
-                <FiClock className={isDanger ? 'text-danger' : isWarning ? 'text-warning' : 'text-purple'} /> 
-                Today's Active Tasks
-            </h3>
-            {uncompletedTasks.length > 0 ? (
-                <div className={`px-2 py-1 rounded text-[10px] font-bold ${isDanger ? 'bg-danger text-white animate-pulse' : isWarning ? 'bg-warning text-white' : 'bg-surface-elevated text-text-primary'}`}>
-                    {hoursLeft}h {minutesLeft}m left
-                </div>
-            ) : (
-                <div className="px-2 py-1 rounded text-[10px] font-bold bg-success text-white">Safe!</div>
-            )}
-          </div>
-          
-          <div className="space-y-2 overflow-y-auto" style={{ maxHeight: '250px' }}>
-            {todayTasks.length === 0 ? (
-                <p className="text-xs text-text-muted text-center py-4">No active tasks scheduled for today.</p>
-            ) : todayTasks.map(t => {
-                const isDone = t.is_completed || t.completed;
-                return (
-                    <div key={t.id} className={`p-2.5 rounded-xl border flex items-center justify-between ${isDone ? 'bg-success/5 border-success/20 opacity-60' : 'bg-surface-elevated border-border-subtle'}`}>
-                        <div className="flex items-center gap-2.5">
-                            <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isDone ? 'bg-success border-success text-white' : 'border-text-muted'}`}>
-                                {isDone && <FiCheckCircle size={10} />}
-                            </div>
-                            <div>
-                                <p className={`text-[11px] font-bold ${isDone ? 'line-through text-text-muted' : 'text-text-primary'}`}>{t.title}</p>
-                                <p className="text-[9px] text-text-muted">{t.challengeTitle}</p>
-                            </div>
-                        </div>
-                        {!isDone && (
-                            <span className="badge-purple text-[8px]">{t.priority || 'P1'}</span>
-                        )}
-                    </div>
-                );
-            })}
-          </div>
 
-          <p className="text-[10px] text-text-muted flex items-center gap-1 pt-2 border-t border-border-subtle">
-            <FiInfo size={12} className="text-purple" /> Background workers check your tasks every minute.
-          </p>
-        </div>
-
-        {/* Center Column — Active Penalty (4 cols) */}
-        <div className={`lg:col-span-4 card p-5 space-y-4 ${activeCount > 0 ? 'bg-gradient-to-br from-danger/10 to-surface' : 'bg-surface'}`}>
+        {/* Left Column — Active Penalty (7 cols) */}
+        <div className={`lg:col-span-7 card p-5 space-y-4 ${activeCount > 0 ? 'bg-gradient-to-br from-danger/10 to-surface' : 'bg-surface'}`}>
           <div className="flex items-center justify-between">
             <h3 className={`section-title ${activeCount > 0 ? 'text-danger' : 'text-success'}`}>
                 {activeCount > 0 ? 'Active Penalties' : 'No Active Penalties'}
@@ -267,8 +314,8 @@ export default function NotificationsDashboard() {
           </Link>
         </div>
 
-        {/* Right Column — History (3 cols) */}
-        <div className="lg:col-span-3 space-y-4">
+        {/* Right Column — History (5 cols) */}
+        <div className="lg:col-span-5 space-y-4">
           
           {/* Penalty History List */}
           <div className="card p-4 space-y-2.5 h-full overflow-y-auto" style={{ maxHeight: '400px' }}>

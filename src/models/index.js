@@ -160,6 +160,16 @@ Resource.belongsTo(User, { foreignKey: 'user_id' });
 ResourceCategory.hasMany(Resource, { foreignKey: 'category_id', as: 'resources' });
 Resource.belongsTo(ResourceCategory, { foreignKey: 'category_id', as: 'category' });
 
+// Sleep Tracking
+const SleepEntry = require('./SleepEntry');
+const SleepGoal = require('./SleepGoal');
+
+User.hasMany(SleepEntry, { foreignKey: 'user_id', as: 'sleepEntries' });
+SleepEntry.belongsTo(User, { foreignKey: 'user_id' });
+
+User.hasOne(SleepGoal, { foreignKey: 'user_id', as: 'sleepGoal' });
+SleepGoal.belongsTo(User, { foreignKey: 'user_id' });
+
 module.exports = {
     sequelize,
     User,
@@ -190,5 +200,7 @@ module.exports = {
     Penalty,
     ChatMessage,
     ResourceCategory,
-    Resource
+    Resource,
+    SleepEntry,
+    SleepGoal
 };

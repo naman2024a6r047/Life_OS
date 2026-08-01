@@ -596,7 +596,7 @@ export default function GymDashboard() {
       </div>
 
       {/* 4 TOP METRICS BAR */}
-      <div className="grid grid-cols-4 gap-2 md:gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3">
         {/* Mobile: icon + number + label stacked. Desktop: icon left + text right */}
         {[
           { emoji: '🔥', val: workoutsCountMonth, label: 'Workouts', sub: '↑ 18%', subColor: 'text-success' },
@@ -727,7 +727,7 @@ export default function GymDashboard() {
               </div>
 
               {/* Sleek Colored Metric Chips */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="px-2 py-5 rounded-[14px] bg-[#1d2025] border border-purple/30 flex flex-col items-center justify-center gap-2 hover:border-purple/60 transition-colors shadow-md">
                   <FiClock className="text-purple shrink-0 mb-1" size={20} />
                   <p className="text-[9px] text-text-muted uppercase font-bold tracking-[0.15em] leading-none">Duration</p>
@@ -1082,7 +1082,7 @@ export default function GymDashboard() {
               <span className="text-[10px] text-text-muted">Select day to view or edit exercises</span>
             </div>
 
-            <div className="grid grid-cols-7 gap-2.5">
+            <div className="w-full overflow-x-auto pb-2 scrollbar-hide"><div className="grid grid-cols-7 gap-2.5 min-w-[500px]">
               {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
                 <button
                   key={day}
@@ -1100,7 +1100,7 @@ export default function GymDashboard() {
                   <p className="text-xs font-extrabold truncate mt-0.5">{weeklyPlan[day]?.title || 'Rest Day'}</p>
                 </button>
               ))}
-            </div>
+            </div></div>
           </div>
 
           <div className="card p-6 space-y-4 border border-purple/30 bg-surface-elevated/20">
@@ -1468,7 +1468,7 @@ export default function GymDashboard() {
             </select>
           </div>
 
-          <div className="grid grid-cols-12 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <div className="col-span-3 card p-3 space-y-1.5">
               {exerciseCategories.map(cat => (
                 <button

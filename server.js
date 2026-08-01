@@ -25,6 +25,7 @@ const dashboardRoutes = require('./src/routes/dashboardRoutes');
 const chatRoutes = require('./src/routes/chatRoutes');
 const resourceRoutes = require('./src/routes/resourceRoutes');
 const studyRoutes = require('./src/routes/studyRoutes');
+const sleepRoutes = require('./src/routes/sleepRoutes');
 
 const compression = require('compression');
 
@@ -61,6 +62,7 @@ app.use('/api/goals/workspace', goalWorkspaceRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/study', studyRoutes);
+app.use('/api/sleep', sleepRoutes);
 
 const fs = require('fs');
 

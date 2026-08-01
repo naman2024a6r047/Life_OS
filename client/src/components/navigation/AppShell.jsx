@@ -13,10 +13,10 @@ export default function AppShell({ children }) {
   }, []);
 
   return (
-    <div className="flex min-h-screen bg-background relative overflow-x-hidden">
+    <div className="flex min-h-[100dvh] bg-background relative overflow-x-hidden">
       <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
       
-      <main className="flex-1 min-h-screen flex flex-col overflow-y-auto w-full md:ml-[240px] transition-all duration-300">
+      <main className="flex-1 min-h-[100dvh] flex flex-col overflow-y-auto w-full md:ml-[240px] transition-all duration-300">
         {/* Mobile Header */}
         <div className="md:hidden flex items-center justify-between p-4 border-b border-border-subtle bg-surface/50 backdrop-blur sticky top-0 z-30">
           <div className="flex items-center gap-2">

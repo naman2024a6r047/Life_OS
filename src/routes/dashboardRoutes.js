@@ -6,14 +6,17 @@ const { Friend, PartnerIntervention, UserBadge, Badge, User, ActivityLog } = req
 // Get Accountability Partners (Friends)
 router.get('/partners', authMiddleware, async (req, res) => {
   try {
-    const friends = await Friend.findAll({
-      where: { user_id: req.user.id, status: 'accepted' },
-      include: [{ model: User, as: 'recipient', attributes: ['id', 'username'] }]
+    const { Op } = require('sequelize');
+    const users = await User.findAll({
+      where: { 
+        id: { [Op.ne]: req.user.id }
+      },
+      attributes: ['id', 'username']
     });
     // Format to match the frontend expectations
-    const partners = friends.map(f => ({
-      id: f.id,
-      name: f.recipient?.username || 'Unknown',
+    const partners = users.map(u => ({
+      id: u.id,
+      name: u.username || 'Unknown',
       status: 'Online', // Placeholder since we don't have real-time status in DB
       lastSeen: new Date(),
     }));

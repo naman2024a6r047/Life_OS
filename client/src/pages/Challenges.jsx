@@ -1063,7 +1063,7 @@ export default function Challenges() {
   };
 
   return (
-    <div className="p-6 space-y-6 max-w-[1600px] mx-auto min-h-screen">
+    <div className="p-4 md:p-6 space-y-6 max-w-[1600px] mx-auto min-h-screen">
       <ToastContainer toasts={toasts} removeToast={removeToast} />
       <TaskDetailModal
         task={detailTask}

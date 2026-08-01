@@ -2,6 +2,13 @@ const cron = require('node-cron');
 const { User, Challenge, Milestone, MilestoneTask, Penalty, ActivityLog, Friend, PartnerIntervention, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
+// ════════════════════════════════════════════════════════════════════════
+//  PENALTY RULES:
+//    HARD   → 1 missed day triggers penalty (100 XP, milestone restart)
+//    MEDIUM → 2 consecutive missed days triggers penalty (50 XP, milestone restart)
+//    EASY   → No penalty ever
+// ════════════════════════════════════════════════════════════════════════
+
 // Run every 1 minute
 const startPenaltyWorker = () => {
     cron.schedule('* * * * *', async () => {
@@ -9,58 +16,87 @@ const startPenaltyWorker = () => {
             console.log('[PenaltyWorker] Running scheduled penalty checks...');
             const todayStr = new Date().toISOString().split('T')[0];
 
+            // Fetch all active challenges (skip users in exam mode)
             const activeChallenges = await Challenge.findAll({
                 where: { status: 'active' },
                 include: [
                     {
                         model: User,
                         where: { is_in_exam_mode: false },
-                        attributes: ['id', 'is_in_exam_mode']
+                        attributes: ['id', 'username', 'xp', 'current_streak', 'is_in_exam_mode']
                     },
                     {
                         model: Milestone,
                         as: 'milestones',
                         where: { status: 'unlocked' },
+                        required: false,
                         include: [{ model: MilestoneTask, as: 'tasks' }]
                     }
                 ]
             });
 
             for (const challenge of activeChallenges) {
+                // ── EASY MODE: No penalties ever ──────────────────────
                 if (challenge.penalty_mode === 'easy') continue;
 
-                const milestone = challenge.milestones[0];
-                if (!milestone) continue;
+                const milestone = challenge.milestones?.[0];
+                if (!milestone || !milestone.tasks?.length) continue;
 
-                // Group tasks by date
+                // ── Build a date→tasks map ───────────────────────────
                 const tasksByDate = {};
                 for (const task of milestone.tasks) {
                     if (!task.date) continue;
-                    if (!tasksByDate[task.date]) tasksByDate[task.date] = [];
-                    tasksByDate[task.date].push(task);
+                    const dateKey = typeof task.date === 'string'
+                        ? task.date.split('T')[0]
+                        : new Date(task.date).toISOString().split('T')[0];
+                    if (!tasksByDate[dateKey]) tasksByDate[dateKey] = [];
+                    tasksByDate[dateKey].push(task);
                 }
 
-                // Identify missed days (dates before today where NOT all tasks are completed)
-                const pastDates = Object.keys(tasksByDate).filter(date => date < todayStr).sort();
-                
-                let missedDaysCounter = 0;
-                let latestMissedDate = null;
+                // ── Get all past dates (before today) sorted descending ──
+                const pastDates = Object.keys(tasksByDate)
+                    .filter(date => date < todayStr)
+                    .sort((a, b) => b.localeCompare(a)); // most recent first
 
-                for (let i = pastDates.length - 1; i >= 0; i--) {
-                    const date = pastDates[i];
+                if (pastDates.length === 0) continue;
+
+                // ── Count consecutive missed days (from most recent backwards) ──
+                let consecutiveMissedDays = 0;
+                let missedDates = [];
+
+                for (const date of pastDates) {
                     const tasks = tasksByDate[date];
                     const allCompleted = tasks.every(t => t.is_completed);
                     if (!allCompleted) {
-                        missedDaysCounter++;
-                        if (!latestMissedDate) latestMissedDate = date;
+                        consecutiveMissedDays++;
+                        missedDates.push(date);
                     } else {
-                        break; // Streak of missed days broken
+                        break; // Streak of missed days broken by a completed day
                     }
                 }
 
-                if (missedDaysCounter === 0) continue;
+                if (consecutiveMissedDays === 0) continue;
 
-                // Check if we already penalized for this latest missed date
+                // ── Determine threshold based on penalty_mode ────────
+                let threshold, xpDeducted, severity;
+
+                if (challenge.penalty_mode === 'hard') {
+                    threshold = 1;   // 1 skip = penalty
+                    xpDeducted = 100;
+                    severity = 'High';
+                } else if (challenge.penalty_mode === 'medium') {
+                    threshold = 2;   // 2 consecutive skips = penalty
+                    xpDeducted = 50;
+                    severity = 'Medium';
+                } else {
+                    continue; // Safety fallback
+                }
+
+                // ── Check if threshold is met ────────────────────────
+                if (consecutiveMissedDays < threshold) continue;
+
+                // ── Check if we already penalized for these specific missed dates ──
+                const latestMissedDate = missedDates[0]; // most recent missed date
                 const existingPenalty = await Penalty.findOne({
                     where: {
                         challenge_id: challenge.id,
@@ -70,72 +106,61 @@ const startPenaltyWorker = () => {
 
                 if (existingPenalty) continue;
 
-                let shouldPenalize = false;
-                let penaltyType = '';
-                let xpDeducted = 0;
-                let severity = 'Medium';
-                
-                if (challenge.penalty_mode === 'hard' && missedDaysCounter >= 1) {
-                    shouldPenalize = true;
-                    penaltyType = 'Goal Restart & XP Loss';
-                    xpDeducted = 100;
-                    severity = 'High';
-                } else if (challenge.penalty_mode === 'medium' && missedDaysCounter >= 2) {
-                    shouldPenalize = true;
-                    penaltyType = 'Goal Restart & XP Loss';
-                    xpDeducted = 50;
-                    severity = 'Medium';
-                }
+                // ── APPLY PENALTY ────────────────────────────────────
+                const user = await User.findByPk(challenge.user_id);
+                if (!user) continue;
 
-                if (shouldPenalize) {
-                    const user = await User.findByPk(challenge.user_id);
-                    if (!user) continue;
+                // Find the first incomplete task title for the notification message
+                const latestMissedTasks = tasksByDate[latestMissedDate] || [];
+                const firstIncompleteTask = latestMissedTasks.find(t => !t.is_completed);
+                const missedTaskTitle = firstIncompleteTask?.title || 'daily tasks';
 
-                    // Apply Penalty
-                    await sequelize.transaction(async (t) => {
-                        // 1. Create Penalty Record
-                        await Penalty.create({
-                            user_id: user.id,
-                            challenge_id: challenge.id,
-                            title: 'Missed Tasks Penalty',
-                            description: `Missed tasks on ${latestMissedDate}. Penalty mode: ${challenge.penalty_mode.toUpperCase()}`,
-                            severity,
-                            penalty_type: penaltyType,
-                            xp_deducted: xpDeducted,
-                            status: 'Active'
-                        }, { transaction: t });
+                const penaltyDescription = challenge.penalty_mode === 'hard'
+                    ? `Missed tasks on ${latestMissedDate}. 1 day skipped → HARD penalty triggered.`
+                    : `Missed tasks on ${missedDates.slice(0, 2).join(' & ')}. ${consecutiveMissedDays} consecutive days skipped → MEDIUM penalty triggered.`;
 
-                        // 2. Deduct XP and Reset Streak
-                        const newXp = Math.max(0, (user.xp || 0) - xpDeducted);
-                        await user.update({ xp: newXp, current_streak: 0 }, { transaction: t });
+                await sequelize.transaction(async (t) => {
+                    // 1. Create Penalty Record
+                    await Penalty.create({
+                        user_id: user.id,
+                        challenge_id: challenge.id,
+                        title: `Missed Tasks Penalty (${challenge.penalty_mode.toUpperCase()})`,
+                        description: penaltyDescription,
+                        severity,
+                        penalty_type: 'Goal Restart & XP Loss',
+                        xp_deducted: xpDeducted,
+                        status: 'Active'
+                    }, { transaction: t });
 
-                        // 3. Restart Milestone (Goal Restart) - Reset task progress without shifting dates
-                        const tasksToReset = await MilestoneTask.findAll({
-                            where: { milestone_id: milestone.id },
-                            order: [['createdAt', 'ASC']],
-                            transaction: t
-                        });
+                    // 2. Deduct XP and Reset Streak
+                    const newXp = Math.max(0, (user.xp || 0) - xpDeducted);
+                    await user.update({ xp: newXp, current_streak: 0 }, { transaction: t });
 
-                        for (let i = 0; i < tasksToReset.length; i++) {
-                            tasksToReset[i].is_completed = false;
-                            if (tasksToReset[i].completed !== undefined) {
-                                tasksToReset[i].completed = false;
-                            }
-                            await tasksToReset[i].save({ transaction: t });
+                    // 3. Restart Milestone — reset all task progress (keep dates intact)
+                    const tasksToReset = await MilestoneTask.findAll({
+                        where: { milestone_id: milestone.id },
+                        transaction: t
+                    });
+
+                    for (const task of tasksToReset) {
+                        task.is_completed = false;
+                        if (task.completed !== undefined) {
+                            task.completed = false;
                         }
+                        await task.save({ transaction: t });
+                    }
 
-                        await milestone.update({ 
-                            status: 'unlocked'
-                        }, { transaction: t });
+                    await milestone.update({ status: 'unlocked' }, { transaction: t });
 
-                        // 4. Log Activity
-                        await ActivityLog.create({
-                            user_id: user.id,
-                            action_type: 'penalty_applied',
-                            xp_awarded: -xpDeducted
-                        }, { transaction: t });
-                        
-                        // 5. Notify Partners/Friends
+                    // 4. Log Activity
+                    await ActivityLog.create({
+                        user_id: user.id,
+                        action_type: 'penalty_applied',
+                        xp_awarded: -xpDeducted
+                    }, { transaction: t });
+
+                    // 5. Notify Partners/Friends
+                    try {
                         const friends = await Friend.findAll({
                             where: {
                                 [Op.or]: [{ user_id: user.id }, { friend_id: user.id }],
@@ -143,7 +168,7 @@ const startPenaltyWorker = () => {
                             },
                             transaction: t
                         });
-                        
+
                         const friendIds = friends.map(f => f.user_id === user.id ? f.friend_id : f.user_id);
                         for (const friendId of friendIds) {
                             await PartnerIntervention.create({
@@ -152,13 +177,15 @@ const startPenaltyWorker = () => {
                                 type: 'message',
                                 item_type: 'Penalty',
                                 item_title: 'Missed Task Penalty',
-                                message: `System Alert: Your accountability partner ${user.username || 'your friend'} missed their task "${missedTasks[0].title}" on ${latestMissedDate} and received a ${challenge.penalty_mode.toUpperCase()} penalty.`
+                                message: `System Alert: Your accountability partner ${user.username || 'your friend'} missed their task "${missedTaskTitle}" on ${latestMissedDate} and received a ${challenge.penalty_mode.toUpperCase()} penalty (-${xpDeducted} XP).`
                             }, { transaction: t });
                         }
-                    });
-                    
-                    console.log(`[PenaltyWorker] Penalty applied to user ${user.id} for challenge ${challenge.id}`);
-                }
+                    } catch (friendErr) {
+                        console.error('[PenaltyWorker] Friend notification error (non-fatal):', friendErr.message);
+                    }
+                });
+
+                console.log(`[PenaltyWorker] ${challenge.penalty_mode.toUpperCase()} penalty applied to user ${user.id} for challenge "${challenge.title}" (${consecutiveMissedDays} missed days, -${xpDeducted} XP)`);
             }
         } catch (error) {
             console.error('[PenaltyWorker] Error:', error);

@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload, label }) => {
             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
             <span className="text-text-muted">{entry.name}:</span>
             <span className="font-mono font-bold text-text-primary">
-              {entry.name.toLowerCase().includes('time') || entry.name.toLowerCase().includes('minutes') || entry.name.toLowerCase().includes('value') ? fmtMins(entry.value) : entry.value}
+              {(entry.name || '').toLowerCase().includes('time') || (entry.name || '').toLowerCase().includes('minutes') || (entry.name || '').toLowerCase().includes('value') ? fmtMins(entry.value) : entry.value}
             </span>
           </div>
         ))}
@@ -41,10 +41,10 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-// Custom Subject Tooltip
 const SubjectTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
-    const data = payload[0].payload;
+    const data = payload[0]?.payload;
+    if (!data) return null;
     return (
       <div className="bg-surface border border-border-subtle p-3 rounded-xl shadow-xl z-50">
         <p className="text-xs font-bold text-text-primary flex items-center gap-2 mb-1">
@@ -138,7 +138,7 @@ export default function AnalyticsDashboard() {
   // Ensure dailyData has short day names for XAxis
   const formattedDailyData = dailyData.map(d => ({
     ...d,
-    shortDay: d.day.split(' ')[0]
+    shortDay: (d.day || '').split(' ')[0]
   }));
 
   return (
@@ -209,7 +209,7 @@ export default function AnalyticsDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" vertical={false} />
                   <XAxis dataKey="shortDay" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} dy={10} />
                   <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} />
-                  <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: '#ffffff0a' }} />
+                  <RechartsTooltip content={CustomTooltip} cursor={{ fill: '#ffffff0a' }} />
                   <Bar dataKey="minutes" name="Study Time" fill="#A855F7" radius={[4, 4, 0, 0]} barSize={32} />
                 </BarChart>
               </ResponsiveContainer>
@@ -235,7 +235,7 @@ export default function AnalyticsDashboard() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <RechartsTooltip content={<CustomTooltip />} />
+                <RechartsTooltip content={CustomTooltip} />
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
@@ -317,7 +317,7 @@ export default function AnalyticsDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" horizontal={false} />
                   <XAxis type="number" hide />
                   <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} width={80} />
-                  <RechartsTooltip content={<SubjectTooltip />} cursor={{ fill: '#ffffff0a' }} />
+                  <RechartsTooltip content={SubjectTooltip} cursor={{ fill: '#ffffff0a' }} />
                   <Bar dataKey="minutes" radius={[0, 4, 4, 0]} barSize={12}>
                     {subjectBarData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -338,7 +338,7 @@ export default function AnalyticsDashboard() {
             <ResponsiveContainer width="100%" height={160}>
               <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={14} data={focusData} startAngle={90} endAngle={-270}>
                 <RadialBar minAngle={15} background={{ fill: 'transparent' }} clockWise dataKey="value" cornerRadius={10} />
-                <RechartsTooltip content={<CustomTooltip />} />
+                <RechartsTooltip content={CustomTooltip} />
               </RadialBarChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
@@ -364,7 +364,7 @@ export default function AnalyticsDashboard() {
                   <LineChart data={formattedDailyData.slice(-7)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <XAxis dataKey="shortDay" hide />
                     <YAxis hide />
-                    <RechartsTooltip content={<CustomTooltip />} />
+                    <RechartsTooltip content={CustomTooltip} />
                     <Line type="monotone" dataKey="activities" name="Activities" stroke="#A855F7" strokeWidth={3} dot={{ r: 3, fill: '#A855F7', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 5, fill: '#fff', stroke: '#A855F7' }} />
                   </LineChart>
                 </ResponsiveContainer>
@@ -452,7 +452,7 @@ export default function AnalyticsDashboard() {
                   <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" vertical={false} />
                   <XAxis dataKey="shortDay" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} dy={10} />
                   <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} />
-                  <RechartsTooltip content={<CustomTooltip />} />
+                  <RechartsTooltip content={CustomTooltip} />
                   <Line yAxisId="left" type="monotone" dataKey="minutes" name="Study Time (m)" stroke="#A855F7" strokeWidth={3} dot={{ r: 4, fill: '#A855F7', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#fff', stroke: '#A855F7' }} />
                   <Line yAxisId="left" type="monotone" dataKey="activities" name="Activities" stroke="#22C55E" strokeWidth={3} dot={{ r: 4, fill: '#22C55E', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#fff', stroke: '#22C55E' }} />
                 </ComposedChart>

@@ -34,6 +34,8 @@ export default function NotificationsDashboard() {
       
       challenges.forEach(challenge => {
           if (challenge.status !== 'active') return;
+          // Easy mode has no penalties — don't show in penalty warning
+          if (challenge.penalty_mode === 'easy') return;
           const activeMilestone = challenge.milestones?.find(m => m.status === 'unlocked' || !m.status);
           if (!activeMilestone) return;
           const tasks = activeMilestone.tasks || activeMilestone.MilestoneTasks || activeMilestone.milestone_tasks || [];

@@ -359,7 +359,7 @@ export default function AnalyticsDashboard() {
               <h3 className="section-title">Activity Trend</h3>
             </div>
             <div className="relative h-28 pt-2">
-              {dailyData.length > 0 && maxActivities > 0 ? (
+              {dailyData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={formattedDailyData.slice(-7)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                     <XAxis dataKey="shortDay" hide />

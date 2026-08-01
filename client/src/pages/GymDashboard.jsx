@@ -64,6 +64,8 @@ export default function GymDashboard() {
   const planStorageKey = user?.id ? `lifeos_user_${user.id}_gym_weekly_plan` : 'lifeos_demo_gym_weekly_plan';
   const prStorageKey = user?.id ? `lifeos_user_${user.id}_gym_prs` : 'lifeos_demo_gym_prs';
   const exerciseLibraryStorageKey = user?.id ? `lifeos_user_${user.id}_gym_exercise_library` : 'lifeos_demo_gym_exercise_library';
+  const activeGoalsStorageKey = user?.id ? `lifeos_user_${user.id}_gym_active_goals` : 'lifeos_demo_gym_active_goals';
+  const goalsHistoryStorageKey = user?.id ? `lifeos_user_${user.id}_gym_goals_history` : 'lifeos_demo_gym_goals_history';
 
   // Default Exercises Library
   const defaultExercises = [
@@ -174,7 +176,17 @@ export default function GymDashboard() {
     'Deadlift': { weight: 120, date: '10 May 2026' }
   };
 
-  // State Declarations
+  // Dynamic Goals State
+  const [activeFitnessGoals, setActiveFitnessGoals] = useState(() => {
+    const saved = localStorage.getItem(activeGoalsStorageKey);
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  const [fitnessGoalsHistory, setFitnessGoalsHistory] = useState(() => {
+    const saved = localStorage.getItem(goalsHistoryStorageKey);
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [weeklyPlan, setWeeklyPlan] = useState(() => {
     const saved = localStorage.getItem(planStorageKey);
     return saved ? JSON.parse(saved) : defaultWeeklyPlan;
@@ -261,6 +273,28 @@ export default function GymDashboard() {
   useEffect(() => {
     localStorage.setItem(exerciseLibraryStorageKey, JSON.stringify(exercisesList));
   }, [exercisesList, exerciseLibraryStorageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(activeGoalsStorageKey, JSON.stringify(activeFitnessGoals));
+  }, [activeFitnessGoals, activeGoalsStorageKey]);
+
+  useEffect(() => {
+    localStorage.setItem(goalsHistoryStorageKey, JSON.stringify(fitnessGoalsHistory));
+  }, [fitnessGoalsHistory, goalsHistoryStorageKey]);
+
+  // Auto-submit logic for active goals
+  useEffect(() => {
+    if (activeFitnessGoals && activeFitnessGoals.targetDate) {
+      const target = new Date(activeFitnessGoals.targetDate);
+      const now = new Date();
+      // Reset hours to compare dates cleanly
+      target.setHours(23, 59, 59, 999);
+      if (now > target) {
+        setFitnessGoalsHistory(prev => [{ ...activeFitnessGoals, submittedAt: new Date().toISOString() }, ...prev]);
+        setActiveFitnessGoals(null);
+      }
+    }
+  }, [activeFitnessGoals]);
 
   useEffect(() => {
     localStorage.setItem(planStorageKey, JSON.stringify(weeklyPlan));
@@ -443,6 +477,14 @@ export default function GymDashboard() {
   const [selectedMuscleCategory, setSelectedMuscleCategory] = useState('all');
   const [selectedExercise, setSelectedExercise] = useState('Barbell Bench Press');
   const [searchExercise, setSearchExercise] = useState('');
+
+  // Fitness Goal Creation State
+  const [newGoalData, setNewGoalData] = useState({
+    targetDate: '',
+    bodyWeightTarget: '',
+    tasks: [{ id: Date.now(), title: '', completed: false }]
+  });
+  const [showGoalHistory, setShowGoalHistory] = useState(false);
 
   // Modals state
   const [prNotification, setPrNotification] = useState(null);
@@ -866,6 +908,48 @@ export default function GymDashboard() {
             </div>
           </div>
 
+          {/* FITNESS GOALS OVERVIEW */}
+          <div 
+            className="card p-5 border border-[#ff3333]/30 bg-gradient-to-r from-surface to-surface-elevated flex items-center justify-between shadow-lg cursor-pointer hover:border-[#ff3333]/60 transition-colors rounded-2xl" 
+            onClick={() => {
+              setActiveTab('workouts');
+              setTimeout(() => {
+                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+              }, 100);
+            }}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-[#ff3333]/10 border border-[#ff3333]/30 flex items-center justify-center text-2xl shrink-0">
+                🏋️
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-text-primary tracking-wide">Fitness Goals</h3>
+                {activeFitnessGoals ? (
+                  <p className="text-[11px] text-[#ff3333] font-bold mt-0.5">
+                    {activeFitnessGoals.tasks.filter(t => t.completed).length} of {activeFitnessGoals.tasks.length} Tracked Goals
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-text-muted font-bold mt-0.5">
+                    No active goals. Click to create.
+                  </p>
+                )}
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              {activeFitnessGoals?.bodyWeight && (
+                <div className="text-right flex flex-col items-end hidden sm:flex">
+                  <span className="text-[9px] text-text-muted uppercase font-bold tracking-widest">Logged Weight</span>
+                  <div className="flex items-baseline gap-1 mt-0.5">
+                    <span className="text-lg font-bold text-text-primary font-mono leading-none">{activeFitnessGoals.bodyWeight}</span>
+                    <span className="text-[10px] font-bold text-text-muted">kg</span>
+                  </div>
+                </div>
+              )}
+              <FiChevronRight className="text-text-muted shrink-0" size={20} />
+            </div>
+          </div>
+
           {/* Middle Row (Workout History & PRs with Production-Level Empty/Active States) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             {/* WORKOUT HISTORY CARD */}
@@ -1152,6 +1236,192 @@ export default function GymDashboard() {
               <div className="text-center py-10 text-xs text-text-muted space-y-2">
                 <p className="font-bold text-text-primary text-sm">No Exercises Assigned Yet</p>
                 <p>Click 'Add Saved Exercise' to assign exercises from your saved exercise library to {selectedPlanDay}.</p>
+              </div>
+            )}
+          </div>
+
+          {/* FITNESS GOALS SECTION */}
+          <div className="card mt-8 p-6 border-2 border-[#ff3333] bg-surface rounded-3xl relative overflow-hidden shadow-2xl">
+            <div className="flex items-center justify-between border-b-2 border-[#ff3333]/30 pb-3 mb-5">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl">🏋️</span>
+                <h2 className="text-2xl font-bold text-[#ff3333] tracking-widest uppercase" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Fitness Goals</h2>
+              </div>
+              <button 
+                onClick={() => setShowGoalHistory(true)}
+                className="text-xs font-bold text-text-muted hover:text-[#ff3333] flex items-center gap-1 transition-colors"
+              >
+                <FiList /> View History
+              </button>
+            </div>
+
+            {!activeFitnessGoals ? (
+              <div className="space-y-6">
+                <div className="bg-surface-elevated/40 border border-border-subtle rounded-2xl p-5 mb-2">
+                  <p className="text-sm text-text-muted font-medium mb-4">Create a new fitness goal period. Add custom tasks and set a deadline to complete them.</p>
+                  <div className="space-y-3.5">
+                    {newGoalData.tasks.map((task, idx) => (
+                      <div key={task.id} className="flex gap-3 items-center group">
+                        <div className="w-8 h-8 rounded-full bg-background border border-border-subtle flex items-center justify-center text-xs text-text-muted font-bold shrink-0">
+                          {idx + 1}
+                        </div>
+                        <input 
+                          type="text" 
+                          placeholder="e.g. 500 Pushups this month"
+                          value={task.title}
+                          onChange={(e) => {
+                            const updated = [...newGoalData.tasks];
+                            updated[idx].title = e.target.value;
+                            setNewGoalData({ ...newGoalData, tasks: updated });
+                          }}
+                          className="flex-1 bg-background border border-border-subtle rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:border-[#ff3333] focus:shadow-[0_0_10px_rgba(255,51,51,0.15)] outline-none transition-all placeholder:text-text-muted/50"
+                        />
+                        <button 
+                          onClick={() => {
+                            const updated = newGoalData.tasks.filter((_, i) => i !== idx);
+                            setNewGoalData({ ...newGoalData, tasks: updated });
+                          }}
+                          className="w-10 h-10 flex items-center justify-center text-text-muted hover:text-danger rounded-xl border border-transparent hover:bg-danger/10 hover:border-danger/30 transition-all shrink-0"
+                          title="Remove Goal"
+                        >
+                          <FiTrash2 size={18} />
+                        </button>
+                      </div>
+                    ))}
+                    <button 
+                      onClick={() => setNewGoalData({ ...newGoalData, tasks: [...newGoalData.tasks, { id: Date.now(), title: '', completed: false }] })}
+                      className="mt-2 text-xs text-[#ff3333] font-bold flex items-center gap-1.5 hover:bg-[#ff3333]/10 px-3 py-2 rounded-lg transition-colors w-fit"
+                    >
+                      <FiPlus strokeWidth={3} /> ADD ANOTHER GOAL
+                    </button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="bg-surface-elevated/40 border border-border-subtle rounded-2xl p-4">
+                    <label className="block text-xs uppercase font-extrabold tracking-wider text-text-muted mb-2">Target Date (Deadline) *</label>
+                    <input 
+                      type="date" 
+                      value={newGoalData.targetDate}
+                      onChange={(e) => setNewGoalData({ ...newGoalData, targetDate: e.target.value })}
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:border-[#ff3333] focus:shadow-[0_0_10px_rgba(255,51,51,0.15)] outline-none transition-all [color-scheme:dark]"
+                    />
+                  </div>
+                  <div className="bg-surface-elevated/40 border border-border-subtle rounded-2xl p-4">
+                    <label className="block text-xs uppercase font-extrabold tracking-wider text-text-muted mb-2">Target Body Weight (Optional)</label>
+                    <div className="relative">
+                      <input 
+                        type="number" 
+                        value={newGoalData.bodyWeightTarget}
+                        onChange={(e) => setNewGoalData({ ...newGoalData, bodyWeightTarget: e.target.value })}
+                        placeholder="e.g. 75"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-sm font-bold text-text-primary focus:border-[#ff3333] focus:shadow-[0_0_10px_rgba(255,51,51,0.15)] outline-none transition-all placeholder:text-text-muted/50"
+                      />
+                      <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-text-muted">kg</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <button 
+                    onClick={() => {
+                      if (!newGoalData.targetDate) return alert("Please select a target date.");
+                      const validTasks = newGoalData.tasks.filter(t => t.title.trim() !== '');
+                      if (validTasks.length === 0) return alert("Please add at least one valid goal.");
+                      
+                      setActiveFitnessGoals({
+                        id: Date.now(),
+                        tasks: validTasks,
+                        bodyWeightTarget: newGoalData.bodyWeightTarget,
+                        bodyWeight: '',
+                        targetDate: newGoalData.targetDate,
+                        createdAt: new Date().toISOString()
+                      });
+                      
+                      setNewGoalData({ targetDate: '', bodyWeightTarget: '', tasks: [{ id: Date.now(), title: '', completed: false }] });
+                    }}
+                    className="w-full md:w-auto btn-primary bg-[#ff3333] hover:bg-[#ff1111] text-white font-extrabold tracking-wide py-3 px-8 rounded-xl transition-all shadow-[0_0_15px_rgba(255,51,51,0.3)] flex items-center justify-center gap-2"
+                  >
+                    🚀 START TRACKING
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-5">
+                <div className="bg-surface-elevated/40 border border-border-subtle rounded-2xl p-5">
+                  <div className="space-y-4">
+                    {activeFitnessGoals.tasks.map((task, idx) => (
+                      <div key={task.id} className={`flex items-start gap-4 p-3 rounded-xl transition-all ${task.completed ? 'bg-success/5 border border-success/20' : 'bg-background border border-border-subtle hover:border-[#ff3333]/50'}`}>
+                        <div className="mt-0.5">
+                          <label className="flex items-center gap-4 cursor-pointer group w-full">
+                            <input 
+                              type="checkbox" 
+                              checked={task.completed}
+                              onChange={(e) => {
+                                const updatedTasks = [...activeFitnessGoals.tasks];
+                                updatedTasks[idx].completed = e.target.checked;
+                                setActiveFitnessGoals({ ...activeFitnessGoals, tasks: updatedTasks });
+                              }}
+                              className="w-6 h-6 rounded-md border-2 border-text-muted text-[#ff3333] focus:ring-[#ff3333] bg-transparent cursor-pointer transition-colors shrink-0 shadow-sm" 
+                            />
+                            <span className={`text-base font-bold transition-all tracking-wide ${task.completed ? 'text-text-muted line-through opacity-70' : 'text-text-primary group-hover:text-[#ff3333]'}`}>{task.title}</span>
+                          </label>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {activeFitnessGoals.bodyWeightTarget && (
+                  <div className="bg-surface-elevated/40 border border-border-subtle rounded-2xl p-5 mt-4">
+                    <div className="flex items-start gap-4">
+                      <div className="text-3xl mt-1 p-2 bg-background rounded-xl border border-border-subtle">⚖️</div>
+                      <div className="flex-1">
+                        <p className="text-xs uppercase font-extrabold text-text-muted mb-1 tracking-wider">Target Weight</p>
+                        <p className="text-lg font-bold text-text-primary tracking-wide mb-3">{activeFitnessGoals.bodyWeightTarget} kg</p>
+                        
+                        <div className="flex items-center gap-3 bg-background p-3 rounded-xl border border-border-subtle">
+                          <input type="checkbox" className="w-6 h-6 rounded-md border-2 border-text-muted text-[#ff3333] focus:ring-[#ff3333] bg-transparent cursor-pointer transition-colors" 
+                            checked={!!activeFitnessGoals.bodyWeight}
+                            readOnly
+                          />
+                          <div className="flex items-end gap-2 flex-1">
+                            <input 
+                              type="number"
+                              value={activeFitnessGoals.bodyWeight || ''}
+                              onChange={(e) => setActiveFitnessGoals({...activeFitnessGoals, bodyWeight: e.target.value})}
+                              placeholder="Log current weight..."
+                              className="w-full bg-transparent border-b-2 border-border-subtle focus:border-[#ff3333] text-lg font-bold text-text-primary outline-none transition-colors px-2 py-1 placeholder:text-text-muted/50"
+                            />
+                            <span className="text-sm font-bold text-text-muted tracking-wide mb-1">kg</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="mt-8 pt-6 border-t border-border-subtle flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3 bg-surface-elevated/60 py-2 px-4 rounded-xl border border-border-subtle">
+                    <FiClock className="text-[#ff3333]" size={18} />
+                    <div className="text-xs">
+                      <p className="text-text-muted font-bold uppercase tracking-wider mb-0.5">Deadline</p>
+                      <strong className="text-text-primary font-mono text-sm tracking-wide">{new Date(activeFitnessGoals.targetDate).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</strong>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setFitnessGoalsHistory(prev => [{ ...activeFitnessGoals, submittedAt: new Date().toISOString() }, ...prev]);
+                      setActiveFitnessGoals(null);
+                      setNotification({ title: 'Success', message: 'Goals submitted to history!', type: 'success' });
+                      setTimeout(() => setNotification(null), 3000);
+                    }}
+                    className="w-full sm:w-auto btn-primary bg-[#ff3333] hover:bg-[#ff1111] text-white font-extrabold tracking-wide py-3 px-8 rounded-xl shadow-[0_0_15px_rgba(255,51,51,0.3)] transition-all flex items-center justify-center gap-2"
+                  >
+                    <FiCheck size={20} className="stroke-[3]" /> SUBMIT GOALS
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -1460,6 +1730,62 @@ export default function GymDashboard() {
           </div>
         </motion.div>
       )}
+
+      {/* MODAL: FITNESS GOALS HISTORY */}
+      <AnimatePresence>
+        {showGoalHistory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card p-6 max-w-lg w-full space-y-4 max-h-[80vh] flex flex-col">
+              <div className="flex items-center justify-between border-b border-border-subtle pb-4 shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">🏋️</span>
+                  <h3 className="text-base font-extrabold text-text-primary uppercase tracking-widest text-[#ff3333]">Goal History</h3>
+                </div>
+                <button onClick={() => setShowGoalHistory(false)} className="text-text-muted hover:text-text-primary"><FiX size={18} /></button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-4 pr-2 custom-scrollbar">
+                {fitnessGoalsHistory.length === 0 ? (
+                  <div className="text-center py-10">
+                    <p className="text-sm font-bold text-text-muted">No goal history found.</p>
+                  </div>
+                ) : (
+                  fitnessGoalsHistory.map((goalPeriod, index) => (
+                    <div key={index} className="bg-surface-elevated border border-border-subtle rounded-xl p-4">
+                      <div className="flex justify-between items-start mb-3 border-b border-border-subtle/50 pb-2">
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-text-muted">Completed On</p>
+                          <p className="text-sm font-bold text-text-primary">{new Date(goalPeriod.submittedAt).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[10px] uppercase font-bold text-text-muted">Target Deadline</p>
+                          <p className="text-sm font-bold text-text-primary">{new Date(goalPeriod.targetDate).toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {goalPeriod.tasks.map(task => (
+                          <div key={task.id} className="flex items-center gap-2">
+                            <span className={`w-3 h-3 rounded-full flex-shrink-0 ${task.completed ? 'bg-success' : 'bg-text-muted'}`} />
+                            <span className={`text-xs font-bold ${task.completed ? 'text-text-primary' : 'text-text-muted line-through'}`}>{task.title}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      {goalPeriod.bodyWeightTarget && (
+                        <div className="mt-3 pt-3 border-t border-border-subtle/50 flex justify-between items-center text-xs">
+                          <span className="text-text-muted font-bold">Weight Target: {goalPeriod.bodyWeightTarget} kg</span>
+                          <span className="font-bold text-[#ff3333]">Logged: {goalPeriod.bodyWeight || '--'} kg</span>
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* MODAL: CREATE / EDIT EXERCISE MODAL */}
       <AnimatePresence>

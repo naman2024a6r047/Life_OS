@@ -144,7 +144,8 @@ const parseRawCurriculum = (text) => {
         }
 
         // Detect Day Header (e.g. 📅 Day 1, Day 1, Day 01, Day-1, DAY 1)
-        const dayMatch = line.match(/^(?:📅\s*)?Day[\s\-]*(\d+)/i);
+        // Optionally capture explicit dates in parentheses: 📅 Day 1 (Sun, Aug 2)
+        const dayMatch = line.match(/^(?:📅\s*)?Day[\s\-]*(\d+)(?:\s*\((.*?)\))?/i);
         if (dayMatch) {
             const rawDayNum = parseInt(dayMatch[1], 10);
             // Apply the gap multiplier
@@ -152,6 +153,7 @@ const parseRawCurriculum = (text) => {
             
             currentDay = {
                 dayNum: actualDayNum,
+                explicitDateStr: dayMatch[2] ? dayMatch[2].trim() : null,
                 tasks: []
             };
             days.push(currentDay);
@@ -500,7 +502,21 @@ exports.importCurriculum = async (req, res) => {
             
             if (targetMs && dayData.tasks.length > 0) {
                 const dayOffsetIndex = dayData.dayNum - 1;
-                const taskDate = addDays(startDate, dayOffsetIndex);
+                let taskDate = addDays(startDate, dayOffsetIndex);
+                
+                // Override with explicit date if provided and valid
+                if (dayData.explicitDateStr) {
+                    const parsedExplicitDate = new Date(`${dayData.explicitDateStr} ${startDate.getFullYear()}`);
+                    if (!isNaN(parsedExplicitDate.getTime())) {
+                        taskDate = parsedExplicitDate;
+                    } else {
+                        // Fallback parsing just the raw string
+                        const rawParsed = new Date(dayData.explicitDateStr);
+                        if (!isNaN(rawParsed.getTime())) {
+                            taskDate = rawParsed;
+                        }
+                    }
+                }
 
                 dayData.tasks.forEach((t, tIdx) => {
                     allTasks.push({

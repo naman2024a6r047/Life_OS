@@ -85,11 +85,25 @@ const deleteCategory = async (req, res) => {
 
 const getResources = async (req, res) => {
     try {
+        const { Friend, User } = require('../models');
+        const friends = await Friend.findAll({
+            where: {
+                status: 'accepted',
+                [Op.or]: [
+                    { user_id: req.user.id },
+                    { friend_id: req.user.id }
+                ]
+            }
+        });
+        const friendIds = friends.map(f => f.user_id === req.user.id ? f.friend_id : f.user_id);
+        const userIds = [req.user.id, ...friendIds];
+
         const { category_id, search } = req.query;
-        const where = { user_id: req.user.id };
+        const where = { user_id: { [Op.in]: userIds } };
 
         if (category_id === 'uncategorized') {
             where.category_id = null;
+            where.user_id = req.user.id; // Only show own uncategorized or should we show all? Show all is fine, but friend's might have category_id null too. Let's just keep where.category_id = null
         } else if (category_id && category_id !== 'all') {
             where.category_id = category_id;
         }
@@ -100,7 +114,10 @@ const getResources = async (req, res) => {
 
         const resources = await Resource.findAll({
             where,
-            include: [{ model: ResourceCategory, as: 'category', attributes: ['id', 'name', 'icon', 'color'] }],
+            include: [
+                { model: ResourceCategory, as: 'category', attributes: ['id', 'name', 'icon', 'color'] },
+                { model: User, attributes: ['id', 'username', 'avatar_url'] }
+            ],
             order: [['is_pinned', 'DESC'], ['createdAt', 'DESC']]
         });
 

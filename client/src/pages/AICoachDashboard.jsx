@@ -326,7 +326,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
   );
 }
 
-function ResourceCard({ resource: r, onEdit, onDelete, onTogglePin }) {
+function ResourceCard({ resource: r, onEdit, onDelete, onTogglePin, currentUser }) {
   return (
     <div className="card overflow-hidden hover:border-purple/40 transition-all flex flex-col justify-between group">
       <div className="p-4 bg-gradient-to-br from-primary/20 to-purple/20 flex flex-col items-center justify-center text-center h-24 relative">
@@ -346,11 +346,16 @@ function ResourceCard({ resource: r, onEdit, onDelete, onTogglePin }) {
         <div className="flex items-center justify-between pt-2 border-t border-border-subtle">
           <span className="text-[9px] text-text-muted font-mono">{formatSize(r.file_size)}</span>
           <div className="flex items-center gap-1.5 text-text-muted opacity-0 group-hover:opacity-100 transition-opacity">
+            {r.user && r.user.id !== currentUser.id ? (
+              <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded" title={`Shared by ${r.user.username}`}>
+                @{r.user.username}
+              </span>
+            ) : null}
             <button onClick={onTogglePin}><FiStar size={11} className={`hover:text-yellow-400 cursor-pointer ${r.is_pinned ? 'text-yellow-400 fill-yellow-400' : ''}`} /></button>
             {r.drive_web_view_link && <a href={r.drive_web_view_link} target="_blank" rel="noopener noreferrer"><FiEye size={11} className="hover:text-purple cursor-pointer" /></a>}
             {r.drive_web_content_link && <a href={r.drive_web_content_link} target="_blank" rel="noopener noreferrer"><FiDownload size={11} className="hover:text-purple cursor-pointer" /></a>}
-            <button onClick={onEdit}><FiEdit2 size={11} className="hover:text-purple cursor-pointer" /></button>
-            <button onClick={onDelete}><FiTrash2 size={11} className="hover:text-red-400 cursor-pointer" /></button>
+            {(!r.user || r.user.id === currentUser.id) && <button onClick={onEdit}><FiEdit2 size={11} className="hover:text-purple cursor-pointer" /></button>}
+            {(!r.user || r.user.id === currentUser.id) && <button onClick={onDelete}><FiTrash2 size={11} className="hover:text-red-400 cursor-pointer" /></button>}
           </div>
         </div>
       </div>
@@ -582,6 +587,11 @@ export default function AICoachDashboard() {
                             {row.name} {row.is_pinned && <FiStar size={10} className="inline ml-1 text-yellow-400 fill-yellow-400" />}
                           </a>
                           {row.description && <p className="text-[10px] text-text-muted truncate max-w-[200px]">{row.description}</p>}
+                          {row.user && row.user.id !== user.id && (
+                            <span className="inline-block mt-0.5 text-[9px] bg-primary/20 text-primary px-1.5 rounded" title={`Shared by ${row.user.username}`}>
+                              @{row.user.username}
+                            </span>
+                          )}
                         </div>
                       </div>
                     </td>
@@ -608,8 +618,8 @@ export default function AICoachDashboard() {
                         </button>
                         {row.drive_web_view_link && <a href={row.drive_web_view_link} target="_blank" rel="noopener noreferrer" title="View online"><FiEye size={13} className="hover:text-purple cursor-pointer" /></a>}
                         {row.drive_web_content_link && <a href={row.drive_web_content_link} target="_blank" rel="noopener noreferrer" title="Download"><FiDownload size={13} className="hover:text-purple cursor-pointer" /></a>}
-                        <button onClick={() => setEditModal({ open: true, resource: row })}><FiEdit2 size={13} className="hover:text-purple cursor-pointer" /></button>
-                        <button onClick={() => setConfirmModal({ open: true, type: 'resource', id: row.id, title: 'Delete Resource?', message: `"${row.name}" will be permanently removed.` })}><FiTrash2 size={13} className="hover:text-red-400 cursor-pointer" /></button>
+                        {(!row.user || row.user.id === user.id) && <button onClick={() => setEditModal({ open: true, resource: row })}><FiEdit2 size={13} className="hover:text-purple cursor-pointer" /></button>}
+                        {(!row.user || row.user.id === user.id) && <button onClick={() => setConfirmModal({ open: true, type: 'resource', id: row.id, title: 'Delete Resource?', message: `"${row.name}" will be permanently removed.` })}><FiTrash2 size={13} className="hover:text-red-400 cursor-pointer" /></button>}
                       </div>
                     </td>
                   </tr>
@@ -620,7 +630,7 @@ export default function AICoachDashboard() {
         ) : (
           <div className="p-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
             {resources.map(r => (
-              <ResourceCard key={r.id} resource={r}
+              <ResourceCard key={r.id} resource={r} currentUser={user}
                 onEdit={() => setEditModal({ open: true, resource: r })}
                 onDelete={() => setConfirmModal({ open: true, type: 'resource', id: r.id, title: 'Delete Resource?', message: `"${r.name}" will be permanently removed.` })}
                 onTogglePin={() => handleTogglePin(r)} />

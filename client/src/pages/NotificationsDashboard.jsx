@@ -71,8 +71,9 @@ export default function NotificationsDashboard() {
   };
 
   const rules = [
-    { rule: 'Medium Mode - Miss 2 Consecutive Days', cond: 'Fail to complete all tasks for 2 days in a row', cons: 'Restart current milestone from Day 1', sev: 'Medium' },
-    { rule: 'Hard Mode - Miss 1 Day', cond: 'Fail to complete all tasks for 1 day', cons: 'Restart current milestone from Day 1. No mercy.', sev: 'High' }
+    { rule: 'Easy Mode - No Skip Penalties', cond: 'No penalty on skips. Tasks are simply marked as overdue.', cons: 'No milestone restart, no XP loss.', sev: 'Low' },
+    { rule: 'Medium Mode - 2 Consecutive Skips', cond: 'Fail to complete all tasks for 2 consecutive days', cons: 'Restart current milestone from Day 1 & lose 50 XP.', sev: 'Medium' },
+    { rule: 'Hard Mode - 1 Skip', cond: 'Fail to complete all tasks for 1 day', cons: 'Restart current milestone from Day 1 & lose 100 XP. No mercy.', sev: 'High' }
   ];
 
   const totalPenalties = penalties.length;

@@ -1469,6 +1469,10 @@ export default function Challenges() {
                         const dayCompleted = isMilestoneLocked ? dayTasks.length : dayTasks.filter(t => t.is_completed).length;
                         const isAllDone = dayCompleted === dayTasks.length;
                         const displayDayNum = index + 1 + dayOffset; // Sequentially number the days in the milestone
+                        
+                        const sampleTaskDate = dayTasks[0]?.date;
+                        const dateDisplay = sampleTaskDate ? new Date(sampleTaskDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+                        
                         return (
                           <div key={dayKey} className={`border rounded-xl overflow-hidden shadow-lg transition-all ${isAllDone ? 'border-success/30 bg-success/5' : 'border-border-subtle bg-surface'}`}>
                             <div className={`px-4 py-3 flex items-center justify-between border-b ${isAllDone ? 'bg-success/10 border-success/20' : 'bg-surface-elevated border-border-subtle'}`}>
@@ -1483,9 +1487,10 @@ export default function Challenges() {
                                 >
                                   <FiCheck size={12} strokeWidth={3} />
                                 </button>
-                                <h4 className={`font-bold text-sm ${isAllDone ? 'text-success' : 'text-text-primary'}`}>
-                                  Day {displayDayNum} Checklist
-                                  <span className="text-text-muted text-[10px] font-normal uppercase tracking-wider ml-2">({dayTasks.length} Tasks)</span>
+                                <h4 className={`font-bold text-sm flex items-center gap-2 ${isAllDone ? 'text-success' : 'text-text-primary'}`}>
+                                  <span>Day {displayDayNum} Checklist</span>
+                                  {dateDisplay && <span className="text-text-muted text-[11px] font-normal px-2 py-0.5 rounded border border-border-subtle bg-surface">({dateDisplay})</span>}
+                                  <span className="text-text-muted text-[10px] font-normal uppercase tracking-wider ml-1">({dayTasks.length} Tasks)</span>
                                 </h4>
                               </div>
                               <span className="text-[10px] font-mono font-bold text-text-muted">

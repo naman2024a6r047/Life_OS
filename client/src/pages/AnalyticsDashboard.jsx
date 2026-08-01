@@ -2,9 +2,13 @@ import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import {
   FiBarChart2, FiClock, FiCheckCircle, FiTarget, FiZap,
-  FiFilter, FiCalendar, FiTrendingUp, FiRefreshCw
+  FiCalendar, FiTrendingUp, FiRefreshCw
 } from 'react-icons/fi';
 import axios from 'axios';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, ComposedChart, Bar, LineChart, Line, BarChart, RadialBarChart, RadialBar
+} from 'recharts';
 import { motion } from 'framer-motion';
 
 const COLORS = ['#A855F7', '#06B6D4', '#22C55E', '#F59E0B', '#6366F1', '#EC4899', '#14B8A6', '#F97316'];
@@ -15,6 +19,47 @@ function fmtMins(mins) {
   if (h === 0) return `${rem}m`;
   return rem === 0 ? `${h}h` : `${h}h ${rem}m`;
 }
+
+// Custom Recharts Tooltip
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface border border-border-subtle p-3 rounded-xl shadow-xl z-50">
+        <p className="text-xs font-bold text-text-primary mb-2">{label}</p>
+        {payload.map((entry, index) => (
+          <div key={index} className="flex items-center gap-2 text-[11px]">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
+            <span className="text-text-muted">{entry.name}:</span>
+            <span className="font-mono font-bold text-text-primary">
+              {entry.name.toLowerCase().includes('time') || entry.name.toLowerCase().includes('minutes') || entry.name.toLowerCase().includes('value') ? fmtMins(entry.value) : entry.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
+// Custom Subject Tooltip
+const SubjectTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-surface border border-border-subtle p-3 rounded-xl shadow-xl z-50">
+        <p className="text-xs font-bold text-text-primary flex items-center gap-2 mb-1">
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: data.fill }} />
+          {data.name}
+        </p>
+        <div className="flex gap-4 text-[11px]">
+          <div><span className="text-text-muted">Time:</span> <span className="font-mono font-bold">{fmtMins(data.minutes)}</span></div>
+          <div><span className="text-text-muted">Pct:</span> <span className="font-mono font-bold">{data.pct}%</span></div>
+        </div>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function AnalyticsDashboard() {
   const { user } = useContext(AuthContext);
@@ -55,8 +100,6 @@ export default function AnalyticsDashboard() {
   const summary = data?.summary || {};
   const subjectDist = data?.subjectDistribution || [];
   const dailyData = data?.dailyBreakdown || [];
-  const maxMins = Math.max(...dailyData.map(d => d.minutes), 1);
-  const maxActivities = Math.max(...dailyData.map(d => d.activities), 1);
   const topSessions = data?.topSessions || [];
   const insights = data?.insights || [];
   const heatmap = data?.heatmap || {};
@@ -73,8 +116,30 @@ export default function AnalyticsDashboard() {
     };
   });
 
-  const productivityPct = data?.productivityTrend || [];
-  const maxProd = Math.max(...productivityPct.map(d => d.pct), 1);
+  const focusScore = stats.focusScore ?? 0;
+  const focusData = [
+    { name: 'Off-Peak', value: 100, fill: '#1e1e2e' },
+    { name: 'Focus', value: focusScore, fill: '#A855F7' }
+  ];
+
+  const pieData = subjectDist.map((s, i) => ({
+    name: s.name,
+    value: s.minutes,
+    color: COLORS[i % COLORS.length]
+  }));
+
+  const subjectBarData = subjectDist.map((s, i) => ({
+    name: s.name,
+    minutes: s.minutes,
+    pct: s.pct,
+    fill: COLORS[i % COLORS.length]
+  }));
+
+  // Ensure dailyData has short day names for XAxis
+  const formattedDailyData = dailyData.map(d => ({
+    ...d,
+    shortDay: d.day.split(' ')[0]
+  }));
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-6 space-y-6">
@@ -129,7 +194,7 @@ export default function AnalyticsDashboard() {
 
       {/* Charts Row 1 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Study Time Bar Chart */}
+        {/* Study Time Overview (Interactive Bar Chart) */}
         <div className="lg:col-span-5 card p-5 space-y-4 border border-border-subtle bg-surface-elevated/20 shadow-sm flex flex-col">
           <div className="section-header mb-0">
             <h3 className="section-title">Study Time Overview</h3>
@@ -138,98 +203,62 @@ export default function AnalyticsDashboard() {
           {dailyData.length === 0 || stats.totalMins === 0 ? (
             <div className="flex-1 flex items-center justify-center text-text-muted text-xs">No study data for this period</div>
           ) : (
-            <div className="flex-1 flex flex-col justify-end">
-              <div className="h-44 flex items-end justify-between gap-3 px-2 pt-6 pb-2 border-b border-border-subtle/50 relative">
-                {dailyData.slice(-7).map((bar, i) => {
-                  const barHeight = Math.max(4, (bar.minutes / maxMins) * 100);
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group relative cursor-crosshair">
-                      <div className="absolute bottom-[calc(100%+10px)] hidden group-hover:flex flex-col items-center bg-surface border border-border-subtle rounded-lg p-2 text-[10px] font-mono text-text-primary z-20 shadow-xl min-w-[70px] text-center">
-                        <span className="text-text-muted mb-1">{bar.day}</span>
-                        <span className="text-purple font-bold text-xs">{fmtMins(bar.minutes)}</span>
-                        <div className="absolute -bottom-1 w-2 h-2 bg-surface border-b border-r border-border-subtle rotate-45"></div>
-                      </div>
-                      <motion.div
-                        initial={{ height: 0 }}
-                        animate={{ height: `${barHeight}%` }}
-                        transition={{ duration: 0.8, delay: i * 0.05, ease: "easeOut" }}
-                        className={`w-full rounded-t-lg transition-colors duration-300 ${bar.minutes > 0 ? 'bg-gradient-to-t from-purple/80 to-purple group-hover:from-purple group-hover:to-purple-light shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'bg-surface-elevated'}`}
-                      />
-                      <span className="text-[9px] text-text-muted font-mono mt-1">{bar.day.split(' ')[0]}</span>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="flex justify-between text-[9px] text-text-muted mt-3 px-2">
-                {subjectDist.slice(0, 4).map((s, i) => (
-                  <span key={i} className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full shadow-sm" style={{ background: COLORS[i] }} />
-                    <span className="truncate max-w-[60px]">{s.name.split(' ')[0]}</span>
-                  </span>
-                ))}
-              </div>
+            <div className="flex-1 flex flex-col justify-end min-h-[220px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={formattedDailyData.slice(-7)} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" vertical={false} />
+                  <XAxis dataKey="shortDay" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} dy={10} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} />
+                  <RechartsTooltip content={<CustomTooltip />} cursor={{ fill: '#ffffff0a' }} />
+                  <Bar dataKey="minutes" name="Study Time" fill="#A855F7" radius={[4, 4, 0, 0]} barSize={32} />
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           )}
         </div>
 
-        {/* Time Distribution Donut */}
+        {/* Time Distribution (Interactive Donut Chart) */}
         <div className="lg:col-span-4 card p-5 space-y-4 border border-border-subtle bg-surface-elevated/20 shadow-sm flex flex-col">
           <div className="section-header mb-0">
             <h3 className="section-title">Time Distribution</h3>
           </div>
-          <div className="flex-1 flex flex-col justify-center my-2">
-            <div className="flex items-center justify-center">
-              <div className="relative w-36 h-36 drop-shadow-xl">
-                <svg className="w-36 h-36 -rotate-90" viewBox="0 0 128 128">
-                  {subjectDist.length === 0 ? (
-                    <circle cx="64" cy="64" r="52" stroke="#1e1e2e" strokeWidth="16" fill="none" />
-                  ) : (() => {
-                    const total = subjectDist.reduce((s, d) => s + d.minutes, 0);
-                    const circumference = 2 * Math.PI * 52;
-                    let offset = 0;
-                    return subjectDist.slice(0, 5).map((s, i) => {
-                      const pct = s.minutes / total;
-                      const dash = pct * circumference;
-                      const currentOffset = offset;
-                      offset += dash;
-                      return (
-                        <motion.circle 
-                          key={i} cx="64" cy="64" r="52"
-                          stroke={COLORS[i]} strokeWidth="16"
-                          strokeLinecap={dash > 0 ? "round" : "butt"}
-                          initial={{ strokeDasharray: `0 ${circumference}`, strokeDashoffset: -currentOffset }}
-                          animate={{ strokeDasharray: `${dash} ${circumference - dash}` }}
-                          transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
-                          strokeDashoffset={-currentOffset} fill="none" 
-                          className="hover:opacity-80 transition-opacity cursor-pointer drop-shadow-md"
-                        />
-                      );
-                    });
-                  })()}
-                </svg>
-                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                  <span className="text-xl font-black font-mono text-text-primary drop-shadow-sm">{fmtMins(stats.totalMins)}</span>
-                  <span className="text-[10px] text-text-muted uppercase tracking-wider font-semibold">Total</span>
-                </div>
-              </div>
+          <div className="flex-1 flex flex-col justify-center items-center min-h-[180px] relative">
+            <ResponsiveContainer width="100%" height={180}>
+              <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%" cy="50%"
+                  innerRadius={55} outerRadius={75}
+                  paddingAngle={5} dataKey="value" stroke="none"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <RechartsTooltip content={<CustomTooltip />} />
+              </PieChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
+              <span className="text-xl font-black font-mono text-text-primary drop-shadow-sm">{fmtMins(stats.totalMins)}</span>
+              <span className="text-[9px] text-text-muted uppercase tracking-wider font-semibold">Total</span>
             </div>
           </div>
-          <div className="space-y-1.5 text-[10px] max-h-[100px] overflow-y-auto custom-scrollbar pr-1">
+          <div className="space-y-1.5 text-[10px] max-h-[100px] overflow-y-auto custom-scrollbar pr-1 mt-2">
             {subjectDist.length === 0 ? (
               <p className="text-center text-text-muted text-xs">No data</p>
             ) : subjectDist.slice(0, 5).map((s, i) => (
-              <motion.div key={i} whileHover={{ x: 2 }} className="flex justify-between items-center bg-surface-elevated/30 p-1.5 rounded">
+              <div key={i} className="flex justify-between items-center bg-surface-elevated/30 p-1.5 rounded">
                 <span className="font-medium flex items-center gap-1.5 text-text-primary">
                   <span className="w-2 h-2 rounded-full" style={{ backgroundColor: COLORS[i] }} />
                   <span className="truncate max-w-[120px]">{s.name}</span>
                 </span>
                 <span className="font-mono text-text-primary font-bold">{fmtMins(s.minutes)} <span className="text-text-muted font-normal">({s.pct}%)</span></span>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Activity Heatmap */}
+        {/* Activity Heatmap (Interactive Framer Grid) */}
         <div className="lg:col-span-3 card p-5 space-y-4 border border-border-subtle bg-surface-elevated/20 shadow-sm flex flex-col">
           <div className="section-header mb-0">
             <h3 className="section-title">Activity Heatmap</h3>
@@ -242,14 +271,19 @@ export default function AnalyticsDashboard() {
               </div>
               <div className="grid grid-cols-7 gap-1.5">
                 {heatmapDays.map((d, i) => (
-                  <motion.div key={i} title={`${d.label}: ${d.count} activities`}
+                  <motion.div key={i} 
                     whileHover={{ scale: 1.3, zIndex: 10 }}
-                    className={`h-4 rounded-[3px] cursor-crosshair transition-colors duration-300 shadow-sm ${
+                    className="relative group cursor-crosshair"
+                  >
+                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface border border-border-subtle rounded p-1.5 text-[10px] font-mono text-text-primary z-20 whitespace-nowrap shadow-xl">
+                      {d.label}<br /><span className="text-success font-bold">{d.count} activities</span>
+                    </div>
+                    <div className={`w-full aspect-square rounded-[3px] transition-colors duration-300 shadow-sm ${
                       d.count >= 5 ? 'bg-success shadow-glow-success' : 
                       d.count >= 3 ? 'bg-success/80' : 
                       d.count >= 1 ? 'bg-success/40' : 'bg-surface-elevated hover:bg-surface-elevated/80'
-                    }`} 
-                  />
+                    }`} />
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -269,73 +303,46 @@ export default function AnalyticsDashboard() {
 
       {/* Charts Row 2 */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        {/* Subject Performance */}
+        {/* Subject Performance (Interactive Horizontal Bar Chart) */}
         <div className="lg:col-span-4 card p-5 space-y-4 border border-border-subtle bg-surface-elevated/20 shadow-sm flex flex-col">
           <div className="section-header mb-0">
             <h3 className="section-title">Subject Performance</h3>
           </div>
-          <div className="space-y-4 flex-1 flex flex-col justify-center mt-2">
+          <div className="flex-1 min-h-[200px] mt-2">
             {subjectDist.length === 0 ? (
               <p className="text-xs text-text-muted text-center py-6">No subject data yet</p>
-            ) : subjectDist.map((sb, i) => (
-              <div key={i} className="space-y-1.5 group">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-text-primary flex items-center gap-2 group-hover:text-white transition-colors">
-                    <span className="w-2 h-2 rounded-full shadow-sm" style={{ background: COLORS[i] }} />
-                    {sb.name}
-                  </span>
-                  <div className="flex items-center gap-3 font-mono text-[10px]">
-                    <span className="text-text-muted">{fmtMins(sb.minutes)}</span>
-                    <span className="font-bold text-text-primary px-1.5 py-0.5 rounded bg-surface-elevated border border-border-subtle">{sb.pct}%</span>
-                  </div>
-                </div>
-                <div className="progress-bar h-2 rounded-full bg-surface-elevated overflow-hidden border border-border-subtle/50">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${sb.pct}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1, ease: "easeOut", delay: i * 0.1 }}
-                    className="h-full rounded-full relative" 
-                    style={{ background: COLORS[i] }} 
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/20"></div>
-                  </motion.div>
-                </div>
-              </div>
-            ))}
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={subjectBarData} layout="vertical" margin={{ top: 0, right: 30, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" horizontal={false} />
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} width={80} />
+                  <RechartsTooltip content={<SubjectTooltip />} cursor={{ fill: '#ffffff0a' }} />
+                  <Bar dataKey="minutes" radius={[0, 4, 4, 0]} barSize={12}>
+                    {subjectBarData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
-        {/* Focus vs Break */}
+        {/* Focus Score (Interactive RadialBar) */}
         <div className="lg:col-span-3 card p-5 space-y-4 border border-border-subtle bg-surface-elevated/20 shadow-sm flex flex-col">
           <div className="section-header mb-0">
             <h3 className="section-title">Focus Score</h3>
           </div>
-          <div className="flex-1 flex flex-col justify-center items-center my-2">
-            <div className="relative w-32 h-32 drop-shadow-xl">
-              <svg className="w-32 h-32 -rotate-90" viewBox="0 0 128 128">
-                {(() => {
-                  const circumference = 2 * Math.PI * 52;
-                  const focusDash = (stats.focusScore / 100) * circumference;
-                  return (
-                    <>
-                      <circle cx="64" cy="64" r="52" stroke="#1e1e2e" strokeWidth="14" fill="none" />
-                      <motion.circle 
-                        cx="64" cy="64" r="52" stroke="#A855F7" strokeWidth="14"
-                        strokeLinecap="round"
-                        initial={{ strokeDasharray: `0 ${circumference}` }}
-                        animate={{ strokeDasharray: `${focusDash} ${circumference}` }}
-                        transition={{ duration: 1.5, ease: "easeOut" }}
-                        fill="none" 
-                        className="drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]"
-                      />
-                    </>
-                  );
-                })()}
-              </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                <span className="text-2xl font-black font-mono text-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">{stats.focusScore ?? 0}%</span>
-              </div>
+          <div className="flex-1 flex flex-col justify-center items-center relative min-h-[160px]">
+            <ResponsiveContainer width="100%" height={160}>
+              <RadialBarChart cx="50%" cy="50%" innerRadius="70%" outerRadius="100%" barSize={14} data={focusData} startAngle={90} endAngle={-270}>
+                <RadialBar minAngle={15} background={{ fill: 'transparent' }} clockWise dataKey="value" cornerRadius={10} />
+                <RechartsTooltip content={<CustomTooltip />} />
+              </RadialBarChart>
+            </ResponsiveContainer>
+            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-1">
+              <span className="text-2xl font-black font-mono text-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.4)]">{stats.focusScore ?? 0}%</span>
             </div>
           </div>
           <div className="space-y-1.5 text-[10px] bg-surface-elevated/30 p-2 rounded-lg border border-border-subtle/50 w-full mt-2">
@@ -344,45 +351,29 @@ export default function AnalyticsDashboard() {
           </div>
         </div>
 
-        {/* Productivity Trend + Top Sessions + Insights */}
+        {/* Activity Trend + Top Sessions + Insights */}
         <div className="lg:col-span-5 space-y-5">
-          {/* Productivity Trend */}
+          {/* Activity Trend (Interactive Line Chart) */}
           <div className="card p-5 space-y-3 border border-border-subtle bg-surface-elevated/20 shadow-sm">
             <div className="section-header mb-0">
               <h3 className="section-title">Activity Trend</h3>
             </div>
             <div className="relative h-28 pt-2">
               {dailyData.length > 0 && maxActivities > 0 ? (
-                <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full overflow-visible drop-shadow-md">
-                  <motion.polyline
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                    points={dailyData.slice(-7).map((d, i) =>
-                      `${(i / (Math.min(dailyData.length, 7) - 1)) * 100},${60 - (d.activities / maxActivities) * 50}`
-                    ).join(' ')}
-                    fill="none" stroke="#A855F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                    className="drop-shadow-[0_4px_6px_rgba(168,85,247,0.4)]"
-                  />
-                  {/* Glowing data points */}
-                  {dailyData.slice(-7).map((d, i) => (
-                    <circle
-                      key={i}
-                      cx={(i / (Math.min(dailyData.length, 7) - 1)) * 100}
-                      cy={60 - (d.activities / maxActivities) * 50}
-                      r="2"
-                      fill="#fff"
-                      stroke="#A855F7"
-                      strokeWidth="1.5"
-                    />
-                  ))}
-                </svg>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={formattedDailyData.slice(-7)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="shortDay" hide />
+                    <YAxis hide />
+                    <RechartsTooltip content={<CustomTooltip />} />
+                    <Line type="monotone" dataKey="activities" name="Activities" stroke="#A855F7" strokeWidth={3} dot={{ r: 3, fill: '#A855F7', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 5, fill: '#fff', stroke: '#A855F7' }} />
+                  </LineChart>
+                </ResponsiveContainer>
               ) : (
                 <div className="flex items-center justify-center h-full text-text-muted text-xs">No activity data</div>
               )}
             </div>
-            <div className="flex justify-between text-[9px] text-text-muted font-mono px-1">
-              {dailyData.slice(-7).map((d, i) => <span key={i}>{d.day.split(' ')[0]}</span>)}
+            <div className="flex justify-between text-[9px] text-text-muted font-mono px-2">
+              {formattedDailyData.slice(-7).map((d, i) => <span key={i}>{d.shortDay}</span>)}
             </div>
           </div>
 
@@ -395,7 +386,7 @@ export default function AnalyticsDashboard() {
               {topSessions.length === 0 ? (
                 <p className="text-xs text-text-muted text-center py-4">No sessions logged yet</p>
               ) : topSessions.map((ts, i) => (
-                <motion.div key={i} whileHover={{ x: 3 }} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated border border-border-subtle/50 transition-colors hover:border-primary/30">
+                <div key={i} className="flex items-center justify-between p-2.5 rounded-xl bg-surface-elevated border border-border-subtle/50 transition-colors hover:border-primary/30">
                   <div className="flex items-center gap-3">
                     <div className="w-7 h-7 rounded-lg flex items-center justify-center text-xs shadow-inner" style={{ background: COLORS[i] + '22', color: COLORS[i] }}>📚</div>
                     <div>
@@ -406,7 +397,7 @@ export default function AnalyticsDashboard() {
                   <span className="text-xs font-mono font-bold text-success flex items-center gap-1.5 bg-success/10 px-2 py-1 rounded-md border border-success/20">
                     {ts.duration} <FiCheckCircle size={12} />
                   </span>
-                </motion.div>
+                </div>
               ))}
             </div>
           </div>
@@ -430,14 +421,10 @@ export default function AnalyticsDashboard() {
         </div>
       </div>
 
-      {/* Weekly Summary */}
+      {/* Weekly Summary (Interactive ComposedChart) */}
       <div className="card p-6 space-y-4 border border-border-subtle bg-surface-elevated/20 shadow-sm">
         <div className="flex items-center justify-between mb-2">
           <h3 className="section-title text-lg">Summary Overview</h3>
-          <div className="flex items-center gap-5 text-[10px] font-mono bg-surface p-2 rounded-lg border border-border-subtle">
-            <span className="text-purple flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-purple inline-block shadow-glow-primary" /> Study Time</span>
-            <span className="text-success flex items-center gap-1.5"><span className="w-3 h-1 rounded-full bg-success inline-block shadow-glow-success" /> Activities</span>
-          </div>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div className="lg:col-span-3 space-y-3 py-2 flex flex-col justify-center">
@@ -447,7 +434,7 @@ export default function AnalyticsDashboard() {
               { icon: <FiTarget className="text-primary" />, val: `${stats.focusScore ?? 0}%`, sub: 'Focus Score' },
               { icon: <FiZap className="text-warning" />, val: `${stats.streak || 0} Days`, sub: 'Current Streak' },
             ].map((item, i) => (
-              <motion.div key={i} whileHover={{ x: 4 }} className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-elevated/30 transition-colors">
+              <div key={i} className="flex items-center gap-3 p-2 rounded-lg bg-surface-elevated/30">
                 <div className="w-8 h-8 rounded-full bg-surface border border-border-subtle flex items-center justify-center shadow-sm">
                   {item.icon}
                 </div>
@@ -455,51 +442,24 @@ export default function AnalyticsDashboard() {
                   <p className="text-base font-bold font-mono text-text-primary">{item.val}</p>
                   <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider mt-0.5">{item.sub}</p>
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
-          <div className="lg:col-span-9 h-48 relative pt-4 pl-4 border-l border-border-subtle/50">
+          <div className="lg:col-span-9 h-52 relative pt-2">
             {dailyData.length > 1 ? (
-              <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full overflow-visible drop-shadow-lg">
-                {/* Background grid lines */}
-                <line x1="0" y1="15" x2="100" y2="15" stroke="#2D2D3D" strokeWidth="0.5" strokeDasharray="2 2" />
-                <line x1="0" y1="35" x2="100" y2="35" stroke="#2D2D3D" strokeWidth="0.5" strokeDasharray="2 2" />
-                <line x1="0" y1="55" x2="100" y2="55" stroke="#2D2D3D" strokeWidth="0.5" strokeDasharray="2 2" />
-                
-                <motion.polyline
-                  initial={{ pathLength: 0 }}
-                  whileInView={{ pathLength: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 2, ease: "easeInOut" }}
-                  points={dailyData.slice(-7).map((d, i) =>
-                    `${(i / (Math.min(dailyData.length, 7) - 1)) * 100},${60 - (d.minutes / maxMins) * 50}`
-                  ).join(' ')}
-                  fill="none" stroke="#A855F7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                  className="drop-shadow-[0_4px_8px_rgba(168,85,247,0.5)]"
-                />
-                <motion.polyline
-                  initial={{ pathLength: 0 }}
-                  whileInView={{ pathLength: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 2, ease: "easeInOut", delay: 0.5 }}
-                  points={dailyData.slice(-7).map((d, i) =>
-                    `${(i / (Math.min(dailyData.length, 7) - 1)) * 100},${60 - (d.activities / maxActivities) * 50}`
-                  ).join(' ')}
-                  fill="none" stroke="#22C55E" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
-                  className="drop-shadow-[0_4px_8px_rgba(34,197,94,0.5)]"
-                />
-                {/* Data points */}
-                {dailyData.slice(-7).map((d, i) => (
-                  <g key={i}>
-                    <circle cx={(i / (Math.min(dailyData.length, 7) - 1)) * 100} cy={60 - (d.minutes / maxMins) * 50} r="1.5" fill="#fff" stroke="#A855F7" strokeWidth="1" />
-                    <circle cx={(i / (Math.min(dailyData.length, 7) - 1)) * 100} cy={60 - (d.activities / maxActivities) * 50} r="1.5" fill="#fff" stroke="#22C55E" strokeWidth="1" />
-                  </g>
-                ))}
-              </svg>
-            ) : <div className="flex items-center justify-center h-full text-text-muted text-xs">Log more sessions to see trend</div>}
-            <div className="flex justify-between text-[10px] text-text-muted font-mono mt-3 px-1">
-              {dailyData.slice(-7).map((d, i) => <span key={i}>{d.day}</span>)}
-            </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <ComposedChart data={formattedDailyData.slice(-7)} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" vertical={false} />
+                  <XAxis dataKey="shortDay" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} dy={10} />
+                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} />
+                  <RechartsTooltip content={<CustomTooltip />} />
+                  <Line yAxisId="left" type="monotone" dataKey="minutes" name="Study Time (m)" stroke="#A855F7" strokeWidth={3} dot={{ r: 4, fill: '#A855F7', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#fff', stroke: '#A855F7' }} />
+                  <Line yAxisId="left" type="monotone" dataKey="activities" name="Activities" stroke="#22C55E" strokeWidth={3} dot={{ r: 4, fill: '#22C55E', strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 6, fill: '#fff', stroke: '#22C55E' }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-text-muted text-xs">Log more sessions to see trend</div>
+            )}
           </div>
         </div>
       </div>

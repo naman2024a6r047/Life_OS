@@ -2,17 +2,11 @@ import React, { useState, useContext, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import {
   FiBarChart2, FiClock, FiCheckCircle, FiTarget, FiZap,
-  FiCalendar, FiTrendingUp, FiRefreshCw
+  FiFilter, FiCalendar, FiTrendingUp, FiRefreshCw
 } from 'react-icons/fi';
 import axios from 'axios';
-import { 
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, ComposedChart, Bar, RadialBarChart, RadialBar, Legend
-} from 'recharts';
-import { motion } from 'framer-motion';
 
 const COLORS = ['#A855F7', '#06B6D4', '#22C55E', '#F59E0B', '#6366F1', '#EC4899', '#14B8A6', '#F97316'];
-
 function fmtMins(mins) {
   const m = Math.round(Number(mins) || 0);
   const h = Math.floor(m / 60);
@@ -20,26 +14,6 @@ function fmtMins(mins) {
   if (h === 0) return `${rem}m`;
   return rem === 0 ? `${h}h` : `${h}h ${rem}m`;
 }
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="bg-surface border border-border-subtle p-3 rounded-xl shadow-xl">
-        <p className="text-xs font-bold text-text-primary mb-2">{label}</p>
-        {payload.map((entry, index) => (
-          <div key={index} className="flex items-center gap-2 text-[11px]">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color || entry.fill }} />
-            <span className="text-text-muted">{entry.name}:</span>
-            <span className="font-mono font-bold text-text-primary">
-              {entry.name.toLowerCase().includes('time') || entry.name.toLowerCase().includes('minutes') ? fmtMins(entry.value) : entry.value}
-            </span>
-          </div>
-        ))}
-      </div>
-    );
-  }
-  return null;
-};
 
 export default function AnalyticsDashboard() {
   const { user } = useContext(AuthContext);
@@ -80,6 +54,8 @@ export default function AnalyticsDashboard() {
   const summary = data?.summary || {};
   const subjectDist = data?.subjectDistribution || [];
   const dailyData = data?.dailyBreakdown || [];
+  const maxMins = Math.max(...dailyData.map(d => d.minutes), 1);
+  const maxActivities = Math.max(...dailyData.map(d => d.activities), 1);
   const topSessions = data?.topSessions || [];
   const insights = data?.insights || [];
   const heatmap = data?.heatmap || {};
@@ -89,31 +65,18 @@ export default function AnalyticsDashboard() {
     const d = new Date();
     d.setDate(d.getDate() - (34 - i));
     const key = d.toISOString().split('T')[0];
-    return { 
-      key, 
-      count: heatmap[key] || 0,
-      label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    };
+    return { key, count: heatmap[key] || 0 };
   });
 
-  const focusScore = stats.focusScore ?? 0;
-  const focusData = [
-    { name: 'Off-Peak', value: 100, fill: '#1e1e2e' },
-    { name: 'Focus', value: focusScore, fill: '#A855F7' }
-  ];
-
-  const pieData = subjectDist.map((s, i) => ({
-    name: s.name,
-    value: s.minutes,
-    color: COLORS[i % COLORS.length]
-  }));
+  const productivityPct = data?.productivityTrend || [];
+  const maxProd = Math.max(...productivityPct.map(d => d.pct), 1);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="p-4 md:p-6 space-y-5">
+    <div className="p-6 space-y-5">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center shadow-glow-primary">
+          <div className="w-10 h-10 rounded-xl bg-purple/10 text-purple flex items-center justify-center">
             <FiBarChart2 size={22} />
           </div>
           <div>
@@ -129,7 +92,7 @@ export default function AnalyticsDashboard() {
           <div className="flex rounded-xl border border-border-subtle overflow-hidden">
             {[['week', 'Week'], ['month', 'Month']].map(([val, label]) => (
               <button key={val} onClick={() => handlePeriodChange(val)}
-                className={`px-3 py-1.5 text-xs font-semibold transition-all ${period === val ? 'bg-purple text-white shadow-glow-primary' : 'text-text-muted hover:bg-surface-elevated'}`}>
+                className={`px-3 py-1.5 text-xs font-semibold transition-all ${period === val ? 'bg-purple text-white' : 'text-text-muted hover:bg-surface-elevated'}`}>
                 {label}
               </button>
             ))}
@@ -146,220 +109,313 @@ export default function AnalyticsDashboard() {
           { icon: <FiZap size={16} />, label: 'Goals Active', val: summary.activeGoals ?? 0, sub: `${summary.completedGoals ?? 0} completed`, color: 'warning', subColor: 'text-text-muted' },
           { icon: <FiTrendingUp size={16} />, label: 'Streak', val: `${stats.streak || user?.current_streak || 0} Days`, sub: 'Current streak', color: 'danger', subColor: 'text-orange-400' },
         ].map((stat, i) => (
-          <div key={i} className="card p-4 flex items-center gap-3 transition-transform hover:-translate-y-1 hover:shadow-lg border-border-subtle bg-surface-elevated/30">
-            <div className={`w-10 h-10 rounded-xl bg-${stat.color}/10 text-${stat.color} flex items-center justify-center flex-shrink-0`}>
+          <div key={i} className="card p-3.5 flex items-center gap-3">
+            <div className={`w-9 h-9 rounded-xl bg-${stat.color}/10 text-${stat.color} flex items-center justify-center flex-shrink-0`}>
               {stat.icon}
             </div>
             <div className="min-w-0">
-              <p className="text-[10px] text-text-muted font-medium uppercase tracking-wider truncate">{stat.label}</p>
+              <p className="text-[10px] text-text-muted font-medium truncate">{stat.label}</p>
               <p className="text-lg font-bold font-mono text-text-primary leading-tight">{stat.val}</p>
-              <p className={`text-[9px] font-semibold mt-0.5 ${stat.subColor}`}>{stat.sub}</p>
+              <p className={`text-[9px] font-semibold ${stat.subColor}`}>{stat.sub}</p>
             </div>
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
-        {/* Weekly Summary Composed Chart */}
-        <div className="lg:col-span-8 card p-5 flex flex-col border-border-subtle bg-surface-elevated/20">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="section-title">Activity & Study Time</h3>
-              <p className="text-[10px] text-text-muted">Correlation between tasks and study minutes.</p>
-            </div>
+      {/* Charts Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Study Time Bar Chart */}
+        <div className="lg:col-span-5 card p-4 space-y-3">
+          <div className="section-header">
+            <h3 className="section-title">Study Time Overview</h3>
+            <span className="text-xs text-text-muted capitalize">{period}</span>
           </div>
-          <div className="flex-1 min-h-[250px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <ComposedChart data={dailyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorStudy" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#A855F7" stopOpacity={0.4}/>
-                    <stop offset="95%" stopColor="#A855F7" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="#2D2D3D" vertical={false} />
-                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} dy={10} />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} />
-                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#8B8B9E' }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: '11px', color: '#8B8B9E', paddingTop: '10px' }} />
-                <Bar yAxisId="right" dataKey="activities" name="Activities" fill="#22C55E" radius={[4, 4, 0, 0]} barSize={20} />
-                <Area yAxisId="left" type="monotone" dataKey="minutes" name="Study Time (m)" stroke="#A855F7" strokeWidth={3} fillOpacity={1} fill="url(#colorStudy)" />
-              </ComposedChart>
-            </ResponsiveContainer>
-          </div>
+          {dailyData.length === 0 || stats.totalMins === 0 ? (
+            <div className="h-44 flex items-center justify-center text-text-muted text-xs">No study data for this period</div>
+          ) : (
+            <>
+              <div className="h-44 flex items-end justify-between gap-2 px-1 pt-4 pb-2 border-b border-border-subtle">
+                {dailyData.slice(-7).map((bar, i) => (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group relative">
+                    <div className="absolute bottom-8 hidden group-hover:block bg-surface border border-border-subtle rounded-lg p-1.5 text-[9px] font-mono text-text-primary z-10 whitespace-nowrap shadow-lg">
+                      {bar.day}<br /><span className="text-purple font-bold">{fmtMins(bar.minutes)}</span>
+                    </div>
+                    <div
+                      className={`w-full rounded-t-md transition-all ${bar.minutes > 0 ? 'bg-purple hover:bg-purple/80' : 'bg-surface-elevated'}`}
+                      style={{ height: `${Math.max(4, (bar.minutes / maxMins) * 100)}%` }}
+                    />
+                    <span className="text-[8px] text-text-muted font-mono">{bar.day}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-between text-[9px] text-text-muted">
+                {subjectDist.slice(0, 4).map((s, i) => (
+                  <span key={i} className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded" style={{ background: COLORS[i] }} />
+                    {s.name.split(' ')[0]}
+                  </span>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         {/* Time Distribution Donut */}
-        <div className="lg:col-span-4 card p-5 flex flex-col border-border-subtle bg-surface-elevated/20">
-          <div className="section-header mb-0">
+        <div className="lg:col-span-4 card p-4 space-y-3">
+          <div className="section-header">
             <h3 className="section-title">Time Distribution</h3>
           </div>
-          <div className="flex-1 flex flex-col justify-center items-center min-h-[200px] relative">
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                  stroke="none"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip content={<CustomTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none mt-2">
-              <span className="text-xl font-bold font-mono text-text-primary">{fmtMins(stats.totalMins)}</span>
-              <span className="text-[10px] text-text-muted uppercase tracking-wider">Total Time</span>
+          <div className="flex items-center justify-center my-1">
+            <div className="relative w-32 h-32">
+              <svg className="w-32 h-32 -rotate-90" viewBox="0 0 128 128">
+                {subjectDist.length === 0 ? (
+                  <circle cx="64" cy="64" r="52" stroke="#1e1e2e" strokeWidth="14" fill="none" />
+                ) : (() => {
+                  const total = subjectDist.reduce((s, d) => s + d.minutes, 0);
+                  const circumference = 2 * Math.PI * 52;
+                  let offset = 0;
+                  return subjectDist.slice(0, 5).map((s, i) => {
+                    const pct = s.minutes / total;
+                    const dash = pct * circumference;
+                    const el = (
+                      <circle key={i} cx="64" cy="64" r="52"
+                        stroke={COLORS[i]} strokeWidth="14"
+                        strokeDasharray={`${dash} ${circumference - dash}`}
+                        strokeDashoffset={-offset} fill="none" />
+                    );
+                    offset += dash;
+                    return el;
+                  });
+                })()}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-base font-bold font-mono text-text-primary">{fmtMins(stats.totalMins)}</span>
+                <span className="text-[9px] text-text-muted">Total</span>
+              </div>
             </div>
           </div>
-          
-          {/* Legend underneath */}
-          <div className="w-full mt-3 space-y-2 max-h-[120px] overflow-y-auto custom-scrollbar pr-2">
-            {pieData.length === 0 ? (
-              <p className="text-center text-text-muted text-xs">No data</p>
-            ) : pieData.map((s, i) => (
-              <div key={i} className="flex justify-between items-center text-xs">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: s.color }} />
-                  <span className="text-text-primary truncate max-w-[150px] font-medium">{s.name}</span>
-                </div>
-                <span className="font-mono font-bold text-text-muted">{fmtMins(s.value)}</span>
+          <div className="space-y-1 text-[10px]">
+            {subjectDist.length === 0 ? (
+              <p className="text-center text-text-muted">No data</p>
+            ) : subjectDist.slice(0, 5).map((s, i) => (
+              <div key={i} className="flex justify-between">
+                <span style={{ color: COLORS[i] }} className="font-medium">• {s.name}</span>
+                <span className="font-mono text-text-primary">{fmtMins(s.minutes)} ({s.pct}%)</span>
               </div>
             ))}
           </div>
         </div>
 
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
-        
         {/* Activity Heatmap */}
-        <div className="lg:col-span-4 card p-5 space-y-4 border-border-subtle bg-surface-elevated/20">
+        <div className="lg:col-span-3 card p-4 space-y-3">
           <div className="section-header">
-            <h3 className="section-title">Consistency Heatmap</h3>
-            <span className="text-[10px] text-text-muted">Last 35 Days</span>
+            <h3 className="section-title">Activity Heatmap</h3>
+            <span className="text-xs text-text-muted">Last 35 Days</span>
           </div>
-          
-          <div>
-            <div className="flex justify-between text-[9px] text-text-muted font-mono px-1 mb-2">
+          <div className="space-y-1">
+            <div className="flex justify-between text-[8px] text-text-muted font-mono px-1">
               <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
             </div>
-            <div className="grid grid-cols-7 gap-1.5 flex-1">
+            <div className="grid grid-cols-7 gap-1">
               {heatmapDays.map((d, i) => (
-                <motion.div 
-                  key={i} 
-                  whileHover={{ scale: 1.2, zIndex: 10 }}
-                  className="relative group cursor-pointer"
-                >
-                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block bg-surface border border-border-subtle rounded p-1.5 text-[10px] font-mono text-text-primary z-20 whitespace-nowrap shadow-xl">
-                    {d.label}<br /><span className="text-success font-bold">{d.count} activities</span>
-                  </div>
-                  <div className={`w-full aspect-square rounded-[3px] transition-colors duration-300 ${
-                    d.count >= 5 ? 'bg-success shadow-glow-success' : 
-                    d.count >= 3 ? 'bg-success/70' : 
-                    d.count >= 1 ? 'bg-success/40' : 'bg-surface-elevated'
-                  }`} />
-                </motion.div>
+                <div key={i} title={`${d.key}: ${d.count} activities`}
+                  className={`h-4 rounded-[3px] ${d.count >= 5 ? 'bg-green-400' : d.count >= 3 ? 'bg-green-400/70' : d.count >= 1 ? 'bg-green-400/40' : 'bg-surface-elevated'}`} />
               ))}
             </div>
           </div>
-          
-          <div className="flex items-center justify-end gap-1.5 text-[9px] text-text-muted pt-3 border-t border-border-subtle/50">
+          <div className="flex items-center justify-between text-[9px] text-text-muted pt-2 border-t border-border-subtle">
             <span>Less</span>
             <div className="flex gap-1">
               <span className="w-2.5 h-2.5 rounded-[2px] bg-surface-elevated" />
-              <span className="w-2.5 h-2.5 rounded-[2px] bg-success/40" />
-              <span className="w-2.5 h-2.5 rounded-[2px] bg-success/70" />
-              <span className="w-2.5 h-2.5 rounded-[2px] bg-success shadow-glow-success" />
+              <span className="w-2.5 h-2.5 rounded-[2px] bg-green-400/30" />
+              <span className="w-2.5 h-2.5 rounded-[2px] bg-green-400/60" />
+              <span className="w-2.5 h-2.5 rounded-[2px] bg-green-400" />
             </div>
             <span>More</span>
           </div>
         </div>
+      </div>
 
-        {/* Focus Score Radial */}
-        <div className="lg:col-span-4 card p-5 space-y-4 border-border-subtle bg-surface-elevated/20 flex flex-col">
-          <div className="section-header mb-0">
-            <h3 className="section-title">Focus Intensity</h3>
+      {/* Charts Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+        {/* Subject Performance */}
+        <div className="lg:col-span-4 card p-4 space-y-3">
+          <div className="section-header">
+            <h3 className="section-title">Subject Performance</h3>
           </div>
-          <div className="flex-1 flex flex-col justify-center items-center relative min-h-[180px]">
-            <ResponsiveContainer width="100%" height={180}>
-              <RadialBarChart 
-                cx="50%" cy="50%" 
-                innerRadius="70%" outerRadius="100%" 
-                barSize={14} data={focusData} 
-                startAngle={90} endAngle={-270}
-              >
-                <RadialBar minAngle={15} background={{ fill: 'transparent' }} clockWise dataKey="value" cornerRadius={10} />
-              </RadialBarChart>
-            </ResponsiveContainer>
-            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <span className="text-3xl font-black font-mono text-primary drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]">{focusScore}%</span>
-              <span className="text-[10px] text-text-muted uppercase tracking-wider mt-1">Peak Focus</span>
-            </div>
-          </div>
-          <div className="space-y-2 text-xs w-full mt-2">
-            <div className="flex justify-between items-center p-2.5 rounded-lg bg-surface-elevated/50 border border-border-subtle/30">
-              <span className="text-primary font-medium flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-primary shadow-glow-primary" /> Peak Sessions</span>
-              <span className="font-mono text-text-primary font-bold">{focusScore}%</span>
-            </div>
-            <div className="flex justify-between items-center p-2.5 rounded-lg bg-surface-elevated/50 border border-border-subtle/30">
-              <span className="text-text-muted font-medium flex items-center gap-2"><span className="w-2 h-2 rounded-full bg-surface-elevated border border-border-subtle" /> Off-Peak</span>
-              <span className="font-mono text-text-primary font-bold">{100 - focusScore}%</span>
-            </div>
+          <div className="space-y-2.5">
+            {subjectDist.length === 0 ? (
+              <p className="text-xs text-text-muted text-center py-6">No subject data yet</p>
+            ) : subjectDist.map((sb, i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-text-primary flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full" style={{ background: COLORS[i] }} />
+                    {sb.name}
+                  </span>
+                  <div className="flex items-center gap-3 font-mono text-[10px]">
+                    <span className="text-text-muted">{fmtMins(sb.minutes)}</span>
+                    <span className="font-bold text-text-primary">{sb.pct}%</span>
+                  </div>
+                </div>
+                <div className="progress-bar h-1.5">
+                  <div className="progress-fill" style={{ width: `${sb.pct}%`, background: COLORS[i] }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Top Sessions & Insights */}
-        <div className="lg:col-span-4 flex flex-col gap-5">
-          <div className="card p-5 border-border-subtle bg-surface-elevated/20 flex-1">
-            <div className="section-header">
-              <h3 className="section-title">Top Sessions</h3>
+        {/* Focus vs Break */}
+        <div className="lg:col-span-3 card p-4 space-y-3">
+          <div className="section-header">
+            <h3 className="section-title">Focus Score</h3>
+          </div>
+          <div className="flex items-center justify-center my-2">
+            <div className="relative w-28 h-28">
+              <svg className="w-28 h-28 -rotate-90" viewBox="0 0 112 112">
+                {(() => {
+                  const circumference = 2 * Math.PI * 44;
+                  const focusDash = (stats.focusScore / 100) * circumference;
+                  return (
+                    <>
+                      <circle cx="56" cy="56" r="44" stroke="#1e1e2e" strokeWidth="12" fill="none" />
+                      <circle cx="56" cy="56" r="44" stroke="#A855F7" strokeWidth="12"
+                        strokeDasharray={`${focusDash} ${circumference}`} fill="none" />
+                    </>
+                  );
+                })()}
+              </svg>
+              <div className="absolute inset-0 flex flex-col items-center justify-center">
+                <span className="text-xl font-bold font-mono text-text-primary">{stats.focusScore ?? 0}%</span>
+              </div>
             </div>
-            <div className="space-y-2 mt-2">
+          </div>
+          <div className="space-y-1 text-[10px]">
+            <div className="flex justify-between"><span className="text-purple font-medium">• Peak Hours Sessions</span><span className="font-mono text-text-primary">{stats.focusScore ?? 0}%</span></div>
+            <div className="flex justify-between"><span className="text-text-muted font-medium">• Off-Peak Sessions</span><span className="font-mono text-text-primary">{100 - (stats.focusScore ?? 0)}%</span></div>
+          </div>
+        </div>
+
+        {/* Productivity Trend + Top Sessions + Insights */}
+        <div className="lg:col-span-5 space-y-4">
+          {/* Productivity Trend */}
+          <div className="card p-4 space-y-2">
+            <div className="section-header">
+              <h3 className="section-title">Activity Trend</h3>
+            </div>
+            <div className="relative h-28">
+              {dailyData.length > 0 && maxActivities > 0 ? (
+                <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full">
+                  <polyline
+                    points={dailyData.slice(-7).map((d, i) =>
+                      `${(i / (Math.min(dailyData.length, 7) - 1)) * 100},${60 - (d.activities / maxActivities) * 50}`
+                    ).join(' ')}
+                    fill="none" stroke="#A855F7" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+                  />
+                </svg>
+              ) : (
+                <div className="flex items-center justify-center h-full text-text-muted text-xs">No activity data</div>
+              )}
+            </div>
+            <div className="flex justify-between text-[8px] text-text-muted font-mono">
+              {dailyData.slice(-7).map((d, i) => <span key={i}>{d.day.split(' ')[0]}</span>)}
+            </div>
+          </div>
+
+          {/* Top Sessions */}
+          <div className="card p-4 space-y-2.5">
+            <div className="section-header">
+              <h3 className="section-title">Top Study Sessions</h3>
+            </div>
+            <div className="space-y-2">
               {topSessions.length === 0 ? (
-                <p className="text-[10px] text-text-muted text-center py-4">No sessions logged yet</p>
-              ) : topSessions.slice(0,3).map((ts, i) => (
-                <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-surface-elevated border border-border-subtle/50 transition-colors hover:border-primary/30">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shadow-inner" style={{ background: COLORS[i] + '15', color: COLORS[i] }}>📚</div>
-                    <div className="min-w-0">
-                      <p className="text-xs font-bold text-text-primary truncate max-w-[140px]">{ts.title}</p>
-                      <p className="text-[10px] text-text-muted font-mono mt-0.5">{ts.date}</p>
+                <p className="text-xs text-text-muted text-center py-4">No sessions logged yet</p>
+              ) : topSessions.map((ts, i) => (
+                <div key={i} className="flex items-center justify-between p-2 rounded-xl bg-surface-elevated/40">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded flex items-center justify-center text-xs" style={{ background: COLORS[i] + '22', color: COLORS[i] }}>📚</div>
+                    <div>
+                      <p className="text-xs font-semibold text-text-primary leading-tight truncate max-w-[140px]">{ts.title}</p>
+                      <p className="text-[8px] text-text-muted">{ts.date} · {ts.session_time}</p>
                     </div>
                   </div>
-                  <span className="text-[11px] font-mono font-bold text-success flex items-center gap-1.5 bg-success/10 px-2.5 py-1 rounded-md border border-success/20">
-                    {ts.duration} <FiCheckCircle size={12} />
+                  <span className="text-xs font-mono font-bold text-text-primary flex items-center gap-1">
+                    {ts.duration} <FiCheckCircle className="text-green-400" size={12} />
                   </span>
                 </div>
               ))}
             </div>
           </div>
 
-          {insights.length > 0 && (
-            <div className="card p-4 border-border-subtle bg-primary/5 border-primary/20">
-              <h3 className="text-[11px] font-bold uppercase tracking-wider text-primary mb-2 flex items-center gap-1.5"><FiZap /> Smart Insights</h3>
-              <div className="space-y-2.5">
-                {insights.slice(0,2).map((ins, i) => (
-                  <div key={i} className="flex items-start gap-2.5 text-[11px] text-text-primary leading-relaxed">
-                    <span className="text-primary mt-0.5">{ins.icon}</span>
-                    <span>{ins.text}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Insights */}
+          <div className="card p-4 space-y-2">
+            <div className="section-header">
+              <h3 className="section-title">Insights</h3>
             </div>
-          )}
+            <div className="space-y-1.5">
+              {insights.length === 0 ? (
+                <p className="text-xs text-text-muted">Log study sessions to get personalized insights.</p>
+              ) : insights.map((ins, i) => (
+                <div key={i} className="flex items-start gap-2 text-[11px] text-text-secondary">
+                  <span className="text-xs flex-shrink-0 mt-0.5">{ins.icon}</span>
+                  <span>{ins.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
-
       </div>
-    </motion.div>
+
+      {/* Weekly Summary */}
+      <div className="card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="section-title">Summary</h3>
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <span className="text-purple flex items-center gap-1"><span className="w-2 h-0.5 bg-purple inline-block" /> Study (h)</span>
+            <span className="text-green-400 flex items-center gap-1"><span className="w-2 h-0.5 bg-green-400 inline-block" /> Activities</span>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          <div className="lg:col-span-3 space-y-3 py-2">
+            {[
+              { icon: <FiClock className="text-purple" />, val: fmtMins(stats.totalMins || 0), sub: 'Total Study Time' },
+              { icon: <FiCheckCircle className="text-green-400" />, val: summary.completedTasks ?? 0, sub: 'Tasks Done' },
+              { icon: <FiTarget className="text-green-400" />, val: `${stats.focusScore ?? 0}%`, sub: 'Focus Score' },
+              { icon: <FiZap className="text-warning" />, val: `${stats.streak || 0} Days`, sub: 'Current Streak' },
+            ].map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                {item.icon}
+                <div>
+                  <p className="text-base font-bold font-mono text-text-primary">{item.val}</p>
+                  <p className="text-[10px] text-text-muted">{item.sub}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="lg:col-span-9 h-40 relative pt-2">
+            {dailyData.length > 1 ? (
+              <svg viewBox="0 0 100 60" preserveAspectRatio="none" className="w-full h-full">
+                <polyline
+                  points={dailyData.slice(-7).map((d, i) =>
+                    `${(i / (Math.min(dailyData.length, 7) - 1)) * 100},${60 - (d.minutes / maxMins) * 50}`
+                  ).join(' ')}
+                  fill="none" stroke="#A855F7" strokeWidth="1.5" strokeLinecap="round"
+                />
+                <polyline
+                  points={dailyData.slice(-7).map((d, i) =>
+                    `${(i / (Math.min(dailyData.length, 7) - 1)) * 100},${60 - (d.activities / maxActivities) * 50}`
+                  ).join(' ')}
+                  fill="none" stroke="#22C55E" strokeWidth="1.5" strokeLinecap="round"
+                />
+              </svg>
+            ) : <div className="flex items-center justify-center h-full text-text-muted text-xs">Log more sessions to see trend</div>}
+            <div className="flex justify-between text-[9px] text-text-muted font-mono mt-1">
+              {dailyData.slice(-7).map((d, i) => <span key={i}>{d.day}</span>)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

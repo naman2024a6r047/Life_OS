@@ -519,25 +519,7 @@ exports.importCurriculum = async (req, res) => {
             
             if (targetMs && dayData.tasks.length > 0) {
                 const dayOffsetIndex = dayData.dayNum - 1;
-<<<<<<< HEAD
-                let taskDate = addDays(startDate, dayOffsetIndex);
-                
-                // Override with explicit date if provided and valid
-                if (dayData.explicitDateStr) {
-                    const parsedExplicitDate = new Date(`${dayData.explicitDateStr} ${startDate.getFullYear()}`);
-                    if (!isNaN(parsedExplicitDate.getTime())) {
-                        taskDate = parsedExplicitDate;
-                    } else {
-                        // Fallback parsing just the raw string
-                        const rawParsed = new Date(dayData.explicitDateStr);
-                        if (!isNaN(rawParsed.getTime())) {
-                            taskDate = rawParsed;
-                        }
-                    }
-                }
-=======
                 const taskDate = (dayData && dayData.explicitDate) ? new Date(dayData.explicitDate) : addDays(startDate, dayOffsetIndex);
->>>>>>> 893eff0 (Support parsing and assigning explicit dates from raw curriculum)
 
                 dayData.tasks.forEach((t, tIdx) => {
                     allTasks.push({

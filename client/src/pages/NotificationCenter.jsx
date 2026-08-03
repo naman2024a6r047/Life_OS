@@ -208,7 +208,7 @@ export default function NotificationCenter() {
               className="relative group p-5 rounded-2xl bg-background/40 border border-border-subtle/50 hover:bg-surface-elevated/60 hover:border-primary/50 transition-all duration-300 backdrop-blur-xl overflow-hidden"
             >
               {/* Subtle hover glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/20/0 via-indigo-500/5 to-primary/5/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20/0 via-primary/5 to-primary/5/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
               <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 relative z-10">
                 <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${n.iconBg}`}>

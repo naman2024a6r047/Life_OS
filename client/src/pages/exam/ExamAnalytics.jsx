@@ -199,7 +199,7 @@ export default function ExamAnalytics({ examData }) {
                                     <th className="py-3 px-4">Notes</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/60">
+                            <tbody className="divide-y divide-border-subtle">
                                 {studyLogs.map(log => (
                                     <tr key={log.id} className="hover:bg-background/40 transition">
                                         <td className="py-3 px-4 font-mono text-text-muted">

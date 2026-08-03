@@ -103,7 +103,7 @@ export default function GoalWorkspace() {
                 </div>
 
                 {/* Workspace Header Banner Card */}
-                <div className="relative rounded-2xl bg-gradient-to-r from-primary/20/80 via-slate-900/90 to-purple-950/80 border border-primary/20 p-8 overflow-hidden shadow-2xl backdrop-blur-xl">
+                <div className="relative rounded-2xl bg-gradient-to-r from-primary/20 via-surface-elevated/90 to-purple/20 border border-primary/20 p-8 overflow-hidden shadow-2xl backdrop-blur-xl">
                     <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
                     
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">

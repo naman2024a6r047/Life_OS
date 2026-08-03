@@ -60,12 +60,24 @@ const startPenaltyWorker = () => {
 
                 if (pastDates.length === 0) continue;
 
+                // ── Fetch existing penalties for this challenge to avoid double-counting ──
+                const existingPenalties = await Penalty.findAll({
+                    where: { challenge_id: challenge.id }
+                });
+
                 // ── Count consecutive missed days (from most recent backwards) ──
                 let consecutiveMissedDays = 0;
                 let missedDates = [];
 
                 for (const date of pastDates) {
                     const tasks = tasksByDate[date];
+                    
+                    // If this date was already part of a previous penalty, it breaks the new streak
+                    const alreadyPenalized = existingPenalties.some(p => p.description && p.description.includes(date));
+                    if (alreadyPenalized) {
+                        break;
+                    }
+
                     const allCompleted = tasks.every(t => t.is_completed);
                     if (!allCompleted) {
                         consecutiveMissedDays++;
@@ -97,12 +109,7 @@ const startPenaltyWorker = () => {
 
                 // ── Check if we already penalized for these specific missed dates ──
                 const latestMissedDate = missedDates[0]; // most recent missed date
-                const existingPenalty = await Penalty.findOne({
-                    where: {
-                        challenge_id: challenge.id,
-                        description: { [Op.like]: `%${latestMissedDate}%` }
-                    }
-                });
+                const existingPenalty = existingPenalties.find(p => p.description && p.description.includes(latestMissedDate));
 
                 if (existingPenalty) continue;
 

@@ -19,6 +19,8 @@ const navItems = [
   { path: '/gym', label: 'Gym & Fitness', icon: FiActivity },
   { path: '/sleep', label: 'Sleep Tracker', icon: FiMoon },
   { path: '/analytics', label: 'Analytics', icon: FiBarChart2 },
+  { path: '/notifications', label: 'Notifications', icon: FiBell },
+  { path: '/penalties', label: 'Penalty System', icon: FiAlertTriangle },
   { path: '/dev', label: 'Developer Mode', icon: FiTerminal },
   { path: '/settings', label: 'Settings', icon: FiSettings },
 ];

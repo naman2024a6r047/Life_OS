@@ -7,10 +7,9 @@ const addDays = (date, days) => {
     return result;
 };
 
-const evaluateChallengePenalty = async (challenge) => {
-    if (!challenge || challenge.status !== 'active') return { warning: false, applied: false };
-    if (!challenge.penalty_mode || challenge.penalty_mode === 'easy') return { warning: false, applied: false };
-    if (!challenge.milestones || challenge.milestones.length === 0) return { warning: false, applied: false };
+const autoAdjustChallengeSchedule = async (challenge) => {
+    if (!challenge || challenge.status !== 'active') return { applied: false };
+    if (!challenge.milestones || challenge.milestones.length === 0) return { applied: false };
 
     let activeMilestone = null;
     let activeMilestoneIndex = -1;
@@ -22,7 +21,7 @@ const evaluateChallengePenalty = async (challenge) => {
         }
     }
     
-    if (!activeMilestone || !activeMilestone.tasks || activeMilestone.tasks.length === 0) return { warning: false, applied: false };
+    if (!activeMilestone || !activeMilestone.tasks || activeMilestone.tasks.length === 0) return { applied: false };
 
     const tasksByDate = {};
     activeMilestone.tasks.forEach(task => {
@@ -45,73 +44,82 @@ const evaluateChallengePenalty = async (challenge) => {
     let consecutiveMisses = 0;
     for (const d of pastDates) {
         const dayTasks = tasksByDate[d];
-        const allCompleted = dayTasks.every(t => t.is_completed);
-        if (!allCompleted) {
+        const anyCompleted = dayTasks.some(t => t.is_completed);
+        if (!anyCompleted) {
             consecutiveMisses++;
         } else {
             break;
         }
     }
 
-    const threshold = challenge.penalty_mode === 'hard' ? 1 : 2;
-    let applied = false;
-    let warning = false;
+    if (consecutiveMisses > 0) {
+        const diffDays = consecutiveMisses;
+        const firstMissedDateStr = pastDates[consecutiveMisses - 1];
+        const [fy, fm, fd] = firstMissedDateStr.split('-');
+        const firstMissedDate = new Date(fy, fm - 1, fd);
 
-    if (consecutiveMisses >= threshold) {
-        const activeTasksSorted = activeMilestone.tasks.filter(t=>t.date).sort((a,b) => new Date(a.date) - new Date(b.date));
-        if (activeTasksSorted.length > 0) {
-            const firstDateStr = activeTasksSorted[0].date;
-            const [y, m, d] = firstDateStr.split('-');
-            const originalStartDate = new Date(y, m - 1, d);
-            const diffDays = Math.round((today - originalStartDate) / (1000 * 60 * 60 * 24));
-
-            for (const task of activeMilestone.tasks) {
-                const updates = { is_completed: false };
-                if (diffDays !== 0 && task.date) {
-                    const [ty, tm, td] = task.date.split('-');
-                    const tDate = new Date(ty, tm - 1, td);
+        for (const task of activeMilestone.tasks) {
+            if (task.date) {
+                const [ty, tm, td] = task.date.split('-');
+                const tDate = new Date(ty, tm - 1, td);
+                if (tDate >= firstMissedDate) {
                     tDate.setDate(tDate.getDate() + diffDays);
-                    // format YYYY-MM-DD local
                     const yy = tDate.getFullYear();
                     const mm = String(tDate.getMonth() + 1).padStart(2, '0');
                     const dd = String(tDate.getDate()).padStart(2, '0');
-                    updates.date = `${yy}-${mm}-${dd}`;
+                    await require('../models/MilestoneTask').update({ date: `${yy}-${mm}-${dd}` }, { where: { id: task.id } });
                 }
-                await require('../models/MilestoneTask').update(updates, { where: { id: task.id } });
+            }
+        }
+
+        for (let i = activeMilestoneIndex + 1; i < challenge.milestones.length; i++) {
+            const ms = challenge.milestones[i];
+            const mUpdates = {};
+            if (ms.start_date) {
+                const mStart = new Date(ms.start_date);
+                mStart.setDate(mStart.getDate() + diffDays);
+                mUpdates.start_date = mStart;
+            }
+            if (ms.deadline) {
+                const mDead = new Date(ms.deadline);
+                mDead.setDate(mDead.getDate() + diffDays);
+                mUpdates.deadline = mDead;
+            }
+            if (Object.keys(mUpdates).length > 0) {
+                await require('../models/Milestone').update(mUpdates, { where: { id: ms.id } });
             }
 
-            for (let i = activeMilestoneIndex + 1; i < challenge.milestones.length; i++) {
-                const ms = challenge.milestones[i];
-                if (ms.tasks && diffDays !== 0) {
-                    for (const task of ms.tasks) {
-                        if (task.date) {
-                            const [ty, tm, td] = task.date.split('-');
-                            const tDate = new Date(ty, tm - 1, td);
-                            tDate.setDate(tDate.getDate() + diffDays);
-                            const yy = tDate.getFullYear();
-                            const mm = String(tDate.getMonth() + 1).padStart(2, '0');
-                            const dd = String(tDate.getDate()).padStart(2, '0');
-                            await require('../models/MilestoneTask').update({ date: `${yy}-${mm}-${dd}` }, { where: { id: task.id } });
-                        }
+            if (ms.tasks) {
+                for (const task of ms.tasks) {
+                    if (task.date) {
+                        const [ty, tm, td] = task.date.split('-');
+                        const tDate = new Date(ty, tm - 1, td);
+                        tDate.setDate(tDate.getDate() + diffDays);
+                        const yy = tDate.getFullYear();
+                        const mm = String(tDate.getMonth() + 1).padStart(2, '0');
+                        const dd = String(tDate.getDate()).padStart(2, '0');
+                        await require('../models/MilestoneTask').update({ date: `${yy}-${mm}-${dd}` }, { where: { id: task.id } });
                     }
                 }
             }
-
-            try {
-                await require('../models/ActivityLog').create({
-                    user_id: challenge.user_id,
-                    action_type: 'PENALTY_TRIGGERED',
-                    xp_awarded: 0
-                });
-            } catch (e) {}
-            
-            applied = true;
         }
-    } else if (consecutiveMisses === threshold - 1 && threshold > 1) {
-        warning = true;
+
+        if (activeMilestone.deadline) {
+            const mDead = new Date(activeMilestone.deadline);
+            mDead.setDate(mDead.getDate() + diffDays);
+            await require('../models/Milestone').update({ deadline: mDead }, { where: { id: activeMilestone.id } });
+        }
+
+        if (challenge.end_date) {
+            const cEnd = new Date(challenge.end_date);
+            cEnd.setDate(cEnd.getDate() + diffDays);
+            await Challenge.update({ end_date: cEnd }, { where: { id: challenge.id } });
+        }
+
+        return { applied: true };
     }
 
-    return { warning, applied };
+    return { applied: false };
 };
 
 
@@ -309,7 +317,7 @@ exports.createChallenge = async (req, res) => {
 
 exports.getChallenges = async (req, res) => {
     try {
-        const challenges = await Challenge.findAll({
+        let challenges = await Challenge.findAll({
             where: { user_id: req.user.id },
             include: [
                 {
@@ -324,6 +332,31 @@ exports.getChallenges = async (req, res) => {
                 [{ model: Milestone, as: 'milestones' }, { model: MilestoneTask, as: 'tasks' }, 'date', 'ASC']
             ]
         });
+
+        let updated = false;
+        for (const challenge of challenges) {
+            const { applied } = await autoAdjustChallengeSchedule(challenge);
+            if (applied) updated = true;
+        }
+
+        if (updated) {
+            challenges = await Challenge.findAll({
+                where: { user_id: req.user.id },
+                include: [
+                    {
+                        model: Milestone,
+                        as: 'milestones',
+                        include: [{ model: MilestoneTask, as: 'tasks' }]
+                    }
+                ],
+                order: [
+                    ['createdAt', 'DESC'],
+                    [{ model: Milestone, as: 'milestones' }, 'start_date', 'ASC'],
+                    [{ model: Milestone, as: 'milestones' }, { model: MilestoneTask, as: 'tasks' }, 'date', 'ASC']
+                ]
+            });
+        }
+
         res.status(200).json(challenges);
     } catch (error) {
         console.error('Error fetching challenges:', error);
@@ -333,7 +366,7 @@ exports.getChallenges = async (req, res) => {
 
 exports.getChallenge = async (req, res) => {
     try {
-        const challenge = await Challenge.findOne({
+        let challenge = await Challenge.findOne({
             where: { id: req.params.id, user_id: req.user.id },
             include: [
                 { 
@@ -350,6 +383,24 @@ exports.getChallenge = async (req, res) => {
 
         if (!challenge) {
             return res.status(404).json({ message: 'Challenge not found' });
+        }
+
+        const { applied } = await autoAdjustChallengeSchedule(challenge);
+        if (applied) {
+            challenge = await Challenge.findOne({
+                where: { id: req.params.id, user_id: req.user.id },
+                include: [
+                    { 
+                        model: Milestone, 
+                        as: 'milestones',
+                        include: [{ model: MilestoneTask, as: 'tasks' }]
+                    }
+                ],
+                order: [
+                    [{ model: Milestone, as: 'milestones' }, 'start_date', 'ASC'],
+                    [{ model: Milestone, as: 'milestones' }, { model: MilestoneTask, as: 'tasks' }, 'date', 'ASC']
+                ]
+            });
         }
 
         res.status(200).json(challenge);

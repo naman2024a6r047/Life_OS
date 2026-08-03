@@ -8,6 +8,7 @@ export default function Settings() {
   const { user, setUser } = useContext(AuthContext);
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar_url || '');
   const [bio, setBio] = useState(user?.bio || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState(null);
   const [previewError, setPreviewError] = useState(false);
@@ -17,6 +18,7 @@ export default function Settings() {
     setStatus(null);
     try {
       const res = await axios.put('/api/auth/profile', {
+        username: username.trim() || undefined,
         avatar_url: avatarUrl.trim() || null,
         bio: bio.trim() || null,
       });
@@ -24,7 +26,7 @@ export default function Settings() {
       setStatus('success');
     } catch (err) {
       console.error(err);
-      setStatus('error');
+      setStatus(err.response?.data?.message || 'error');
     } finally {
       setSaving(false);
       setTimeout(() => setStatus(null), 3000);
@@ -134,8 +136,17 @@ export default function Settings() {
       <div className="card p-6 space-y-4">
         <h2 className="text-sm font-bold text-text-primary">Account Info</h2>
         <div className="grid grid-cols-2 gap-4">
+          <div className="p-3 rounded-lg bg-surface-elevated border border-border-subtle focus-within:border-primary/50 transition-colors">
+            <p className="text-[10px] text-text-muted uppercase tracking-wider mb-1">Username</p>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Your Username"
+              className="w-full bg-transparent text-sm font-bold text-text-primary focus:outline-none"
+            />
+          </div>
           {[
-            { label: 'Username', value: user?.username || '—' },
             { label: 'Email', value: user?.email || '—', cls: 'truncate' },
             { label: 'Level', value: `Lv. ${user?.level || 1}`, cls: 'text-primary' },
             { label: 'Total XP', value: `${(user?.xp || 0).toLocaleString()} XP`, cls: 'text-primary' },
@@ -155,9 +166,9 @@ export default function Settings() {
             <FiCheck size={16} /> Saved successfully!
           </span>
         )}
-        {status === 'error' && (
+        {status && status !== 'success' && (
           <span className="flex items-center gap-2 text-danger text-sm font-semibold">
-            <FiAlertCircle size={16} /> Failed to save.
+            <FiAlertCircle size={16} /> {status === 'error' ? 'Failed to save.' : status}
           </span>
         )}
         <button

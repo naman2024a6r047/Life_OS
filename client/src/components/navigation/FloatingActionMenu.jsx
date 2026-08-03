@@ -8,9 +8,9 @@ export default function FloatingActionMenu() {
     const navigate = useNavigate();
 
     const actions = [
-        { id: 'goal', label: 'New Goal Sprint', icon: <FiTarget className="text-indigo-400" />, action: () => { navigate('/challenges/new'); setIsOpen(false); } },
+        { id: 'goal', label: 'New Goal Sprint', icon: <FiTarget className="text-primary" />, action: () => { navigate('/challenges/new'); setIsOpen(false); } },
         { id: 'gym', label: 'Log Gym Session', icon: <FiActivity className="text-rose-400" />, action: () => { navigate('/gym'); setIsOpen(false); } },
-        { id: 'dev', label: 'Log Coding Uptime', icon: <FiTerminal className="text-emerald-400" />, action: () => { navigate('/dev'); setIsOpen(false); } },
+        { id: 'dev', label: 'Log Coding Uptime', icon: <FiTerminal className="text-success" />, action: () => { navigate('/dev'); setIsOpen(false); } },
         { id: 'study', label: 'Exam Focus Mode', icon: <FiBookOpen className="text-cyan-400" />, action: () => { navigate('/exams'); setIsOpen(false); } },
     ];
 
@@ -29,10 +29,10 @@ export default function FloatingActionMenu() {
                             <button
                                 key={act.id}
                                 onClick={act.action}
-                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl glass-panel border border-white/10 text-xs font-semibold text-slate-200 hover:text-white shadow-xl hover:border-indigo-500/40 transition-all transform hover:scale-105"
+                                className="flex items-center gap-3 px-4 py-2.5 rounded-xl card border border-white/10 text-xs font-semibold text-text-primary hover:text-text-primary shadow-xl hover:border-primary/40 transition-all transform hover:scale-105"
                             >
                                 <span>{act.label}</span>
-                                <div className="w-7 h-7 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center">
+                                <div className="w-7 h-7 rounded-lg bg-surface/5 border border-white/10 flex items-center justify-center">
                                     {act.icon}
                                 </div>
                             </button>
@@ -43,7 +43,7 @@ export default function FloatingActionMenu() {
 
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className={`w-14 h-14 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-600 text-white flex items-center justify-center shadow-2xl shadow-indigo-500/30 hover:scale-105 transition-all ${isOpen ? 'rotate-45' : ''}`}
+                className={`w-14 h-14 rounded-2xl bg-primary text-background flex items-center justify-center shadow-2xl shadow-primary/30 hover:scale-105 transition-all ${isOpen ? 'rotate-45' : ''}`}
                 title="Quick Create Menu"
             >
                 {isOpen ? <FiX size={24} /> : <FiPlus size={24} />}

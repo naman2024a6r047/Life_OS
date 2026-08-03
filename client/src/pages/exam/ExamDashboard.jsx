@@ -92,17 +92,17 @@ export default function ExamDashboard() {
         }
     };
 
-    if (loading) return <div className="min-h-screen bg-[#090A0F] text-white flex items-center justify-center">Loading Exam Shield...</div>;
+    if (loading) return <div className="w-full flex items-center justify-center min-h-[60vh] text-text-primary">Loading Exam Shield...</div>;
 
     if (!examData) {
         return (
-            <div className="min-h-screen bg-[#090A0F] text-white flex flex-col items-center justify-center p-8">
+            <div className="w-full flex flex-col items-center justify-center min-h-[60vh] p-8 text-text-primary">
                 <FiShield className="w-24 h-24 text-accent mb-6" />
                 <h1 className="text-4xl font-bold mb-4">Exam Mode Error</h1>
                 <p className="text-textSecondary mb-8 text-center max-w-md">
                     You are in Exam Mode, but we couldn't load your active session data. 
                 </p>
-                <button onClick={handleDeactivate} className="px-6 py-3 bg-white/10 hover:bg-white/20 rounded-xl transition-colors font-medium flex items-center gap-2">
+                <button onClick={handleDeactivate} className="px-6 py-3 bg-surface/10 hover:bg-surface/20 rounded-xl transition-colors font-medium flex items-center gap-2">
                     <FiXCircle /> Force Exit Exam Mode
                 </button>
             </div>
@@ -112,7 +112,7 @@ export default function ExamDashboard() {
     const daysRemaining = dayjs(examData.end_date).diff(dayjs(), 'day');
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-white font-sans relative overflow-hidden">
+        <div className="w-full relative overflow-hidden text-text-primary font-sans">
             {/* Ambient Background Glows */}
             <div className="ambient-glow top-[-10%] left-[-10%] w-[500px] h-[500px] bg-cyan-600/10"></div>
             <div className="ambient-glow bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-blue-600/10"></div>
@@ -126,32 +126,32 @@ export default function ExamDashboard() {
                     <div className="flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide pb-1 w-full md:w-auto">
                         <button 
                             onClick={() => setActiveTab('dashboard')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'dashboard' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/5 hover:bg-white/10 text-slate-300'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'dashboard' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-surface/5 hover:bg-surface/10 text-text-primary'}`}
                         >
                             Dashboard
                         </button>
                         <button 
                             onClick={() => setActiveTab('planner')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'planner' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/5 hover:bg-white/10 text-slate-300'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'planner' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-surface/5 hover:bg-surface/10 text-text-primary'}`}
                         >
                             Planner
                         </button>
                         <button 
                             onClick={() => setActiveTab('focus')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'focus' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/5 hover:bg-white/10 text-slate-300'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${activeTab === 'focus' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-surface/5 hover:bg-surface/10 text-text-primary'}`}
                         >
                             Focus Mode
                         </button>
                         <button 
                             onClick={() => setActiveTab('analytics')}
-                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${activeTab === 'analytics' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-white/5 hover:bg-white/10 text-slate-300'}`}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${activeTab === 'analytics' ? 'bg-cyan-500/20 text-cyan-300' : 'bg-surface/5 hover:bg-surface/10 text-text-primary'}`}
                         >
                             <FiBarChart2 /> Analytics
                         </button>
                         
                         <button 
                             onClick={() => setShowNewExamModal(true)}
-                            className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-lg text-sm transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-1.5 ml-1"
+                            className="px-4 py-2 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-text-primary font-bold rounded-lg text-sm transition-all shadow-lg shadow-cyan-600/20 flex items-center gap-1.5 ml-1"
                         >
                             <FiPlus /> New Exam
                         </button>
@@ -169,7 +169,7 @@ export default function ExamDashboard() {
                         {/* Header & Countdown */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-12 gap-6">
                             <div>
-                                <h1 className="text-4xl font-bold mb-2 text-slate-100 flex items-center gap-3">
+                                <h1 className="text-4xl font-bold mb-2 text-text-muted flex items-center gap-3">
                                     Focus on {examData.reason}
                                     <button 
                                         onClick={() => setShowNewExamModal(true)} 
@@ -178,9 +178,9 @@ export default function ExamDashboard() {
                                         <FiPlus /> New Exam
                                     </button>
                                 </h1>
-                                <p className="text-slate-400 text-lg">All your LifeOS goals and streaks are safely frozen.</p>
+                                <p className="text-text-muted text-lg">All your LifeOS goals and streaks are safely frozen.</p>
                             </div>
-                            <div className="glass-panel px-8 py-6 rounded-2xl flex flex-col items-center border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                            <div className="card px-8 py-6 rounded-2xl flex flex-col items-center border border-cyan-500/20 shadow-[0_0_30px_rgba(6,182,212,0.1)]">
                                 <span className="text-cyan-400/80 text-sm font-bold uppercase tracking-widest mb-1">Days Remaining</span>
                                 <div className="text-6xl font-black text-cyan-400 drop-shadow-[0_0_15px_rgba(6,182,212,0.5)]">{daysRemaining}</div>
                             </div>
@@ -189,32 +189,32 @@ export default function ExamDashboard() {
                         {/* Dashboard Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
                             <div className="glass-card p-6 rounded-2xl">
-                                <div className="flex items-center gap-3 mb-4 text-slate-400">
-                                    <FiClock className="w-5 h-5 text-indigo-400" />
+                                <div className="flex items-center gap-3 mb-4 text-text-muted">
+                                    <FiClock className="w-5 h-5 text-primary" />
                                     <h3 className="font-semibold uppercase tracking-wider text-xs">Total Study Hours</h3>
                                 </div>
-                                <p className="text-3xl font-extrabold">{examData.total_study_hours?.toFixed(1) || '0.0'} <span className="text-sm font-medium text-slate-500">hrs</span></p>
+                                <p className="text-3xl font-extrabold">{examData.total_study_hours?.toFixed(1) || '0.0'} <span className="text-sm font-medium text-text-muted">hrs</span></p>
                             </div>
                             <div className="glass-card p-6 rounded-2xl">
-                                <div className="flex items-center gap-3 mb-4 text-slate-400">
-                                    <FiTarget className="w-5 h-5 text-emerald-400" />
+                                <div className="flex items-center gap-3 mb-4 text-text-muted">
+                                    <FiTarget className="w-5 h-5 text-success" />
                                     <h3 className="font-semibold uppercase tracking-wider text-xs">Topics Mastered</h3>
                                 </div>
-                                <p className="text-3xl font-extrabold">{examData.completed_topics || 0} <span className="text-sm font-medium text-slate-500">/ {examData.total_topics || 0}</span></p>
+                                <p className="text-3xl font-extrabold">{examData.completed_topics || 0} <span className="text-sm font-medium text-text-muted">/ {examData.total_topics || 0}</span></p>
                             </div>
                             <div className="glass-card p-6 rounded-2xl">
-                                <div className="flex items-center gap-3 mb-4 text-slate-400">
+                                <div className="flex items-center gap-3 mb-4 text-text-muted">
                                     <FiBook className="w-5 h-5 text-rose-400" />
                                     <h3 className="font-semibold uppercase tracking-wider text-xs">Subjects</h3>
                                 </div>
-                                <p className="text-3xl font-extrabold">{examData.subjects?.length || 0} <span className="text-sm font-medium text-slate-500">tracked</span></p>
+                                <p className="text-3xl font-extrabold">{examData.subjects?.length || 0} <span className="text-sm font-medium text-text-muted">tracked</span></p>
                             </div>
                             <div className="glass-card p-6 rounded-2xl">
-                                <div className="flex items-center gap-3 mb-4 text-slate-400">
+                                <div className="flex items-center gap-3 mb-4 text-text-muted">
                                     <FiCalendar className="w-5 h-5 text-cyan-400" />
                                     <h3 className="font-semibold uppercase tracking-wider text-xs">Overall Progress</h3>
                                 </div>
-                                <p className="text-3xl font-extrabold text-slate-100">{examData.completion_percentage || 0}<span className="text-lg text-slate-500">%</span></p>
+                                <p className="text-3xl font-extrabold text-text-muted">{examData.completion_percentage || 0}<span className="text-lg text-text-muted">%</span></p>
                             </div>
                         </div>
 
@@ -229,18 +229,18 @@ export default function ExamDashboard() {
                             {examData.subjects?.length > 0 ? examData.subjects.map(subject => (
                                 <div key={subject.id} className="glass-card p-6 rounded-2xl group hover:border-cyan-500/30 transition-all cursor-pointer" onClick={() => setActiveTab('planner')}>
                                     <div className="flex justify-between items-center mb-4">
-                                        <h3 className="text-xl font-bold text-slate-100">{subject.name}</h3>
+                                        <h3 className="text-xl font-bold text-text-muted">{subject.name}</h3>
                                         <span className="text-cyan-400 font-bold bg-cyan-500/10 px-2 py-1 rounded-md text-sm">{subject.progress_percentage}%</span>
                                     </div>
-                                    <div className="h-2 w-full bg-slate-800 rounded-full overflow-hidden mb-6">
+                                    <div className="h-2 w-full bg-surface-elevated rounded-full overflow-hidden mb-6">
                                         <div className="h-full bg-gradient-to-r from-cyan-500 to-blue-500 transition-all duration-1000" style={{ width: `${subject.progress_percentage}%` }}></div>
                                     </div>
                                 </div>
                             )) : (
-                                <div className="col-span-2 text-center py-16 glass-card rounded-2xl border-dashed border-slate-700 text-slate-400">
-                                    <FiBook className="w-12 h-12 mx-auto mb-4 text-slate-600" />
+                                <div className="col-span-2 text-center py-16 glass-card rounded-2xl border-dashed border-border-subtle text-text-muted">
+                                    <FiBook className="w-12 h-12 mx-auto mb-4 text-text-muted" />
                                     <p className="mb-4">No subjects added yet.</p>
-                                    <button onClick={() => setActiveTab('planner')} className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg transition-colors">
+                                    <button onClick={() => setActiveTab('planner')} className="px-6 py-2 bg-cyan-600 hover:bg-cyan-500 text-text-primary font-bold rounded-lg transition-colors">
                                         Set Up Date Sheet
                                     </button>
                                 </div>
@@ -259,10 +259,10 @@ export default function ExamDashboard() {
             {/* New Exam Session Modal */}
             {showNewExamModal && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="glass-panel max-w-lg w-full p-8 rounded-3xl border border-slate-700 shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
+                    <div className="card max-w-lg w-full p-8 rounded-3xl border border-border-subtle shadow-2xl relative animate-in fade-in zoom-in-95 duration-200">
                         <button 
                             onClick={() => setShowNewExamModal(false)}
-                            className="absolute top-6 right-6 text-slate-400 hover:text-white text-xl"
+                            className="absolute top-6 right-6 text-text-muted hover:text-text-primary text-xl"
                         >
                             <FiXCircle />
                         </button>
@@ -270,17 +270,17 @@ export default function ExamDashboard() {
                         <div className="flex items-center gap-3 text-cyan-400 font-bold mb-2">
                             <FiShield className="w-6 h-6" /> Start New Exam Prep
                         </div>
-                        <h2 className="text-2xl font-bold mb-6 text-white">Configure Your New Exam</h2>
+                        <h2 className="text-2xl font-bold mb-6 text-text-primary">Configure Your New Exam</h2>
 
                         <form onSubmit={handleCreateNewExam} className="space-y-5">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
                                     Exam Name / Goal Reason
                                 </label>
                                 <input 
                                     type="text" 
                                     placeholder="e.g., Semester Finals 2026, GATE / GRE Prep" 
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                    className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-cyan-500"
                                     value={newExamForm.reason}
                                     onChange={(e) => setNewExamForm({ ...newExamForm, reason: e.target.value })}
                                     required
@@ -288,11 +288,11 @@ export default function ExamDashboard() {
                             </div>
 
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
                                     Exam Category
                                 </label>
                                 <select 
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                    className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-cyan-500"
                                     value={newExamForm.exam_type}
                                     onChange={(e) => setNewExamForm({ ...newExamForm, exam_type: e.target.value })}
                                 >
@@ -305,23 +305,23 @@ export default function ExamDashboard() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
                                         Start Date
                                     </label>
                                     <input 
                                         type="date" 
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-cyan-500"
                                         value={newExamForm.start_date}
                                         onChange={(e) => setNewExamForm({ ...newExamForm, start_date: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-2">
                                         End Date
                                     </label>
                                     <input 
                                         type="date" 
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-cyan-500"
                                         value={newExamForm.end_date}
                                         onChange={(e) => setNewExamForm({ ...newExamForm, end_date: e.target.value })}
                                     />
@@ -332,14 +332,14 @@ export default function ExamDashboard() {
                                 <button 
                                     type="button" 
                                     onClick={() => setShowNewExamModal(false)}
-                                    className="px-5 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-sm font-semibold transition"
+                                    className="px-5 py-3 rounded-xl border border-border-subtle hover:bg-surface-elevated text-text-primary text-sm font-semibold transition"
                                 >
                                     Cancel
                                 </button>
                                 <button 
                                     type="submit" 
                                     disabled={submittingNewExam}
-                                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white font-bold rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-cyan-600/20 disabled:opacity-50"
+                                    className="px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-text-primary font-bold rounded-xl text-sm transition flex items-center gap-2 shadow-lg shadow-cyan-600/20 disabled:opacity-50"
                                 >
                                     <FiPlus /> {submittingNewExam ? 'Starting...' : 'Start New Exam'}
                                 </button>

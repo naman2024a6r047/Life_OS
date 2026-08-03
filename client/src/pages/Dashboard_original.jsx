@@ -22,41 +22,36 @@ function StatCard({ icon, label, value, sub, color = 'primary' }) {
     purple: 'text-purple bg-purple/10',
   };
   return (
-    <div className="card p-4 flex flex-col justify-between h-full">
-      <div className="flex items-start justify-between mb-2">
-        <div className="text-text-secondary text-sm font-medium">{label}</div>
-        <div className={`w-8 h-8 rounded flex items-center justify-center ${colorMap[color]}`}>{icon}</div>
+    <div className="stat-card">
+      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${colorMap[color]}`}>
+        {icon}
       </div>
       <div>
-        <div className="text-2xl font-bold font-mono text-text-primary">{value}</div>
-        {sub && <div className="text-[10px] text-text-muted mt-1">{sub}</div>}
+        <p className="text-[11px] text-text-muted font-medium">{label}</p>
+        <p className="text-lg font-bold font-mono text-text-primary">{value}</p>
+        {sub && <p className="text-[10px] text-text-muted">{sub}</p>}
       </div>
     </div>
   );
 }
 
 function LifeScoreCircle({ score }) {
-  const radius = 28;
+  const radius = 38;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
-  const color = score >= 80 ? '#92F13B' : score >= 60 ? '#F59E0B' : '#EF4444';
+  const color = score >= 80 ? '#22C55E' : score >= 60 ? '#F59E0B' : '#EF4444';
 
   return (
-    <div className="card p-4 flex items-center gap-4 col-span-2 md:col-span-1 border-primary/30 shadow-glow-primary bg-primary/5 h-full">
-      <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
-        <svg className="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r={radius} stroke="#1F2332" strokeWidth="4" fill="none" />
-          <circle cx="32" cy="32" r={radius} stroke={color} strokeWidth="4" fill="none"
-            strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
-            className="transition-all duration-1000 ease-out" />
-        </svg>
-        <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-xl font-extrabold font-mono text-text-primary">{score}</span>
-        </div>
-      </div>
-      <div>
-        <div className="text-xs text-text-secondary mb-0.5">Life Score</div>
-        <div className="text-[10px] text-text-muted mt-1">Keep going!</div>
+    <div className="relative w-24 h-24 flex items-center justify-center">
+      <svg className="w-24 h-24 -rotate-90" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r={radius} stroke="#1C2039" strokeWidth="6" fill="none" />
+        <circle cx="48" cy="48" r={radius} stroke={color} strokeWidth="6" fill="none"
+          strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round"
+          className="transition-all duration-1000 ease-out" />
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-2xl font-extrabold font-mono text-text-primary">{score}</span>
+        <span className="text-[9px] text-text-muted font-medium">/100</span>
       </div>
     </div>
   );
@@ -112,18 +107,18 @@ function ActivityHeatmap({ heatmapData = [] }) {
         
         const intensity = countMap[dateStr] || 0;
         
-        // Match the green neon theme
-        let color = 'bg-surface-elevated border border-border-subtle';
-        if (intensity >= 4) color = 'bg-primary shadow-glow-primary';
-        else if (intensity >= 3) color = 'bg-primary/80';
-        else if (intensity >= 2) color = 'bg-primary/60';
-        else if (intensity === 1) color = 'bg-primary/30';
+        // GitHub Dark Mode Greens
+        let color = 'bg-[#161b22] border border-[rgba(255,255,255,0.05)]';
+        if (intensity >= 4) color = 'bg-[#39d353]';
+        else if (intensity >= 3) color = 'bg-[#26a641]';
+        else if (intensity >= 2) color = 'bg-[#006d32]';
+        else if (intensity === 1) color = 'bg-[#0e4429]';
         
         const title = intensity === 0 ? `No activity on ${dateStr}` : `${intensity} activities on ${dateStr}`;
         // Hide future dates
         const isFuture = cellDate > today;
         if (isFuture) {
-           color = 'bg-transparent border-transparent';
+           color = 'bg-transparent';
         }
 
         result.push({ week, day, color, title, isFuture });
@@ -133,19 +128,19 @@ function ActivityHeatmap({ heatmapData = [] }) {
   }, [heatmapData, view]);
 
   return (
-    <div className="card p-4 relative h-full flex flex-col justify-between">
+    <div className="card p-4 relative">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-medium text-text-secondary">Activity Heatmap</h3>
+        <h3 className="section-title !mb-0">Activity Heatmap</h3>
         <select 
           value={view}
           onChange={(e) => setView(e.target.value)}
-          className="bg-surface text-text-muted text-[10px] font-bold px-2 py-1 rounded-md border border-border-subtle outline-none focus:border-primary cursor-pointer"
+          className="bg-surface-elevated text-text-primary text-[10px] font-bold px-2 py-1 rounded-md border border-border-subtle outline-none focus:border-primary cursor-pointer"
         >
-          <option value="yearly">Yearly</option>
-          <option value="monthly">Monthly</option>
+          <option value="yearly">Yearly (52 weeks)</option>
+          <option value="monthly">Monthly (5 weeks)</option>
         </select>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 no-scrollbar relative flex-1">
+      <div className="flex gap-3 overflow-x-auto pb-2 custom-scrollbar relative">
         <div className="flex flex-col gap-[3px] pt-[20px] flex-shrink-0">
           {days.map((d, i) => (
             <div key={i} className="h-[12px] text-[9px] text-text-muted font-mono flex items-center">{d}</div>
@@ -167,21 +162,22 @@ function ActivityHeatmap({ heatmapData = [] }) {
                     setHoverInfo({ title: cell.title, top: rect.top - 35, left: rect.left + rect.width / 2 });
                   }
                 }}
-                className={`w-[12px] h-[12px] rounded-[2px] transition-all ${cell.isFuture ? '' : 'cursor-pointer hover:ring-1 hover:ring-primary hover:z-10 relative'} ${cell.color}`} 
+                className={`w-[12px] h-[12px] rounded-[2px] transition-all ${cell.isFuture ? '' : 'cursor-pointer hover:ring-1 hover:ring-white/60 hover:z-10 relative'} ${cell.color}`} 
               />
             ))}
           </div>
         </div>
       </div>
-      <p className="text-[10px] text-text-muted mt-3 italic text-center">"Consistency is the key to mastery."</p>
+      <p className="text-[10px] text-text-muted mt-3 italic">"Consistency is the key to mastery."</p>
 
       {hoverInfo && (
         <div 
-          className="fixed z-50 px-2.5 py-1.5 bg-surface text-text-primary text-[11px] font-medium rounded shadow-xl border border-border-subtle pointer-events-none transform -translate-x-1/2 whitespace-nowrap"
+          className="fixed z-50 px-2.5 py-1.5 bg-surface-elevated text-text-primary text-[11px] font-medium rounded shadow-xl border border-border-subtle pointer-events-none transform -translate-x-1/2 whitespace-nowrap"
           style={{ top: hoverInfo.top, left: hoverInfo.left }}
         >
           {hoverInfo.title}
-          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-surface"></div>
+          {/* Tooltip triangle pointer */}
+          <div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-800"></div>
         </div>
       )}
     </div>
@@ -194,29 +190,29 @@ function ActivityTrend({ trendData = [] }) {
   ];
   
   return (
-    <div className="card p-4 h-full flex flex-col justify-between">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-medium text-text-secondary">Activity XP Trend</h3>
-        <span className="text-[10px] font-medium text-text-muted bg-surface-elevated px-2 py-1 rounded border border-border-subtle">Daily</span>
+    <div className="card p-4">
+      <div className="section-header">
+        <h3 className="section-title">Activity XP Trend</h3>
+        <span className="text-[10px] font-medium text-text-muted bg-surface-elevated px-2 py-1 rounded">Daily</span>
       </div>
-      <div className="h-36 mt-4 -ml-4 flex-1">
+      <div className="h-36 mt-4 -ml-4">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="colorXp" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="#92F13B" stopOpacity={0.3}/>
-                <stop offset="95%" stopColor="#92F13B" stopOpacity={0}/>
+                <stop offset="5%" stopColor="#6366F1" stopOpacity={0.3}/>
+                <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
             <XAxis dataKey="date" stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => v.slice(-2)} />
             <YAxis stroke="#64748B" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
             <Tooltip 
-              contentStyle={{ backgroundColor: '#11131A', borderColor: '#1F2332', borderRadius: '8px', fontSize: '12px', color: '#F1F5F9' }}
-              itemStyle={{ color: '#92F13B' }}
+              contentStyle={{ backgroundColor: '#161A2E', borderColor: 'rgba(255,255,255,0.08)', borderRadius: '8px', fontSize: '12px', color: '#F1F5F9' }}
+              itemStyle={{ color: '#818CF8' }}
               labelStyle={{ color: '#64748B', marginBottom: '4px' }}
             />
-            <Area type="monotone" dataKey="xp" stroke="#92F13B" strokeWidth={3} fillOpacity={1} fill="url(#colorXp)" />
+            <Area type="monotone" dataKey="xp" stroke="#6366F1" strokeWidth={3} fillOpacity={1} fill="url(#colorXp)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -226,7 +222,7 @@ function ActivityTrend({ trendData = [] }) {
 
 function XPBreakdown({ xp, breakdown = [] }) {
   const defaultSegments = [
-    { label: 'Challenges', pct: 0, color: '#92F13B' },
+    { label: 'Challenges', pct: 0, color: '#6366F1' },
     { label: 'Study', pct: 0, color: '#06B6D4' },
     { label: 'Fitness', pct: 0, color: '#22C55E' },
     { label: 'Coding', pct: 0, color: '#F59E0B' },
@@ -239,8 +235,8 @@ function XPBreakdown({ xp, breakdown = [] }) {
 
   return (
     <div className="card p-4">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-sm font-medium text-text-secondary">XP Breakdown</h3>
+      <div className="section-header">
+        <h3 className="section-title">XP Breakdown</h3>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative w-24 h-24 flex-shrink-0">
@@ -261,7 +257,7 @@ function XPBreakdown({ xp, breakdown = [] }) {
             <span className="text-[8px] text-text-muted">Total XP</span>
           </div>
         </div>
-        <div className="space-y-1.5 flex-1">
+        <div className="space-y-1.5">
           {segments.map((seg, i) => (
             <div key={i} className="flex items-center gap-2 text-[11px]">
               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: seg.color }} />
@@ -320,6 +316,7 @@ export default function Dashboard() {
       }
     };
     fetchData();
+    // Refresh user profile so header shows latest level/xp/streak from DB
     refreshUser();
   }, []);
 
@@ -349,33 +346,59 @@ export default function Dashboard() {
   const todayDayIndex = (new Date().getDay() + 6) % 7;
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="p-4 md:p-6 pb-24 md:pb-6 max-w-[1600px] mx-auto space-y-6"
-    >
-      {/* Hero Banner */}
-      <div className="card relative h-48 md:h-56 rounded-xl overflow-hidden flex flex-col justify-center p-6 md:p-10 bg-gradient-to-r from-surface to-background border-primary/20 shadow-glow-primary">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1579546929518-9e396f3cc809?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-10 mix-blend-overlay"></div>
-        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-transparent"></div>
-        
-        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center w-full h-full gap-4">
-          <div>
-            <h2 className="text-2xl md:text-4xl font-extrabold text-text-primary flex items-center gap-2">
-              {greeting}, {user?.username || 'Warrior'}! <span className="text-primary text-2xl md:text-4xl">&raquo;</span>
-            </h2>
-            <p className="text-text-secondary mt-2 text-sm md:text-base">Discipline today, <span className="text-primary font-medium">Freedom</span> tomorrow.</p>
+    <div className="p-4 md:p-6 space-y-5 min-h-screen">
+      {/* Page Header */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl font-bold text-text-primary flex items-center gap-2">
+            {greeting}, {user?.username || 'Warrior'}! 👋
+          </h1>
+          <p className="text-xs text-text-muted mt-0.5">"Discipline today, freedom tomorrow."</p>
+        </div>
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="flex items-center gap-1.5">
+            <span className="text-lg">🔥</span>
+            <div>
+              <p className="text-sm font-bold font-mono text-text-primary">{streak}</p>
+              <p className="text-[9px] text-text-muted">Day Streak</p>
+            </div>
           </div>
-          <div className="text-left md:text-right max-w-xs mt-auto md:mt-0">
-            <p className="text-text-secondary italic text-sm md:text-base">"Small steps.<br/>Big Systems."</p>
-            <p className="text-text-muted text-xs mt-1">— LifeOS</p>
+          <div className="flex items-center gap-1.5">
+            <span className="text-lg">⭐</span>
+            <div>
+              <p className="text-sm font-bold font-mono text-text-primary">{totalXP + (currentLevel - 1) * 100}</p>
+              <p className="text-[9px] text-text-muted">Total XP</p>
+            </div>
+          </div>
+          <Link to="/notifications" className="relative p-2 rounded-xl bg-surface hover:bg-surface-elevated border border-border-subtle text-text-muted hover:text-primary transition-colors ml-2">
+            <FiBell size={18} />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-danger text-text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+                {unreadCount}
+              </span>
+            )}
+          </Link>
+          <div className="flex items-center gap-2 ml-2 card px-3 py-2">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-purple flex items-center justify-center">
+              <span className="text-text-primary text-xs font-bold">{(user?.username || 'U')[0].toUpperCase()}</span>
+            </div>
+            <div>
+              <p className="text-xs font-bold text-text-primary">Level {currentLevel}</p>
+              <p className="text-[9px] text-text-muted">Pro Builder</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Top Stats Row */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-        <LifeScoreCircle score={analytics?.lifeScore || 0} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+        <div className="stat-card">
+          <LifeScoreCircle score={analytics?.lifeScore || 0} />
+          <div>
+            <p className="text-[11px] text-text-muted">Life Score</p>
+            <p className="text-xs text-success font-medium">Keep going!</p>
+          </div>
+        </div>
         <StatCard icon={<FiTarget size={18} />} label="Active Challenges" value={analytics?.activeGoals || 0} sub="Keep it up!" color="primary" />
         <StatCard icon={<FiCheckSquare size={18} />} label="Tasks Completed" value={`${analytics?.completedTasks || 0} / ${analytics?.totalTasks || 0}`} sub="All Time" color="success" />
         <StatCard icon={<FiClock size={18} />} label="Focus Hours" value={dashStats?.focusHours || '0'} sub="Recorded" color="info" />
@@ -383,60 +406,60 @@ export default function Dashboard() {
       </div>
 
       {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left 8 columns */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="lg:col-span-8 space-y-4">
           {/* Today's Challenge + Today's Progress */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Today's Challenge */}
             <div className="card p-4">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-medium text-text-secondary">Today's Challenge</h3>
-                <Link to="/challenges" className="text-xs text-text-muted hover:text-primary transition-colors flex items-center gap-1">View All <FiArrowRight /></Link>
+              <div className="section-header">
+                <h3 className="section-title">Today's Challenge</h3>
+                <Link to="/challenges" className="section-link">View All</Link>
               </div>
               {activeChallenge ? (
                 <>
-                  <p className="text-sm font-bold text-primary mb-1">{activeChallenge.title}</p>
+                  <p className="text-sm font-bold text-warning mb-1">{activeChallenge.title}</p>
                   <p className="text-[11px] text-text-muted mb-3">
                     Day {completedTasks + 1} / {activeChallenge.end_date ? Math.ceil((new Date(activeChallenge.end_date) - new Date(activeChallenge.start_date)) / 86400000) : 100}
                   </p>
                   {todayTask && (
-                    <div className="flex items-start gap-3 p-3 rounded-lg bg-surface-elevated border border-border-subtle">
-                      <div className="w-4 h-4 rounded-full border border-text-muted flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-surface-elevated">
+                      <div className="w-5 h-5 rounded-full border-2 border-text-muted flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <p className="text-sm font-semibold text-text-primary">{todayTask.title}</p>
                         <p className="text-[10px] text-text-muted mt-0.5">{todayTask.description || 'Complete this task to earn XP'}</p>
                       </div>
-                      <span className="text-[9px] font-mono border border-primary/20 text-primary px-1.5 py-0.5 rounded bg-primary/5">50 XP</span>
+                      <span className="badge-warning text-[10px] flex-shrink-0">50 XP</span>
                     </div>
                   )}
-                  <p className="text-[10px] text-text-muted mt-3 flex items-center gap-1 italic">
+                  <p className="text-[10px] text-text-muted mt-3 flex items-center gap-1">
                     <FiCheckSquare size={10} /> You can complete only ONE task per day. Choose wisely!
                   </p>
                 </>
               ) : (
                 <div className="text-center py-6">
-                  <p className="text-text-muted text-sm mb-4">No active challenges</p>
-                  <Link to="/challenges/new" className="text-xs inline-block bg-primary text-background px-4 py-2 rounded-md font-bold">Create One</Link>
+                  <p className="text-text-muted text-sm">No active challenges</p>
+                  <Link to="/challenges/new" className="btn-primary text-xs mt-3 inline-block">Create One</Link>
                 </div>
               )}
             </div>
 
             {/* Today's Progress */}
-            <div className="card p-4 flex flex-col">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-sm font-medium text-text-secondary">Today's Progress</h3>
-                <Link to="/challenges" className="text-xs text-text-muted hover:text-primary transition-colors flex items-center gap-1">View Plan <FiArrowRight /></Link>
+            <div className="card p-4">
+              <div className="section-header">
+                <h3 className="section-title">Today's Progress</h3>
+                <Link to="/challenges" className="section-link">View Plan</Link>
               </div>
               {/* Weekly Calendar Dots */}
-              <div className="flex justify-between mb-auto">
+              <div className="flex justify-between mb-4">
                 {weekDays.map((day, i) => (
                   <div key={i} className="flex flex-col items-center gap-1">
                     <span className="text-[9px] text-text-muted font-medium">{day}</span>
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors
-                      ${i < todayDayIndex ? 'bg-primary/20 text-primary border border-primary/30' : 
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold
+                      ${i < todayDayIndex ? 'bg-success/20 text-success' : 
                         i === todayDayIndex ? 'bg-primary text-background' : 
-                        'bg-surface-elevated text-text-muted border border-border-subtle'}`}>
+                        'bg-surface-elevated text-text-muted'}`}>
                       {i < todayDayIndex ? '✓' : i === todayDayIndex ? new Date().getDate() : '○'}
                     </div>
                   </div>
@@ -444,10 +467,10 @@ export default function Dashboard() {
               </div>
               {/* Next Milestone */}
               {activeMilestone && (
-                <div className="p-3 rounded-lg bg-surface-elevated border border-border-subtle mt-4">
+                <div className="p-3 rounded-lg bg-surface-elevated">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-6 h-6 rounded flex items-center justify-center bg-primary/20 text-primary">
-                      <FiTarget size={12} />
+                    <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                      <FiTarget size={12} className="text-primary" />
                     </div>
                     <div>
                       <p className="text-xs font-semibold text-text-primary">Next Milestone</p>
@@ -455,8 +478,8 @@ export default function Dashboard() {
                     </div>
                     <span className="ml-auto text-sm font-bold font-mono text-primary">{milestoneProgress}%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-background rounded-full overflow-hidden border border-border-subtle">
-                    <div className="h-full bg-primary" style={{ width: `${milestoneProgress}%` }} />
+                  <div className="progress-bar">
+                    <div className="progress-fill bg-primary" style={{ width: `${milestoneProgress}%` }} />
                   </div>
                 </div>
               )}
@@ -464,7 +487,7 @@ export default function Dashboard() {
           </div>
 
           {/* Module Quick Access Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
               { title: 'Exam Mode', sub: 'Focus Mode', value: 'Active', valueSub: 'Study Sessions', icon: <FiShield size={24} />, color: 'primary', btn: 'Enter Exam Mode', link: '/exams' },
               { title: 'Gym & Fitness', sub: 'Workouts', value: dashStats?.workouts || 0, valueSub: 'Total', icon: <FiActivity size={24} />, color: 'danger', btn: 'View Workout Plan', link: '/gym' },
@@ -472,14 +495,15 @@ export default function Dashboard() {
               { title: 'Study Tracker', sub: 'Study Hours', value: dashStats?.studyHours || '0', valueSub: 'Total', icon: <FiBookOpen size={24} />, color: 'info', btn: 'Start Studying', link: '/knowledge' },
             ].map((mod, i) => (
               <div key={i} className="card p-4 flex flex-col items-center text-center">
-                <div className={`w-10 h-10 rounded flex items-center justify-center mb-3 text-${mod.color} bg-${mod.color}/10`}>
+                <div className={`w-12 h-12 rounded-xl bg-${mod.color}/10 text-${mod.color} flex items-center justify-center mb-2`}>
                   {mod.icon}
                 </div>
                 <h4 className="text-xs font-bold text-text-primary">{mod.title}</h4>
                 <p className="text-[10px] text-text-muted">{mod.sub}</p>
                 <p className="text-xl font-extrabold font-mono text-text-primary mt-2">{mod.value}</p>
                 <p className="text-[10px] text-text-muted mb-3">{mod.valueSub}</p>
-                <Link to={mod.link} className="w-full mt-auto py-2 rounded-md text-xs font-semibold text-center transition-all bg-surface-elevated border border-border-subtle hover:border-primary/50 text-text-primary hover:text-primary">
+                <Link to={mod.link} className={`w-full py-2 rounded-lg text-xs font-semibold text-center transition-all
+                  bg-${mod.color}/20 text-${mod.color} hover:bg-${mod.color}/30`}>
                   {mod.btn}
                 </Link>
               </div>
@@ -494,28 +518,28 @@ export default function Dashboard() {
         </div>
 
         {/* Right 4 columns — Sidebar widgets */}
-        <div className="lg:col-span-4 space-y-6">
+        <div className="lg:col-span-4 space-y-4">
           {/* Accountability Partners */}
           <div className="card p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-text-secondary">Accountability Partners</h3>
-              <Link to="/friends" className="text-xs text-text-muted hover:text-primary transition-colors flex items-center gap-1">View All <FiArrowRight /></Link>
+            <div className="section-header">
+              <h3 className="section-title">Accountability Partners</h3>
+              <Link to="/friends" className="section-link">View All</Link>
             </div>
             {partners.length > 0 ? partners.map((partner, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b border-border-subtle last:border-0 hover:bg-surface-elevated transition-colors px-2 rounded-md -mx-2">
+              <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded bg-surface-elevated border border-border-subtle flex items-center justify-center text-primary text-xs font-bold">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-text-primary text-xs font-bold">
                     {partner.name[0]}
                   </div>
                   <div>
                     <p className="text-xs font-semibold text-text-primary">{partner.name}</p>
                     <div className="flex items-center gap-1">
-                      <div className={`w-1.5 h-1.5 rounded-full ${partner.status === 'Online' ? 'bg-primary' : 'bg-text-muted'}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full ${partner.status === 'Online' ? 'bg-success' : 'bg-text-muted'}`} />
                       <p className="text-[10px] text-text-muted">{partner.status === 'Online' ? 'Online' : partner.lastSeen ? `Last seen ${new Date(partner.lastSeen).toLocaleDateString()}` : 'Offline'}</p>
                     </div>
                   </div>
                 </div>
-                <Link to="/friends" className="border border-border-subtle hover:border-primary/50 hover:text-primary text-text-muted text-[10px] px-2 py-1 rounded transition-colors">Inspect</Link>
+                <Link to="/friends" className="btn-outline border-border-subtle text-text-muted text-[10px] px-3 py-1">Inspect</Link>
               </div>
             )) : (
               <p className="text-xs text-text-muted text-center py-4">No partners assigned yet.</p>
@@ -524,22 +548,22 @@ export default function Dashboard() {
 
           {/* Pending Inquiries */}
           <div className="card p-4 border-danger/30">
-            <div className="flex items-center justify-between mb-4">
+            <div className="section-header">
               <div className="flex items-center gap-2">
-                <h3 className="text-sm font-medium text-danger">Pending Inquiries</h3>
+                <h3 className="section-title text-red-500">Pending Inquiries</h3>
                 {inquiries.length > 0 && (
-                  <span className="w-4 h-4 rounded bg-danger text-background text-[10px] font-bold flex items-center justify-center">{inquiries.length}</span>
+                  <span className="w-5 h-5 rounded-full bg-red-500 text-text-primary text-[10px] font-bold flex items-center justify-center">{inquiries.length}</span>
                 )}
               </div>
             </div>
             {inquiries.length > 0 ? inquiries.map((inq, i) => (
-              <div key={i} className="flex items-start gap-2.5 py-2.5 border-b border-border-subtle last:border-0 bg-danger/5 px-2 rounded-lg mt-2">
-                <div className="w-6 h-6 rounded bg-danger/20 text-danger flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div key={i} className="flex items-start gap-2.5 py-2.5 border-b border-border-subtle last:border-0 bg-red-500/5 px-2 rounded-lg mt-2">
+                <div className="w-6 h-6 rounded-full bg-red-500/20 text-red-500 flex items-center justify-center flex-shrink-0 mt-0.5">
                   <FiEye size={10} />
                 </div>
                 <div>
                   <p className="text-[11px] text-text-primary">
-                    <span className="font-semibold">{inq.partner?.name || 'Partner'}</span> {inq.message}
+                    <span className="font-semibold text-text-primary">{inq.partner?.name || 'Partner'}</span> {inq.message}
                   </p>
                   <p className="text-[9px] text-text-muted">{new Date(inq.createdAt).toLocaleDateString()}</p>
                 </div>
@@ -547,7 +571,7 @@ export default function Dashboard() {
             )) : (
               <p className="text-xs text-text-muted text-center py-4">No pending inquiries.</p>
             )}
-            <Link to="/notifications" className="block mt-4 text-center text-xs font-semibold text-text-muted hover:text-primary border border-border-subtle hover:bg-surface-elevated transition-colors py-2 rounded-md">
+            <Link to="/notifications" className="block mt-3 text-center text-xs font-semibold text-primary-light hover:text-primary transition-colors py-2 rounded-lg bg-surface-elevated">
               View All Inquiries
             </Link>
           </div>
@@ -557,50 +581,50 @@ export default function Dashboard() {
 
           {/* Recent Achievements */}
           <div className="card p-4">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-sm font-medium text-text-secondary">Recent Achievements</h3>
-              <span className="text-xs text-text-muted hover:text-primary transition-colors cursor-pointer flex items-center gap-1">View All <FiArrowRight /></span>
+            <div className="section-header">
+              <h3 className="section-title">Recent Achievements</h3>
+              <span className="section-link">View All</span>
             </div>
             {achievements.length > 0 ? achievements.map((ach, i) => (
               <div key={i} className="flex items-center justify-between py-2.5 border-b border-border-subtle last:border-0">
                 <div className="flex items-center gap-2.5">
-                  <span className="text-lg w-8 h-8 rounded bg-surface-elevated flex items-center justify-center border border-border-subtle">{ach.icon || '🏆'}</span>
+                  <span className="text-lg">{ach.icon || '🏆'}</span>
                   <div>
                     <p className="text-xs font-semibold text-text-primary">{ach.title}</p>
                     <p className="text-[10px] text-text-muted">{ach.description}</p>
                   </div>
                 </div>
-                <span className="text-[10px] font-bold font-mono text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded">+{ach.xpAwarded} XP</span>
+                <span className="text-xs font-bold font-mono text-warning">+{ach.xpAwarded} XP</span>
               </div>
             )) : (
-              <p className="text-xs text-text-muted text-center py-4 italic">No recent achievements.</p>
+              <p className="text-xs text-text-muted text-center py-4">No recent achievements.</p>
             )}
           </div>
         </div>
       </div>
-      
+
       {/* Bottom XP Progress Bar */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="card p-4 flex flex-col md:flex-row items-start md:items-center gap-4 border-primary/20 shadow-glow-primary"
+        className="card p-4 flex flex-col md:flex-row items-start md:items-center gap-4"
       >
-        <div className="flex items-center gap-3">
-          <span className="text-2xl">🏆</span>
+        <div className="flex items-center gap-2">
+          <span className="text-lg">🏆</span>
           <div>
-            <p className="text-sm font-bold text-primary">You are on fire! 🔥</p>
+            <p className="text-xs font-bold text-warning">You are on fire! 🔥</p>
             <p className="text-[10px] text-text-muted">Keep your streak alive and level up your life!</p>
           </div>
         </div>
         <div className="w-full md:w-auto flex-1 flex flex-col sm:flex-row sm:items-center gap-3">
           <span className="text-xs font-semibold text-text-primary whitespace-nowrap">Level {currentLevel + 1} Progress</span>
-          <div className="w-full sm:flex-1 h-2 bg-background border border-border-subtle rounded-full overflow-hidden">
-            <div className="h-full bg-primary" style={{ width: `${xpProgress}%` }} />
+          <div className="w-full sm:flex-1 progress-bar h-2">
+            <div className="progress-fill bg-gradient-to-r from-primary to-success" style={{ width: `${xpProgress}%` }} />
           </div>
           <span className="text-xs font-mono text-text-muted whitespace-nowrap self-end sm:self-auto">{totalXP} / {xpForLevel} XP</span>
         </div>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }

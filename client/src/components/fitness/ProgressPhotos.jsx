@@ -138,7 +138,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
             <FiCamera size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-white mb-1">Progress Photos</h3>
+            <h3 className="text-xl font-bold text-text-primary mb-1">Progress Photos</h3>
             <p className="text-sm text-text-muted">Track your transformation over time</p>
           </div>
         </div>
@@ -178,7 +178,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
             )}
             
             <div className="absolute bottom-0 w-full bg-[#141520]/90 backdrop-blur-md py-3 text-center border-t border-border-subtle">
-              <span className="block text-sm font-bold text-white mb-1">{label}</span>
+              <span className="block text-sm font-bold text-text-primary mb-1">{label}</span>
               <span className="block text-[11px] text-text-muted">{latestPhotos[idx] ? 'Recent' : 'No Photo'}</span>
             </div>
           </div>
@@ -191,14 +191,14 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
           <FiTrendingUp className="text-purple" size={24} />
           <div>
             <p className="text-xs text-text-muted mb-1">Total Photos</p>
-            <p className="text-lg font-bold text-white">{totalPhotos}</p>
+            <p className="text-lg font-bold text-text-primary">{totalPhotos}</p>
           </div>
         </div>
         <div className="flex flex-col sm:flex-row items-center justify-center gap-3 border-r border-border-subtle px-4 text-center sm:text-left">
           <FiCalendar className="text-info" size={24} />
           <div>
             <p className="text-xs text-text-muted mb-1">Since</p>
-            <p className="text-lg font-bold text-white">
+            <p className="text-lg font-bold text-text-primary">
               {totalPhotos > 0 ? new Date(oldestDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
             </p>
           </div>
@@ -224,7 +224,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
 
       <button 
         onClick={() => setUploadModalOpen(true)}
-        className="w-full py-4 rounded-xl bg-purple text-white font-bold hover:bg-purple-accent transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-purple/20"
+        className="w-full py-4 rounded-xl bg-purple text-text-primary font-bold hover:bg-purple-accent transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-purple/20"
       >
         <FiPlus size={18} /> Add New Photos
       </button>
@@ -240,11 +240,11 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                     <FiClock size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-1">Previous Photos</h3>
+                    <h3 className="text-xl font-bold text-text-primary mb-1">Previous Photos</h3>
                     <p className="text-sm text-text-muted">All your progress photos organized by date</p>
                   </div>
                 </div>
-                <button onClick={() => setHistoryModalOpen(false)} className="w-10 h-10 rounded-full bg-[#1A1C29] flex items-center justify-center text-text-muted hover:text-white transition-colors">
+                <button onClick={() => setHistoryModalOpen(false)} className="w-10 h-10 rounded-full bg-[#1A1C29] flex items-center justify-center text-text-muted hover:text-text-primary transition-colors">
                   <FiX size={20} />
                 </button>
               </div>
@@ -266,7 +266,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                     <div key={idx} className="space-y-4">
                       <div className="flex items-center gap-3">
                         <FiCalendar className="text-text-muted" size={16} />
-                        <h4 className="text-sm font-bold text-white tracking-wide">
+                        <h4 className="text-sm font-bold text-text-primary tracking-wide">
                           {new Date(group.date).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })} 
                           <span className="text-text-muted font-normal ml-3 text-xs">({group.photos.length} Photos)</span>
                         </h4>
@@ -283,7 +283,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                               className="w-full h-full object-cover" 
                             />
                             <div className="absolute bottom-0 w-full bg-black/60 backdrop-blur text-center py-1 group-hover:bg-purple/80 transition-colors">
-                              <p className="text-[10px] text-white font-bold uppercase">{photo.viewName}</p>
+                              <p className="text-[10px] text-text-primary font-bold uppercase">{photo.viewName}</p>
                             </div>
                           </a>
                         ))}
@@ -317,30 +317,30 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                     <FiUploadCloud size={24} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white mb-1">Upload New Photos</h3>
+                    <h3 className="text-xl font-bold text-text-primary mb-1">Upload New Photos</h3>
                     <p className="text-sm text-text-muted">Add new progress photos to track your transformation</p>
                   </div>
                 </div>
-                <button onClick={() => setUploadModalOpen(false)} className="w-10 h-10 rounded-full bg-[#1A1C29] flex items-center justify-center text-text-muted hover:text-white transition-colors">
+                <button onClick={() => setUploadModalOpen(false)} className="w-10 h-10 rounded-full bg-[#1A1C29] flex items-center justify-center text-text-muted hover:text-text-primary transition-colors">
                   <FiX size={20} />
                 </button>
               </div>
               
               <div className="space-y-6">
                 <div>
-                  <label className="block text-sm font-bold text-white mb-2">Image Name</label>
+                  <label className="block text-sm font-bold text-text-primary mb-2">Image Name</label>
                   <input 
                     type="text" 
                     placeholder="Enter image name (e.g. front, right, back, left)" 
                     value={imageName}
                     onChange={(e) => setImageName(e.target.value)}
-                    className="w-full bg-[#141520] border border-purple/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple/50"
+                    className="w-full bg-[#141520] border border-purple/30 rounded-xl px-4 py-3 text-text-primary focus:outline-none focus:border-purple focus:ring-1 focus:ring-purple/50"
                   />
                   <p className="text-xs text-text-muted mt-2">Give your photos a name to help you identify them later.</p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-white mb-2">Date</label>
+                  <label className="block text-sm font-bold text-text-primary mb-2">Date</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-text-muted">
                       <FiCalendar size={18} />
@@ -349,7 +349,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                       type="text" 
                       readOnly
                       value={new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}
-                      className="w-full bg-[#141520] border border-border-subtle rounded-xl pl-12 pr-4 py-3 text-white focus:outline-none"
+                      className="w-full bg-[#141520] border border-border-subtle rounded-xl pl-12 pr-4 py-3 text-text-primary focus:outline-none"
                     />
                     <div className="absolute inset-y-0 right-2 flex items-center">
                       <span className="text-xs font-bold text-purple bg-purple/10 px-3 py-1 rounded-lg">Today</span>
@@ -359,10 +359,10 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                 </div>
 
                 <div>
-                  <label className="block text-sm font-bold text-white mb-2">Upload Photos</label>
+                  <label className="block text-sm font-bold text-text-primary mb-2">Upload Photos</label>
                   <label className="border border-dashed border-purple/30 rounded-2xl py-12 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-purple/5 transition-colors bg-[#141520] relative">
                     <FiUploadCloud size={40} className={selectedFile ? "text-success mb-4" : "text-purple mb-4"} />
-                    <p className="text-base text-white mb-2">
+                    <p className="text-base text-text-primary mb-2">
                       {selectedFile ? selectedFile.name : "Drag and drop your photos here"}
                       {!selectedFile && <br/>}
                       {!selectedFile && "or click to browse"}
@@ -377,7 +377,7 @@ export default function ProgressPhotos({ googleAccessToken, googleDriveFolderLin
                 <button 
                   onClick={executeUpload}
                   disabled={isUploading || !selectedFile || imageName.trim() === ''}
-                  className={`w-full py-4 rounded-xl bg-purple text-white font-bold transition-all flex items-center justify-center gap-2 text-base shadow-lg shadow-purple/20 ${isUploading || !selectedFile || imageName.trim() === '' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-accent'}`}
+                  className={`w-full py-4 rounded-xl bg-purple text-text-primary font-bold transition-all flex items-center justify-center gap-2 text-base shadow-lg shadow-purple/20 ${isUploading || !selectedFile || imageName.trim() === '' ? 'opacity-50 cursor-not-allowed' : 'hover:bg-purple-accent'}`}
                 >
                   <FiUploadCloud size={20} /> {isUploading ? 'Uploading...' : 'Upload Photos'}
                 </button>

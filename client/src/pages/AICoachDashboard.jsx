@@ -98,7 +98,7 @@ function CategoryModal({ isOpen, onClose, onSave, editData = null }) {
             </div>
           </div>
           <button onClick={handleSave} disabled={loading || !name.trim()}
-            className="w-full py-2.5 rounded-xl bg-purple text-white font-bold text-xs hover:bg-purple/80 disabled:opacity-50 transition-all">
+            className="w-full py-2.5 rounded-xl bg-purple text-text-primary font-bold text-xs hover:bg-purple/80 disabled:opacity-50 transition-all">
             {loading ? 'Saving...' : editData ? 'Update Category' : 'Create Category'}
           </button>
         </div>
@@ -177,7 +177,7 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
           <div className="mb-4 p-3 rounded-xl bg-yellow-500/5 border border-yellow-500/30 space-y-2">
             <p className="text-[11px] font-semibold text-yellow-400 flex items-center gap-1.5"><FiAlertCircle size={12} /> Drive setup required for file uploads</p>
             {!googleAccessToken && (
-              <button onClick={requestGoogleAccess} className="px-3 py-1.5 bg-[#4285F4] text-white text-[11px] font-bold rounded-lg">Sign in with Google</button>
+              <button onClick={requestGoogleAccess} className="px-3 py-1.5 bg-[#4285F4] text-text-primary text-[11px] font-bold rounded-lg">Sign in with Google</button>
             )}
           </div>
         )}
@@ -208,8 +208,8 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
           <div>
             <label className="text-[11px] font-semibold text-text-muted uppercase tracking-wider mb-2 block">Source</label>
             <div className="flex rounded-xl border border-border-subtle overflow-hidden">
-              <button onClick={() => setInputMode('file')} className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-2 transition-all ${inputMode === 'file' ? 'bg-purple text-white' : 'bg-surface text-text-muted hover:bg-surface-elevated'}`}><FiUpload size={12} /> Upload File</button>
-              <button onClick={() => setInputMode('link')} className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-2 transition-all ${inputMode === 'link' ? 'bg-purple text-white' : 'bg-surface text-text-muted hover:bg-surface-elevated'}`}><FiLink size={12} /> Add Link</button>
+              <button onClick={() => setInputMode('file')} className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-2 transition-all ${inputMode === 'file' ? 'bg-purple text-text-primary' : 'bg-surface text-text-muted hover:bg-surface-elevated'}`}><FiUpload size={12} /> Upload File</button>
+              <button onClick={() => setInputMode('link')} className={`flex-1 py-2 text-xs font-semibold flex items-center justify-center gap-2 transition-all ${inputMode === 'link' ? 'bg-purple text-text-primary' : 'bg-surface text-text-muted hover:bg-surface-elevated'}`}><FiLink size={12} /> Add Link</button>
             </div>
           </div>
           {inputMode === 'file' ? (
@@ -226,7 +226,7 @@ function UploadResourceModal({ isOpen, onClose, categories, googleAccessToken, u
               className="w-full px-3 py-2 text-xs bg-surface border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-purple" />
           )}
           <button onClick={handleSubmit} disabled={!!loadingState || !name.trim()}
-            className="w-full py-2.5 rounded-xl bg-purple text-white font-bold text-xs hover:bg-purple/80 disabled:opacity-50 flex items-center justify-center gap-2">
+            className="w-full py-2.5 rounded-xl bg-purple text-text-primary font-bold text-xs hover:bg-purple/80 disabled:opacity-50 flex items-center justify-center gap-2">
             {loadingState ? <><FiRefreshCw className="animate-spin" size={13} /> {loadingState}</> : 'Add Resource'}
           </button>
         </div>
@@ -292,12 +292,12 @@ function EditResourceModal({ isOpen, onClose, resource, categories, onSave }) {
           <label className="flex items-center gap-2 cursor-pointer">
             <div onClick={() => setIsPinned(!isPinned)}
               className={`w-9 h-5 rounded-full transition-all flex items-center px-0.5 ${isPinned ? 'bg-purple' : 'bg-surface-elevated border border-border-subtle'}`}>
-              <div className={`w-4 h-4 rounded-full bg-white shadow transition-transform ${isPinned ? 'translate-x-4' : 'translate-x-0'}`} />
+              <div className={`w-4 h-4 rounded-full bg-surface shadow transition-transform ${isPinned ? 'translate-x-4' : 'translate-x-0'}`} />
             </div>
             <span className="text-xs text-text-secondary">Pin this resource</span>
           </label>
           <button onClick={handleSave} disabled={loading || !name.trim()}
-            className="w-full py-2.5 rounded-xl bg-purple text-white font-bold text-xs hover:bg-purple/80 disabled:opacity-50">
+            className="w-full py-2.5 rounded-xl bg-purple text-text-primary font-bold text-xs hover:bg-purple/80 disabled:opacity-50">
             {loading ? 'Saving...' : 'Update Resource'}
           </button>
         </div>
@@ -319,7 +319,7 @@ function ConfirmModal({ isOpen, onClose, onConfirm, title, message }) {
         </div>
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 py-2 rounded-xl border border-border-subtle text-text-secondary text-xs font-semibold hover:bg-surface-elevated">Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-2 rounded-xl bg-red-500 text-white text-xs font-bold hover:bg-red-600">Delete</button>
+          <button onClick={onConfirm} className="flex-1 py-2 rounded-xl bg-red-500 text-text-primary text-xs font-bold hover:bg-red-600">Delete</button>
         </div>
       </motion.div>
     </div>
@@ -331,7 +331,7 @@ function ResourceCard({ resource: r, onEdit, onDelete, onTogglePin, currentUser 
     <div className="card overflow-hidden hover:border-purple/40 transition-all flex flex-col justify-between group">
       <div className="p-4 bg-gradient-to-br from-primary/20 to-purple/20 flex flex-col items-center justify-center text-center h-24 relative">
         <span className="text-3xl mb-1">{getFileIcon(r.mime_type)}</span>
-        <h4 className="text-[11px] font-extrabold text-white truncate w-full px-2">{r.name}</h4>
+        <h4 className="text-[11px] font-extrabold text-text-primary truncate w-full px-2">{r.name}</h4>
         {r.is_pinned && <FiStar size={10} className="absolute top-2 right-2 text-yellow-400 fill-yellow-400" />}
       </div>
       <div className="p-3 space-y-2 flex-1 flex flex-col justify-between">
@@ -461,7 +461,7 @@ export default function AICoachDashboard() {
             </button>
           </div>
           <button onClick={() => requestGoogleDriveAccess(true)}
-            className={`px-4 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-colors whitespace-nowrap w-full sm:w-auto ${googleAccessToken ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-[#4285F4] hover:bg-[#357ae8] text-white'}`}>
+            className={`px-4 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-2 transition-colors whitespace-nowrap w-full sm:w-auto ${googleAccessToken ? 'bg-green-500/10 text-green-400 border border-green-500/30' : 'bg-[#4285F4] hover:bg-[#357ae8] text-text-primary'}`}>
             {googleAccessToken ? <><FiCheck size={12} /> Google Connected</> : 'Connect Google'}
           </button>
         </div>
@@ -488,7 +488,7 @@ export default function AICoachDashboard() {
               <FiPlus size={14} /> New Category
             </button>
             <button onClick={() => setUploadModal(true)}
-              className="flex-1 sm:flex-none justify-center px-4 py-2 text-xs font-bold rounded-xl bg-purple text-white hover:bg-purple/80 flex items-center gap-1.5 transition-all">
+              className="flex-1 sm:flex-none justify-center px-4 py-2 text-xs font-bold rounded-xl bg-purple text-text-primary hover:bg-purple/80 flex items-center gap-1.5 transition-all">
               <FiPlus size={14} /> Add Resource
             </button>
           </div>
@@ -508,12 +508,12 @@ export default function AICoachDashboard() {
               <span>{cat.icon}</span>
               <span>{cat.label}</span>
               {cat.count !== null && cat.count !== undefined && (
-                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/10 text-[10px]">{cat.count}</span>
+                <span className="ml-1 px-1.5 py-0.5 rounded-full bg-surface/10 text-[10px]">{cat.count}</span>
               )}
               {cat.id !== 'all' && cat.id !== 'uncategorized' && selectedCategory === cat.id && (
                 <span className="flex items-center gap-1 ml-1 border-l border-purple/30 pl-1">
                   <button onClick={e => { e.stopPropagation(); setCatModal({ open: true, editData: categories.find(c => c.id === cat.id) }); }}
-                    className="hover:text-white"><FiEdit2 size={10} /></button>
+                    className="hover:text-text-primary"><FiEdit2 size={10} /></button>
                   <button onClick={e => { e.stopPropagation(); setConfirmModal({ open: true, type: 'category', id: cat.id, title: 'Delete Category?', message: 'Resources will become uncategorized.' }); }}
                     className="hover:text-red-400"><FiTrash2 size={10} /></button>
                 </span>
@@ -546,8 +546,8 @@ export default function AICoachDashboard() {
             <span className="ml-2 text-[11px] text-text-muted font-normal whitespace-nowrap">({resources.length})</span>
           </h3>
           <div className="flex items-center border border-border-subtle rounded-lg overflow-hidden shrink-0">
-            <button onClick={() => setViewMode('table')} className={`px-2 py-1.5 transition-all ${viewMode === 'table' ? 'bg-purple text-white' : 'text-text-muted hover:text-text-primary'}`}><FiList size={13} /></button>
-            <button onClick={() => setViewMode('grid')} className={`px-2 py-1.5 transition-all ${viewMode === 'grid' ? 'bg-purple text-white' : 'text-text-muted hover:text-text-primary'}`}><FiGrid size={13} /></button>
+            <button onClick={() => setViewMode('table')} className={`px-2 py-1.5 transition-all ${viewMode === 'table' ? 'bg-purple text-text-primary' : 'text-text-muted hover:text-text-primary'}`}><FiList size={13} /></button>
+            <button onClick={() => setViewMode('grid')} className={`px-2 py-1.5 transition-all ${viewMode === 'grid' ? 'bg-purple text-text-primary' : 'text-text-muted hover:text-text-primary'}`}><FiGrid size={13} /></button>
           </div>
         </div>
 
@@ -558,7 +558,7 @@ export default function AICoachDashboard() {
             <div className="text-4xl">📚</div>
             <p className="text-sm font-bold text-text-primary">No resources yet</p>
             <p className="text-xs text-text-muted">Add your first resource to get started</p>
-            <button onClick={() => setUploadModal(true)} className="mx-auto px-4 py-2 rounded-xl bg-purple text-white font-bold text-xs flex items-center gap-1.5">
+            <button onClick={() => setUploadModal(true)} className="mx-auto px-4 py-2 rounded-xl bg-purple text-text-primary font-bold text-xs flex items-center gap-1.5">
               <FiPlus size={14} /> Add Resource
             </button>
           </div>

@@ -62,7 +62,7 @@ function LogSessionModal({ isOpen, onClose, subjects, onSave }) {
             <div className="flex gap-1">
               {['Morning', 'Afternoon', 'Evening', 'Night'].map(t => (
                 <button key={t} onClick={() => setSessionTime(t)}
-                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${sessionTime === t ? 'bg-purple text-white' : 'bg-surface-elevated text-text-muted hover:bg-surface'}`}>
+                  className={`flex-1 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${sessionTime === t ? 'bg-purple text-text-primary' : 'bg-surface-elevated text-text-muted hover:bg-surface'}`}>
                   {t}
                 </button>
               ))}
@@ -79,7 +79,7 @@ function LogSessionModal({ isOpen, onClose, subjects, onSave }) {
               className="w-full px-3 py-2 text-xs bg-surface border border-border-subtle rounded-lg text-text-primary focus:outline-none focus:border-purple resize-none" />
           </div>
           <button onClick={handleSubmit} disabled={loading || !subjectId || !duration}
-            className="w-full py-2.5 rounded-xl bg-purple text-white font-bold text-xs hover:bg-purple/80 disabled:opacity-50 flex items-center justify-center gap-2">
+            className="w-full py-2.5 rounded-xl bg-purple text-text-primary font-bold text-xs hover:bg-purple/80 disabled:opacity-50 flex items-center justify-center gap-2">
             {loading ? <><FiRefreshCw className="animate-spin" size={13} /> Saving...</> : 'Log Session'}
           </button>
         </div>
@@ -263,7 +263,7 @@ export default function KnowledgeDashboard() {
               <div key={i} className="flex flex-col items-center gap-1">
                 <span className="text-[9px] text-text-muted">{d}</span>
                 <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                  data?.weekStudied?.[i] ? 'bg-green-500 text-white font-bold' : 'bg-surface-elevated text-text-muted'
+                  data?.weekStudied?.[i] ? 'bg-green-500 text-text-primary font-bold' : 'bg-surface-elevated text-text-muted'
                 }`}>
                   {data?.weekStudied?.[i] ? '✓' : '○'}
                 </div>

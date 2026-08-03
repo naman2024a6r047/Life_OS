@@ -33,7 +33,7 @@ export default function GymBottomNav({ activeTab, setActiveTab, onAddClick }) {
                   {/* Dumbbell icon using ASCII since GiDumbbell may not be imported */}
                   <span className="text-2xl">🏋️</span>
                 </div>
-                <span className={`text-[10px] font-bold mt-1.5 ${isActive ? 'text-purple' : 'text-white/60'}`}>
+                <span className={`text-[10px] font-bold mt-1.5 ${isActive ? 'text-purple' : 'text-text-primary/60'}`}>
                   {tab.label}
                 </span>
               </button>
@@ -46,7 +46,7 @@ export default function GymBottomNav({ activeTab, setActiveTab, onAddClick }) {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex flex-col items-center gap-1 flex-1 py-1 transition-all duration-200 ${
-                isActive ? 'text-purple' : 'text-white/40'
+                isActive ? 'text-purple' : 'text-text-primary/40'
               }`}
             >
               <div className={`relative transition-all duration-200 ${isActive ? 'scale-110' : 'scale-100'}`}>

@@ -143,7 +143,7 @@ export default function DevDashboard() {
         <div className="col-span-1 md:col-span-8 card p-5 space-y-4">
           <div className="flex items-start gap-4">
             <div className="relative">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-purple flex items-center justify-center text-white text-2xl font-bold">
+              <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-purple flex items-center justify-center text-text-primary text-2xl font-bold">
                 {(user?.username || 'N')[0].toUpperCase()}
               </div>
               <div className="absolute bottom-0 right-0 w-4 h-4 rounded-full bg-success border-2 border-surface" />
@@ -260,7 +260,7 @@ export default function DevDashboard() {
             <button 
               onClick={handleSaveProfile}
               disabled={isSaving}
-              className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-glow-primary hover:bg-primary-hover disabled:opacity-50"
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-background rounded-xl text-sm font-bold shadow-glow-primary hover:bg-primary-hover disabled:opacity-50"
             >
               <FiSave />
               {isSaving ? 'Saving...' : 'Save Profile'}

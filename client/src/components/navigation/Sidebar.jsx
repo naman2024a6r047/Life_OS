@@ -11,18 +11,16 @@ import {
 const navItems = [
   { path: '/', label: 'Dashboard', icon: FiHome },
   { path: '/challenges', label: 'Goals & Challenges', icon: FiTarget },
+  { path: '/tasks', label: 'Tasks', icon: FiCheckSquare },
+  { path: '/focus', label: 'Focus Mode', icon: FiZap },
   { path: '/friends', label: 'Accountability', icon: FiUsers },
   { path: '/reviews', label: 'Peer Review', icon: FiCheckSquare },
-  { path: '/exams', label: 'Exam Mode', icon: FiShield },
+  { path: '/knowledge', label: 'Study Tracker', icon: FiBookOpen },
   { path: '/gym', label: 'Gym & Fitness', icon: FiActivity },
   { path: '/sleep', label: 'Sleep Tracker', icon: FiMoon },
-  { path: '/dev', label: 'Developer Profile', icon: FiTerminal },
-  { path: '/knowledge', label: 'Study Tracker', icon: FiBookOpen },
   { path: '/analytics', label: 'Analytics', icon: FiBarChart2 },
-  { path: '/penalties', label: 'Penalty System', icon: FiAlertTriangle },
-  { path: '/notifications', label: 'Notifications', icon: FiBell },
-  { path: '/calendar', label: 'Calendar', icon: FiCalendar },
-  { path: '/ai-coach', label: 'Resources', icon: FiDatabase },
+  { path: '/dev', label: 'Developer Mode', icon: FiTerminal },
+  { path: '/settings', label: 'Settings', icon: FiSettings },
 ];
 
 const examNavItems = [
@@ -91,36 +89,42 @@ export default function Sidebar({ isOpen, onClose }) {
       {/* Branding */}
       <div className="px-4 pt-5 pb-3">
         <div className="flex items-center gap-2.5">
-          <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${isExamMode ? 'bg-gradient-to-tr from-info to-primary' : 'bg-gradient-to-tr from-primary to-purple'}`}>
-            <FiZap className="text-white text-lg" />
+          <div className="w-10 h-10 flex items-center justify-center shrink-0">
+            <img src="/logo.png" alt="LifeOS Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-base font-extrabold text-text-primary tracking-tight">LifeOS</h1>
-            <p className="text-[10px] text-text-muted font-medium">{isExamMode ? 'Exam Mode Active' : 'Your Life. Your System.'}</p>
+            <h1 className="text-base font-extrabold text-text-primary tracking-tight">LIFE<span className="text-primary">OS</span> <span className="text-[10px] text-primary/70 font-mono font-normal">v1.0</span></h1>
           </div>
         </div>
       </div>
 
       {/* User Card */}
-      <div className="px-4 py-3 mx-3 mb-2 rounded-lg bg-surface-elevated">
-        <div className="flex items-center gap-2.5">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ${isExamMode ? 'bg-gradient-to-br from-info to-primary' : 'bg-gradient-to-br from-primary to-purple'}`}>
-            {(user?.username || 'U')[0].toUpperCase()}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-text-primary truncate">{user?.username || 'User'}</p>
-            <div className="flex items-center gap-1">
-              <span className={`text-[9px] px-1.5 py-0 ${isExamMode ? 'badge-info' : 'badge-primary'}`}>Lv. {user?.level || 1}</span>
-              <span className="text-[10px] text-text-muted">• {isExamMode ? 'Scholar' : 'Pro Builder'}</span>
+      <div className="px-4 py-3 mx-3 mb-4 rounded-lg bg-surface border border-border-subtle relative overflow-hidden">
+        {/* Hexagon Avatar */}
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 relative">
+            <div className="absolute inset-0 bg-primary/20" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}></div>
+            <div className="absolute inset-[1px] bg-background flex items-center justify-center text-primary text-sm font-bold" style={{ clipPath: 'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)' }}>
+              {(user?.username || 'N')[0].toUpperCase()}
             </div>
           </div>
-        </div>
-        {/* XP Bar */}
-        <div className="mt-2">
-          <div className="progress-bar h-1">
-            <div className={`progress-fill ${isExamMode ? 'bg-info' : 'bg-primary'}`} style={{ width: `${xpProgress}%` }} />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-text-primary truncate">{user?.username || 'Naman'}</p>
+            <p className="text-[10px] text-text-secondary truncate">Systems Builder</p>
           </div>
-          <p className="text-[10px] text-text-muted mt-1 font-mono">{xpCurrent} / {xpForLevel} XP</p>
+        </div>
+        
+        {/* XP Bar */}
+        <div className="mt-3 flex items-center gap-2">
+          <div className="text-[10px] text-primary font-mono whitespace-nowrap">
+            {xpCurrent.toLocaleString()} / {xpForLevel.toLocaleString()} XP
+          </div>
+          <div className="flex-1 h-1 bg-surface-elevated rounded-full overflow-hidden">
+            <div className="h-full bg-primary" style={{ width: `${xpProgress}%` }} />
+          </div>
+          <div className="w-4 h-4 text-text-muted flex items-center justify-center">
+            <FiShield size={12} />
+          </div>
         </div>
       </div>
 
@@ -134,14 +138,14 @@ export default function Sidebar({ isOpen, onClose }) {
           
           return (
             <Link key={item.path} to={item.path} onClick={onClose}>
-              <div className={`sidebar-item ${isActive ? (isExamMode ? 'bg-info text-white font-semibold' : 'active') : ''}`}>
+              <div className={`sidebar-item ${isActive ? (isExamMode ? 'bg-info text-text-primary font-semibold' : 'active') : ''}`}>
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-3">
                     <Icon size={16} />
                     <span>{item.label}</span>
                   </div>
                   {item.path === '/notifications' && unreadCount > 0 && (
-                    <span className="bg-danger text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                    <span className="bg-danger text-text-primary text-[10px] font-bold px-2 py-0.5 rounded-full">
                       {unreadCount}
                     </span>
                   )}
@@ -153,41 +157,11 @@ export default function Sidebar({ isOpen, onClose }) {
       </nav>
 
       {/* Bottom Section */}
-      <div className="px-4 py-4 border-t border-border-subtle">
-        {isExamMode ? (
-          <button 
-            onClick={handleExitExamMode}
-            disabled={isExiting}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-danger/10 hover:bg-danger/20 text-danger border border-danger/20 font-bold transition-all disabled:opacity-50"
-          >
-            <FiXCircle size={18} />
-            {isExiting ? 'Exiting...' : 'Exit Exam Mode'}
-          </button>
-        ) : (
-          <>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-warning/20 to-warning/5 flex items-center justify-center">
-                <span className="text-lg">🔥</span>
-              </div>
-              <div>
-                <p className="text-xl font-bold font-mono text-text-primary">{user?.current_streak || 0}</p>
-                <p className="text-[10px] text-text-muted font-medium">Day Streak</p>
-              </div>
-            </div>
-            <p className="text-[10px] text-text-muted mt-2">Keep the fire alive! 🔥</p>
-          </>
-        )}
-      </div>
-
-      {/* Settings + Logout */}
-      <div className="px-3 pb-3 space-y-0.5 pt-2">
-        <Link to="/settings">
-          <div className="sidebar-item">
-            <FiSettings size={16} />
-            <span>Settings</span>
-          </div>
-        </Link>
-        <button onClick={logout} className="sidebar-item w-full text-danger hover:text-danger hover:bg-danger/10">
+      <div className="px-3 pb-4 pt-2 space-y-2 mt-auto">
+        <button className="w-full flex items-center justify-center gap-2 py-2.5 rounded-md border border-primary/30 text-primary hover:bg-primary/10 transition-colors text-sm font-semibold">
+          <span className="text-lg">+</span> New Goal
+        </button>
+        <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md border border-danger/20 text-danger hover:bg-danger/10 hover:border-danger/40 transition-colors text-sm font-medium">
           <FiLogOut size={16} />
           <span>Logout</span>
         </button>

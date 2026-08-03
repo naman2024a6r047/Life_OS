@@ -162,7 +162,7 @@ export default function AnalyticsDashboard() {
           <div className="flex rounded-xl border border-border-subtle overflow-hidden shadow-sm">
             {[['week', 'Week'], ['month', 'Month']].map(([val, label]) => (
               <button key={val} onClick={() => handlePeriodChange(val)}
-                className={`px-3 py-1.5 text-xs font-semibold transition-all ${period === val ? 'bg-purple text-white shadow-glow-primary' : 'text-text-muted hover:bg-surface-elevated'}`}>
+                className={`px-3 py-1.5 text-xs font-semibold transition-all ${period === val ? 'bg-purple text-text-primary shadow-glow-primary' : 'text-text-muted hover:bg-surface-elevated'}`}>
                 {label}
               </button>
             ))}

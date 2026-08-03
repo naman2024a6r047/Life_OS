@@ -8,23 +8,23 @@ export default {
     extend: {
       colors: {
         // Core backgrounds
-        background: '#0B0D18',
-        surface: '#111427',
-        'surface-elevated': '#161A2E',
-        'surface-hover': '#1C2039',
+        background: '#090A0F',
+        surface: '#11131A',
+        'surface-elevated': '#161821',
+        'surface-hover': '#1A1D27',
         
         // Borders
-        'border-subtle': 'rgba(255, 255, 255, 0.08)',
-        'border-hover': 'rgba(255, 255, 255, 0.15)',
+        'border-subtle': '#1F2332',
+        'border-hover': '#92F13B40', // 25% opacity neon green
         
-        // Brand / Primary
-        primary: '#6366F1',
-        'primary-light': '#818CF8',
-        'primary-dark': '#4F46E5',
+        // Brand / Primary (Neon Green)
+        primary: '#92F13B',
+        'primary-light': '#B2FF66',
+        'primary-dark': '#75D124',
         
         // Accent colors
-        accent: '#F43F5E',
-        success: '#22C55E',
+        accent: '#92F13B', // Changed accent to primary as well to keep the theme tight
+        success: '#92F13B', // Green for success
         warning: '#F59E0B',
         danger: '#EF4444',
         info: '#06B6D4',
@@ -32,19 +32,19 @@ export default {
         
         // Text
         'text-primary': '#F1F5F9',
-        'text-secondary': '#64748B',
-        'text-muted': '#475569',
+        'text-secondary': '#94A3B8',
+        'text-muted': '#64748B',
       },
       fontFamily: {
         sans: ['Plus Jakarta Sans', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         mono: ['JetBrains Mono', 'monospace'],
       },
       boxShadow: {
-        'glow-primary': '0 0 20px rgba(99, 102, 241, 0.15)',
-        'glow-success': '0 0 20px rgba(34, 197, 94, 0.15)',
+        'glow-primary': '0 0 20px rgba(146, 241, 59, 0.15)', // Neon green glow
+        'glow-success': '0 0 20px rgba(146, 241, 59, 0.15)',
         'glow-warning': '0 0 20px rgba(245, 158, 11, 0.15)',
-        'card': '0 4px 24px rgba(0, 0, 0, 0.3)',
-        'card-hover': '0 8px 32px rgba(0, 0, 0, 0.4)',
+        'card': '0 4px 24px rgba(0, 0, 0, 0.4)',
+        'card-hover': '0 8px 32px rgba(146, 241, 59, 0.1)', // Subtle green glow on hover
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

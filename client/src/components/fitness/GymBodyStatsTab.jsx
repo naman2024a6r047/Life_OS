@@ -254,7 +254,7 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
         {/* BMI */}
         <div className="card p-4 bg-gradient-to-br from-surface to-surface-elevated border border-border-subtle space-y-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
               <FiActivity size={16} />
             </div>
             <div>
@@ -430,7 +430,7 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
                 { name: 'Muscle Mass', val: bodyStats.muscleMass > 0 ? `${bodyStats.muscleMass} kg` : '0 kg', color: 'bg-success' },
                 { name: 'Fat Mass', val: bodyStats.bodyFat > 0 ? `${(bodyStats.weight * (bodyStats.bodyFat/100)).toFixed(1)} kg` : '0 kg', color: 'bg-warning' },
                 { name: 'Bone Mass', val: bodyStats.weight > 0 ? `${(bodyStats.weight * 0.04).toFixed(1)} kg` : '0 kg', color: 'bg-blue-500' },
-                { name: 'Other (Water, Organs)', val: bodyStats.weight > 0 ? 'Rest' : '0', color: 'bg-slate-500' },
+                { name: 'Other (Water, Organs)', val: bodyStats.weight > 0 ? 'Rest' : '0', color: 'bg-surface/300' },
               ].map((item, i) => (
                 <div key={i} className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-1.5">
@@ -449,7 +449,7 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-sm font-bold text-text-primary">Segmental Analysis</h3>
             <div className="flex gap-2">
-              <span className="text-[9px] bg-purple text-white px-2 py-0.5 rounded font-bold">Muscle Mass</span>
+              <span className="text-[9px] bg-purple text-text-primary px-2 py-0.5 rounded font-bold">Muscle Mass</span>
               <span className="text-[9px] bg-surface-elevated text-text-muted px-2 py-0.5 rounded font-bold">Fat %</span>
             </div>
           </div>
@@ -582,7 +582,7 @@ export default function GymBodyStatsTab({ googleAccessToken, googleDriveFolderLi
               </div>
             </div>
             
-            <button className="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple to-purple-accent text-white text-[10px] font-bold hover:brightness-110 transition-all">
+            <button className="w-full py-2.5 rounded-lg bg-gradient-to-r from-purple to-purple-accent text-text-primary text-[10px] font-bold hover:brightness-110 transition-all">
               View Recommendations
             </button>
           </div>

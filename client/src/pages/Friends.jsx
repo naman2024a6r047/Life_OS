@@ -15,7 +15,7 @@ function PartnerCard({ partner, isSelected, onClick }) {
       className={`card-hover p-3 cursor-pointer ${isSelected ? 'border-primary bg-primary/5' : ''}`}>
       <div className="flex items-center gap-2.5">
         <div className="relative">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-white text-xs font-bold">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-text-primary text-xs font-bold">
             {(partner.username || 'P')[0].toUpperCase()}
           </div>
           <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-surface ${
@@ -375,7 +375,7 @@ export default function Friends() {
             }`}>
             {tab.label}
             {tab.badge > 0 && (
-              <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">{tab.badge}</span>
+              <span className="w-5 h-5 rounded-full bg-danger text-text-primary text-[10px] font-bold flex items-center justify-center">{tab.badge}</span>
             )}
             {activeTab === tab.id && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-t-full" />}
           </button>
@@ -457,7 +457,7 @@ export default function Friends() {
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className="relative">
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-purple flex items-center justify-center text-white text-xl font-bold">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-purple flex items-center justify-center text-text-primary text-xl font-bold">
                         {(selectedPartner.username || 'P')[0].toUpperCase()}
                       </div>
                       <div className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border-2 border-surface bg-success" />
@@ -551,7 +551,7 @@ export default function Friends() {
                                             
                                             <div className="grid grid-cols-4 gap-2 mb-2">
                                                 <div className="bg-surface-elevated rounded p-2 text-center">
-                                                    <div className="text-sm font-black text-white">{pendingMTasks}</div>
+                                                    <div className="text-sm font-black text-text-primary">{pendingMTasks}</div>
                                                     <div className="text-[8px] text-text-muted uppercase font-bold">Pending</div>
                                                 </div>
                                                 <div className="bg-success/10 rounded p-2 text-center">
@@ -645,7 +645,7 @@ export default function Friends() {
               <div className="flex items-center gap-2">
                 <h3 className="section-title">Pending Inquiries</h3>
                 {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').length > 0 && (
-                    <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">
+                    <span className="w-5 h-5 rounded-full bg-danger text-text-primary text-[10px] font-bold flex items-center justify-center">
                       {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').length}
                     </span>
                 )}
@@ -658,7 +658,7 @@ export default function Friends() {
             {interventions.filter(i => i.type === 'inquiry' && i.status === 'pending' && i.direction === 'received').map((inq, i) => (
               <div key={inq.id} className="py-3 border-b border-border-subtle last:border-0">
                 <div className="flex items-start gap-2.5">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary/60 to-purple/60 flex items-center justify-center text-text-primary text-[10px] font-bold flex-shrink-0">
                     {(inq.sender?.username || 'U')[0].toUpperCase()}
                   </div>
                   <div className="flex-1">

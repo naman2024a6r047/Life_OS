@@ -205,7 +205,7 @@ export default function CalendarDashboard() {
                   <button 
                     key={t} 
                     onClick={() => { setActiveFilter(t); setFilterOpen(false); }} 
-                    className={`block w-full text-left px-2 py-1.5 text-xs rounded hover:bg-surface capitalize ${activeFilter === t ? 'text-purple font-bold' : 'text-text-secondary hover:text-white'}`}
+                    className={`block w-full text-left px-2 py-1.5 text-xs rounded hover:bg-surface capitalize ${activeFilter === t ? 'text-purple font-bold' : 'text-text-secondary hover:text-text-primary'}`}
                   >
                     {t.replace('_', ' ')}
                   </button>
@@ -233,7 +233,7 @@ export default function CalendarDashboard() {
               key={mode}
               onClick={() => setViewMode(mode)}
               className={`px-3 py-1 text-xs font-semibold rounded-md transition-all ${
-                viewMode === mode ? 'bg-purple text-white shadow-glow-primary' : 'text-text-muted hover:text-text-primary'
+                viewMode === mode ? 'bg-purple text-text-primary shadow-glow-primary' : 'text-text-muted hover:text-text-primary'
               }`}
             >
               {mode}
@@ -270,7 +270,7 @@ export default function CalendarDashboard() {
                     >
                       <div className="flex justify-between items-start">
                         <span className={`text-xs font-mono font-bold w-5 h-5 flex items-center justify-center rounded-full ${
-                          d.isToday ? 'bg-purple text-white ring-2 ring-purple-light' : 
+                          d.isToday ? 'bg-purple text-text-primary ring-2 ring-purple-light' : 
                           isSelected ? 'bg-purple/30 text-purple' : 'text-text-primary'
                         }`}>
                           {d.day}
@@ -296,7 +296,7 @@ export default function CalendarDashboard() {
                           </div>
                         ))}
                         {d.events?.length > 3 && (
-                          <div className="text-[10px] text-text-muted text-center font-medium hover:text-white pt-1">
+                          <div className="text-[10px] text-text-muted text-center font-medium hover:text-text-primary pt-1">
                             +{d.events.length - 3} more
                           </div>
                         )}
@@ -323,7 +323,7 @@ export default function CalendarDashboard() {
                   .map(e => (
                   <div key={e.id} className="flex items-center justify-between p-3 bg-surface-elevated rounded-lg hover:bg-surface-elevated/80 transition-colors">
                     <div>
-                      <p className="font-bold text-sm text-white">{e.title}</p>
+                      <p className="font-bold text-sm text-text-primary">{e.title}</p>
                       <p className="text-xs text-text-muted">{new Date(e.date).toLocaleDateString()} • {e.time}</p>
                     </div>
                     <span className="text-[10px] px-2 py-1 bg-purple/20 text-purple-light rounded font-bold uppercase tracking-wider">{e.block_type.replace('_', ' ')}</span>
@@ -338,7 +338,7 @@ export default function CalendarDashboard() {
               <div className="w-16 h-16 rounded-full bg-surface-elevated flex items-center justify-center mb-4">
                 <FiCalendar size={32} className="text-purple opacity-50" />
               </div>
-              <h3 className="text-lg font-bold text-white mb-2">Weekly View Coming Soon</h3>
+              <h3 className="text-lg font-bold text-text-primary mb-2">Weekly View Coming Soon</h3>
               <p className="text-sm max-w-sm mx-auto leading-relaxed">We are still polishing the weekly calendar layout. Please switch back to Month or List view for now.</p>
               <button onClick={() => setViewMode('Month')} className="mt-6 btn-outline text-xs">Go to Month View</button>
             </div>
@@ -419,7 +419,7 @@ export default function CalendarDashboard() {
                     key={dayNum}
                     onClick={() => setSelectedDay(dayNum)}
                     className={`h-6 rounded-md flex items-center justify-center text-[11px] transition-all ${
-                      isSelected ? 'bg-purple text-white font-bold shadow-glow-primary' : 'hover:bg-surface-elevated text-text-secondary'
+                      isSelected ? 'bg-purple text-text-primary font-bold shadow-glow-primary' : 'hover:bg-surface-elevated text-text-secondary'
                     }`}
                   >
                     {dayNum}
@@ -485,8 +485,8 @@ export default function CalendarDashboard() {
             className="card p-6 w-full max-w-md shadow-2xl border border-border-subtle"
           >
             <div className="flex justify-between items-center mb-6">
-              <h3 className="text-lg font-bold text-white flex items-center gap-2"><FiCalendar className="text-purple"/> Add New Event</h3>
-              <button onClick={() => setIsAddModalOpen(false)} className="text-text-muted hover:text-white transition-colors">
+              <h3 className="text-lg font-bold text-text-primary flex items-center gap-2"><FiCalendar className="text-purple"/> Add New Event</h3>
+              <button onClick={() => setIsAddModalOpen(false)} className="text-text-muted hover:text-text-primary transition-colors">
                 <FiX size={20}/>
               </button>
             </div>

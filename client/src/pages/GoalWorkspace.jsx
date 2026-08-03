@@ -79,58 +79,58 @@ export default function GoalWorkspace() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-slate-100 p-6">
+        <div className="w-full p-6 text-text-primary">
             <div className="max-w-7xl mx-auto space-y-6">
                 
                 {/* Header Navigation */}
                 <div className="flex items-center justify-between">
                     <BackButton fallbackPath="/challenges" />
                     <div className="flex items-center space-x-3">
-                        <button className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-400 border border-indigo-500/30 hover:bg-indigo-600/30 transition text-sm font-medium">
+                        <button className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-primary/20 text-primary border border-primary/30 hover:bg-primary/30 transition text-sm font-medium">
                             <FiCpu />
                             <span>AI Assistant</span>
                         </button>
-                        <button className="p-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-white transition">
+                        <button className="p-2 rounded-lg bg-surface-elevated/60 border border-border-subtle/50 text-text-muted hover:text-text-primary transition">
                             <FiShare2 />
                         </button>
-                        <button className="p-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-amber-400 transition">
+                        <button className="p-2 rounded-lg bg-surface-elevated/60 border border-border-subtle/50 text-text-muted hover:text-amber-400 transition">
                             <FiArchive />
                         </button>
-                        <button className="p-2 rounded-lg bg-slate-800/60 border border-slate-700/50 text-slate-400 hover:text-red-400 transition">
+                        <button className="p-2 rounded-lg bg-surface-elevated/60 border border-border-subtle/50 text-text-muted hover:text-red-400 transition">
                             <FiTrash2 />
                         </button>
                     </div>
                 </div>
 
                 {/* Workspace Header Banner Card */}
-                <div className="relative rounded-2xl bg-gradient-to-r from-indigo-950/80 via-slate-900/90 to-purple-950/80 border border-indigo-500/20 p-8 overflow-hidden shadow-2xl backdrop-blur-xl">
-                    <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+                <div className="relative rounded-2xl bg-gradient-to-r from-primary/20/80 via-slate-900/90 to-purple-950/80 border border-primary/20 p-8 overflow-hidden shadow-2xl backdrop-blur-xl">
+                    <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl pointer-events-none" />
                     
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
                         <div className="space-y-4 max-w-3xl">
                             <div className="flex items-center space-x-3">
-                                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-md bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">
+                                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-md bg-primary/20 text-primary border border-primary/30">
                                     {mockGoal.lifeArea}
                                 </span>
-                                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-md bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-md bg-success/20 text-success border border-emerald-500/30">
                                     {mockGoal.status}
                                 </span>
-                                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-md bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                <span className="px-3 py-1 text-xs font-semibold uppercase tracking-wider rounded-md bg-primary/20 text-purple-400 border border-primary/30">
                                     {mockGoal.difficulty}
                                 </span>
                             </div>
 
-                            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-white font-sans">
+                            <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-text-primary font-sans">
                                 {mockGoal.title}
                             </h1>
 
-                            <p className="text-slate-400 text-sm md:text-base leading-relaxed">
+                            <p className="text-text-muted text-sm md:text-base leading-relaxed">
                                 {mockGoal.description}
                             </p>
 
-                            <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-slate-400 font-mono">
+                            <div className="flex flex-wrap items-center gap-6 pt-2 text-xs text-text-muted font-mono">
                                 <div className="flex items-center space-x-2">
-                                    <FiClock className="text-indigo-400" />
+                                    <FiClock className="text-primary" />
                                     <span>Deadline: {mockGoal.deadline}</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
@@ -138,28 +138,28 @@ export default function GoalWorkspace() {
                                     <span>Target: {mockGoal.weeklyHoursTarget} hrs/wk</span>
                                 </div>
                                 <div className="flex items-center space-x-2">
-                                    <FiTrendingUp className="text-emerald-400" />
+                                    <FiTrendingUp className="text-success" />
                                     <span>Momentum: {mockGoal.momentumScore}%</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Progress Gauge */}
-                        <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-slate-900/80 border border-slate-800 min-w-[200px]">
+                        <div className="flex flex-col items-center justify-center p-6 rounded-xl bg-background/80 border border-border-subtle min-w-[200px]">
                             <div className="relative w-24 h-24 flex items-center justify-center">
                                 <svg className="w-full h-full transform -rotate-90">
-                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" className="text-slate-800" fill="transparent" />
-                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" className="text-indigo-500" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - mockGoal.progressPercentage / 100)} strokeLinecap="round" />
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" className="text-text-primary" fill="transparent" />
+                                    <circle cx="48" cy="48" r="40" stroke="currentColor" strokeWidth="8" className="text-primary" fill="transparent" strokeDasharray={251.2} strokeDashoffset={251.2 * (1 - mockGoal.progressPercentage / 100)} strokeLinecap="round" />
                                 </svg>
-                                <span className="absolute text-xl font-bold text-white font-mono">{mockGoal.progressPercentage}%</span>
+                                <span className="absolute text-xl font-bold text-text-primary font-mono">{mockGoal.progressPercentage}%</span>
                             </div>
-                            <span className="text-xs text-slate-400 mt-2 font-medium">Overall Progress</span>
+                            <span className="text-xs text-text-muted mt-2 font-medium">Overall Progress</span>
                         </div>
                     </div>
                 </div>
 
                 {/* Workspace Navigation Tabs */}
-                <div className="flex items-center space-x-2 border-b border-slate-800/80 pb-2 overflow-x-auto">
+                <div className="flex items-center space-x-2 border-b border-border-subtle/80 pb-2 overflow-x-auto">
                     {tabs.map((t) => {
                         const IconComponent = t.icon;
                         const active = activeTab === t.id;
@@ -169,11 +169,11 @@ export default function GoalWorkspace() {
                                 onClick={() => setActiveTab(t.id)}
                                 className={`flex items-center space-x-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap ${
                                     active 
-                                        ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30' 
-                                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50'
+                                        ? 'bg-primary text-background shadow-lg shadow-primary/30' 
+                                        : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated/50'
                                 }`}
                             >
-                                <IconComponent className={active ? 'text-white' : 'text-slate-400'} />
+                                <IconComponent className={active ? 'text-white' : 'text-text-muted'} />
                                 <span>{t.label}</span>
                             </button>
                         );
@@ -181,44 +181,44 @@ export default function GoalWorkspace() {
                 </div>
 
                 {/* Tab Content Display */}
-                <div className="rounded-2xl bg-slate-900/60 border border-slate-800/80 p-8 backdrop-blur-xl min-h-[400px]">
+                <div className="rounded-2xl bg-background/60 border border-border-subtle/80 p-8 backdrop-blur-xl min-h-[400px]">
                     {activeTab === 'overview' && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-                                        <FiShield className="text-indigo-400" />
+                                    <h3 className="text-lg font-bold text-text-primary flex items-center space-x-2">
+                                        <FiShield className="text-primary" />
                                         <span>Core Vision</span>
                                     </h3>
-                                    <p className="text-slate-300 text-sm leading-relaxed bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
+                                    <p className="text-text-primary text-sm leading-relaxed bg-surface-elevated/40 p-4 rounded-xl border border-border-subtle/50">
                                         {mockGoal.vision}
                                     </p>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <h3 className="text-lg font-bold text-white flex items-center space-x-2">
+                                    <h3 className="text-lg font-bold text-text-primary flex items-center space-x-2">
                                         <FiFlame className="text-amber-400" />
                                         <span>Why This Goal Matters</span>
                                     </h3>
-                                    <p className="text-slate-300 text-sm leading-relaxed bg-slate-800/40 p-4 rounded-xl border border-slate-700/50">
+                                    <p className="text-text-primary text-sm leading-relaxed bg-surface-elevated/40 p-4 rounded-xl border border-border-subtle/50">
                                         {mockGoal.whyItMatters}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-                                    <FiSliders className="text-emerald-400" />
+                                <h3 className="text-lg font-bold text-text-primary flex items-center space-x-2">
+                                    <FiSliders className="text-success" />
                                     <span>Milestones Summary</span>
                                 </h3>
                                 <div className="space-y-3">
                                     {[1, 2, 3, 4].map((m) => (
-                                        <div key={m} className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 flex items-center justify-between">
+                                        <div key={m} className="p-4 rounded-xl bg-surface-elevated/40 border border-border-subtle/50 flex items-center justify-between">
                                             <div>
-                                                <h4 className="text-sm font-semibold text-white">Milestone {m}: Async Tokio Core Architecture</h4>
-                                                <p className="text-xs text-slate-400">10-Day Sprint Protocol • 10 Daily Tasks</p>
+                                                <h4 className="text-sm font-semibold text-text-primary">Milestone {m}: Async Tokio Core Architecture</h4>
+                                                <p className="text-xs text-text-muted">10-Day Sprint Protocol • 10 Daily Tasks</p>
                                             </div>
-                                            <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${m <= 2 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'}`}>
+                                            <span className={`px-2.5 py-1 text-xs font-semibold rounded-md ${m <= 2 ? 'bg-success/20 text-success' : 'bg-amber-500/20 text-amber-400'}`}>
                                                 {m <= 2 ? 'Completed' : 'Active'}
                                             </span>
                                         </div>
@@ -236,8 +236,8 @@ export default function GoalWorkspace() {
 
                     {(activeTab === 'milestones' || activeTab === 'tasks') && (
                         <div className="space-y-6">
-                            <h3 className="text-lg font-bold text-white flex items-center space-x-2">
-                                <FiCheckSquare className="text-emerald-400" />
+                            <h3 className="text-lg font-bold text-text-primary flex items-center space-x-2">
+                                <FiCheckSquare className="text-success" />
                                 <span>Milestone Daily Tasks</span>
                             </h3>
                             <div className="space-y-3">
@@ -269,12 +269,12 @@ export default function GoalWorkspace() {
                                                 alert(err.response?.data?.message || 'Error toggling task');
                                             }
                                         }}
-                                        className="p-4 rounded-xl bg-slate-800/40 border border-slate-700/50 flex items-center space-x-3 cursor-pointer hover:border-indigo-500/50 transition"
+                                        className="p-4 rounded-xl bg-surface-elevated/40 border border-border-subtle/50 flex items-center space-x-3 cursor-pointer hover:border-primary/50 transition"
                                     >
-                                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${task.is_completed ? 'bg-indigo-600 border-indigo-500' : 'border-slate-600'}`}>
-                                            {task.is_completed && <span className="text-white text-xs font-bold">✓</span>}
+                                        <div className={`w-5 h-5 rounded border flex items-center justify-center ${task.is_completed ? 'bg-primary border-primary' : 'border-border-subtle'}`}>
+                                            {task.is_completed && <span className="text-text-primary text-xs font-bold">✓</span>}
                                         </div>
-                                        <span className={`text-sm ${task.is_completed ? 'line-through text-slate-500' : 'text-slate-200'}`}>
+                                        <span className={`text-sm ${task.is_completed ? 'line-through text-text-muted' : 'text-text-primary'}`}>
                                             {task.title}
                                         </span>
                                     </div>
@@ -285,9 +285,9 @@ export default function GoalWorkspace() {
 
                     {activeTab !== 'overview' && activeTab !== 'analytics' && activeTab !== 'milestones' && activeTab !== 'tasks' && (
                         <div className="flex flex-col items-center justify-center py-16 space-y-4 text-center">
-                            <FiCpu className="text-5xl text-indigo-400 animate-pulse" />
-                            <h3 className="text-xl font-bold text-white capitalize">{activeTab} Engine Console</h3>
-                            <p className="text-slate-400 text-sm max-w-md">
+                            <FiCpu className="text-5xl text-primary animate-pulse" />
+                            <h3 className="text-xl font-bold text-text-primary capitalize">{activeTab} Engine Console</h3>
+                            <p className="text-text-muted text-sm max-w-md">
                                 Live interactive telemetry for {activeTab} is connected to your Supabase cloud backend.
                             </p>
                         </div>

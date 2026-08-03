@@ -333,7 +333,7 @@ export default function GymProgressTab({ workoutsList = [], googleAccessToken, g
                   { name: 'Legs', icon: 'L', color: 'bg-success', val1: '60', val2: '48', diff: '+22%' },
                   { name: 'Shoulders', icon: 'S', color: 'bg-warning', val1: '32', val2: '28', diff: '+15%' },
                   { name: 'Arms', icon: 'A', color: 'bg-pink-500', val1: '28', val2: '25', diff: '+10%' },
-                  { name: 'Core', icon: 'C', color: 'bg-indigo-500', val1: '20', val2: '18', diff: '+8%' },
+                  { name: 'Core', icon: 'C', color: 'bg-primary', val1: '20', val2: '18', diff: '+8%' },
                 ] : [
                   { name: 'Chest', icon: 'M', color: 'bg-surface-elevated', val1: '0', val2: '0', diff: '0%' },
                   { name: 'Back', icon: 'H', color: 'bg-surface-elevated', val1: '0', val2: '0', diff: '0%' },

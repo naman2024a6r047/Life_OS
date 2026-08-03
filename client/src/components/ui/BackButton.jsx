@@ -9,7 +9,7 @@ export default function BackButton({ to = "/", label = "Back to Dashboard" }) {
         return (
             <Link 
                 to={to} 
-                className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 transition-all shadow-sm mb-6 cursor-pointer"
+                className="inline-flex items-center gap-2 text-xs font-semibold text-text-primary hover:text-text-primary px-3.5 py-2 rounded-xl bg-background/80 border border-border-subtle hover:border-border-subtle hover:bg-surface-elevated transition-all shadow-sm mb-6 cursor-pointer"
             >
                 <FiArrowLeft size={16} /> {label}
             </Link>
@@ -19,7 +19,7 @@ export default function BackButton({ to = "/", label = "Back to Dashboard" }) {
     return (
         <button 
             onClick={() => navigate(-1)} 
-            className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 transition-all shadow-sm mb-6 cursor-pointer"
+            className="inline-flex items-center gap-2 text-xs font-semibold text-text-primary hover:text-text-primary px-3.5 py-2 rounded-xl bg-background/80 border border-border-subtle hover:border-border-subtle hover:bg-surface-elevated transition-all shadow-sm mb-6 cursor-pointer"
         >
             <FiArrowLeft size={16} /> {label || "Back"}
         </button>

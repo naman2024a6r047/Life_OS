@@ -65,8 +65,8 @@ export default function NotificationCenter() {
               title: group.count > 1 ? `New Messages (${group.count})` : 'New Message',
               message: `${group.senderName}: "${group.latestMsg}"`,
               date: group.date,
-              icon: <FiMessageSquare className="text-white" size={18} />,
-              iconBg: 'bg-gradient-to-br from-indigo-500 to-purple-600',
+              icon: <FiMessageSquare className="text-text-primary" size={18} />,
+              iconBg: 'bg-gradient-to-br from-primary/20 to-primary/5',
               link: '/friends'
             });
           });
@@ -82,7 +82,7 @@ export default function NotificationCenter() {
                 title: 'New Partner Inquiry',
                 message: `${inq.sender?.username || 'A partner'} asked about your progress: "${inq.message || 'Why did you miss your task?'}"`,
                 date: inq.createdAt,
-                icon: <FiInfo className="text-white" size={18} />,
+                icon: <FiInfo className="text-text-primary" size={18} />,
                 iconBg: 'bg-gradient-to-br from-blue-400 to-cyan-500',
                 link: '/friends'
               });
@@ -99,7 +99,7 @@ export default function NotificationCenter() {
               title: 'Penalty Applied!',
               message: `You were penalized for missing tasks. Consequence: ${pen.description || pen.penalty_type || 'Accountability strike applied.'}`,
               date: pen.createdAt,
-              icon: <FiAlertTriangle className="text-white" size={18} />,
+              icon: <FiAlertTriangle className="text-text-primary" size={18} />,
               iconBg: 'bg-gradient-to-br from-red-500 to-orange-500',
               link: '/penalties'
             });
@@ -115,7 +115,7 @@ export default function NotificationCenter() {
               title: 'Peer Review Requested',
               message: `${rev.requester?.username || 'A partner'} submitted evidence for a milestone. They need your approval.`,
               date: rev.createdAt,
-              icon: <FiCheckCircle className="text-white" size={18} />,
+              icon: <FiCheckCircle className="text-text-primary" size={18} />,
               iconBg: 'bg-gradient-to-br from-amber-400 to-orange-500',
               link: '/friends'
             });
@@ -133,7 +133,7 @@ export default function NotificationCenter() {
               title: 'Partner Activity',
               message: `${act.User?.username || 'A partner'} ${actionFormatted}.`,
               date: act.createdAt,
-              icon: <FiActivity className="text-white" size={18} />,
+              icon: <FiActivity className="text-text-primary" size={18} />,
               iconBg: 'bg-gradient-to-br from-emerald-400 to-teal-500',
               link: '/friends'
             });
@@ -197,7 +197,7 @@ export default function NotificationCenter() {
     if (items.length === 0) return null;
     return (
       <div className="mb-8">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-4 pl-2">{title}</h3>
+        <h3 className="text-xs font-bold uppercase tracking-wider text-text-muted mb-4 pl-2">{title}</h3>
         <div className="space-y-3">
           {items.map((n, i) => (
             <motion.div 
@@ -205,10 +205,10 @@ export default function NotificationCenter() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.05 }}
               key={n.id} 
-              className="relative group p-5 rounded-2xl bg-slate-900/40 border border-slate-700/50 hover:bg-slate-800/60 hover:border-indigo-500/50 transition-all duration-300 backdrop-blur-xl overflow-hidden"
+              className="relative group p-5 rounded-2xl bg-background/40 border border-border-subtle/50 hover:bg-surface-elevated/60 hover:border-primary/50 transition-all duration-300 backdrop-blur-xl overflow-hidden"
             >
               {/* Subtle hover glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/20/0 via-indigo-500/5 to-primary/5/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
               <div className="flex flex-col sm:flex-row items-start gap-3 sm:gap-4 relative z-10">
                 <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-lg ${n.iconBg}`}>
@@ -216,13 +216,13 @@ export default function NotificationCenter() {
                 </div>
                 <div className="flex-1 min-w-0 pt-0.5 w-full">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 sm:gap-3 mb-2">
-                    <h3 className="text-sm sm:text-base font-bold text-white leading-tight break-words pr-2">{n.title}</h3>
-                    <span className="text-[10px] sm:text-xs font-medium text-slate-400 whitespace-nowrap bg-slate-800/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-slate-700/50 self-start sm:self-auto mt-1 sm:mt-0">
+                    <h3 className="text-sm sm:text-base font-bold text-text-primary leading-tight break-words pr-2">{n.title}</h3>
+                    <span className="text-[10px] sm:text-xs font-medium text-text-muted whitespace-nowrap bg-surface-elevated/80 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full border border-border-subtle/50 self-start sm:self-auto mt-1 sm:mt-0">
                       {dayjs(n.date).fromNow()}
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-300 leading-relaxed mb-3 sm:mb-4">{n.message}</p>
-                  <Link to={n.link} className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-bold text-indigo-400 hover:text-indigo-300 transition-colors group/link">
+                  <p className="text-xs sm:text-sm text-text-primary leading-relaxed mb-3 sm:mb-4">{n.message}</p>
+                  <Link to={n.link} className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-bold text-primary hover:text-primary transition-colors group/link">
                     View Details 
                     <FiArrowRight size={12} className="group-hover/link:translate-x-1 transition-transform" />
                   </Link>
@@ -238,23 +238,23 @@ export default function NotificationCenter() {
   return (
     <div className="p-4 md:p-8 max-w-4xl mx-auto min-h-screen relative">
       {/* Dynamic Background Glow */}
-      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-indigo-600/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
+      <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-primary/10 rounded-full blur-[120px] pointer-events-none z-0"></div>
 
-      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 bg-slate-900/60 p-6 rounded-3xl border border-slate-800/80 backdrop-blur-xl shadow-2xl">
+      <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4 mb-10 bg-background/60 p-6 rounded-3xl border border-border-subtle/80 backdrop-blur-xl shadow-2xl">
         <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center text-text-primary shadow-lg shadow-primary/30">
             <FiBell size={28} />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Notification Center</h1>
-            <p className="text-slate-400 font-medium mt-1">Stay updated with accountability alerts and partner activity.</p>
+            <h1 className="text-3xl font-black text-text-primary tracking-tight">Notification Center</h1>
+            <p className="text-text-muted font-medium mt-1">Stay updated with accountability alerts and partner activity.</p>
           </div>
         </div>
         
         {notifications.length > 0 && (
           <button 
             onClick={handleClearInbox}
-            className="shrink-0 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-rose-500/10 text-slate-300 hover:text-rose-400 border border-slate-700 hover:border-rose-500/30 transition-all font-bold text-sm flex items-center gap-2"
+            className="shrink-0 px-4 py-2.5 rounded-xl bg-surface-elevated hover:bg-rose-500/10 text-text-primary hover:text-rose-400 border border-border-subtle hover:border-rose-500/30 transition-all font-bold text-sm flex items-center gap-2"
           >
             Clear Inbox
           </button>
@@ -264,20 +264,20 @@ export default function NotificationCenter() {
       <div className="relative z-10">
         {loading ? (
           <div className="text-center py-20">
-            <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-slate-400 font-medium animate-pulse">Gathering your notifications...</p>
+            <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-text-muted font-medium animate-pulse">Gathering your notifications...</p>
           </div>
         ) : notifications.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="p-16 text-center flex flex-col items-center justify-center rounded-3xl bg-slate-900/40 border border-slate-800 backdrop-blur-xl"
+            className="p-16 text-center flex flex-col items-center justify-center rounded-3xl bg-background/40 border border-border-subtle backdrop-blur-xl"
           >
-            <div className="w-24 h-24 rounded-full bg-slate-800/80 flex items-center justify-center mb-6 border border-slate-700">
+            <div className="w-24 h-24 rounded-full bg-surface-elevated/80 flex items-center justify-center mb-6 border border-border-subtle">
               <FiCheckCircle size={40} className="text-emerald-500" />
             </div>
-            <h2 className="text-2xl font-black text-white mb-2">You're all caught up!</h2>
-            <p className="text-slate-400 max-w-sm">No new alerts, partner inquiries, or activity to show at this moment.</p>
+            <h2 className="text-2xl font-black text-text-primary mb-2">You're all caught up!</h2>
+            <p className="text-text-muted max-w-sm">No new alerts, partner inquiries, or activity to show at this moment.</p>
           </motion.div>
         ) : (
           <AnimatePresence>

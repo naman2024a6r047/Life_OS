@@ -542,7 +542,7 @@ export default function GymDashboard() {
             initial={{ opacity: 0, y: -20, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
-            className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-gradient-to-r from-purple to-purple-accent text-white shadow-glow-primary flex items-center gap-3 border border-purple-light/40"
+            className="fixed top-6 right-6 z-50 p-4 rounded-2xl bg-gradient-to-r from-purple to-purple-accent text-text-primary shadow-glow-primary flex items-center gap-3 border border-purple-light/40"
           >
             <span className="text-2xl">🏆</span>
             <div>
@@ -566,7 +566,7 @@ export default function GymDashboard() {
           {/* Logo pill */}
           <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-surface-elevated border border-border-subtle">
             <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple to-purple-accent flex items-center justify-center">
-              <span className="text-[10px] font-black text-white">L</span>
+              <span className="text-[10px] font-black text-text-primary">L</span>
             </div>
             <span className="text-[11px] font-bold text-text-primary">LifeOS</span>
           </div>
@@ -632,7 +632,7 @@ export default function GymDashboard() {
             onClick={() => setActiveTab(tab.id)}
             className={`relative px-4 py-2.5 text-xs font-extrabold rounded-xl transition-all duration-300 ${
               activeTab === tab.id
-                ? 'bg-purple/20 text-white border border-purple/40 shadow-glow-primary'
+                ? 'bg-purple/20 text-text-primary border border-purple/40 shadow-glow-primary'
                 : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
             }`}
           >
@@ -680,7 +680,7 @@ export default function GymDashboard() {
                     🏋️
                   </div>
                   <div>
-                    <h3 className="text-base font-extrabold text-white leading-tight tracking-tight">
+                    <h3 className="text-base font-extrabold text-text-primary leading-tight tracking-tight">
                       {weeklyPlan[currentWeekday]?.title || 'Rest Day'}
                     </h3>
                     <p className="text-[11px] text-purple font-medium leading-none mt-0.5">
@@ -697,7 +697,7 @@ export default function GymDashboard() {
                     { icon: FiZap,          color: 'text-warning', border: 'border-warning/20', label: 'Calories',   val: '550 kcal' },
                     { icon: FiCheckCircle,  color: 'text-success', border: 'border-success/20', label: 'Target Vol', val: '7.5k kg' },
                   ].map(({ icon: Icon, color, border, label, val }, i) => (
-                    <div key={i} className={`p-3 rounded-xl bg-white/[0.04] border ${border} flex items-center gap-2.5`}>
+                    <div key={i} className={`p-3 rounded-xl bg-surface/[0.04] border ${border} flex items-center gap-2.5`}>
                       <Icon className={`${color} shrink-0`} size={14} />
                       <div>
                         <p className="text-[8px] text-text-muted uppercase font-bold tracking-wider leading-none">{label}</p>
@@ -717,7 +717,7 @@ export default function GymDashboard() {
                   🏋️
                 </div>
                 <div className="flex flex-col justify-center gap-1.5">
-                  <h3 className="text-2xl font-bold text-white tracking-tight leading-none">
+                  <h3 className="text-2xl font-bold text-text-primary tracking-tight leading-none">
                     {weeklyPlan[currentWeekday]?.title || 'Rest Day'}
                   </h3>
                   <p className="text-[13px] font-medium text-purple leading-none tracking-wide">
@@ -990,7 +990,7 @@ export default function GymDashboard() {
                     <p className="font-bold text-text-primary text-sm">No Workouts Recorded Yet</p>
                     <p className="text-xs text-text-muted mt-1">Complete your first training session to start building your workout history.</p>
                   </div>
-                  <button onClick={() => setActiveTab('workouts')} className="btn-primary text-xs px-4 py-2 bg-purple text-white font-bold rounded-xl shadow-glow-primary">
+                  <button onClick={() => setActiveTab('workouts')} className="btn-primary text-xs px-4 py-2 bg-purple text-text-primary font-bold rounded-xl shadow-glow-primary">
                     + Log First Workout
                   </button>
                 </div>
@@ -1068,7 +1068,7 @@ export default function GymDashboard() {
               <button onClick={() => setShowWeeklyPlanModal(true)} className="btn-outline text-xs px-4 py-2.5 border-purple text-purple hover:bg-purple/10 flex items-center gap-1.5 font-bold rounded-xl">
                 <FiList size={16} /> Edit Weekly Plan
               </button>
-              <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2.5 bg-gradient-to-r from-purple to-purple-accent text-white font-bold flex items-center gap-1.5 shadow-glow-primary rounded-xl">
+              <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2.5 bg-gradient-to-r from-purple to-purple-accent text-text-primary font-bold flex items-center gap-1.5 shadow-glow-primary rounded-xl">
                 <FiPlus size={16} /> Create New Exercise
               </button>
             </div>
@@ -1089,7 +1089,7 @@ export default function GymDashboard() {
                   onClick={() => setSelectedPlanDay(day)}
                   className={`relative p-3 rounded-2xl text-center transition-all border ${
                     selectedPlanDay === day 
-                      ? 'bg-gradient-to-r from-purple to-purple-accent text-white border-purple font-bold shadow-glow-primary' 
+                      ? 'bg-gradient-to-r from-purple to-purple-accent text-text-primary border-purple font-bold shadow-glow-primary' 
                       : day === currentWeekday 
                         ? 'bg-surface-elevated border-success/60 text-text-primary'
                         : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-primary'
@@ -1165,7 +1165,7 @@ export default function GymDashboard() {
                           onClick={() => handleToggleExerciseCheckbox(selectedPlanDay, ex.id)}
                           disabled={!isToday}
                           className={`w-7 h-7 rounded-xl flex items-center justify-center transition-all shrink-0 ${
-                            isExCompleted ? 'bg-success text-white shadow-glow-success' : 'border-2 border-border-subtle bg-surface hover:border-purple'
+                            isExCompleted ? 'bg-success text-text-primary shadow-glow-success' : 'border-2 border-border-subtle bg-surface hover:border-purple'
                           } ${!isToday ? 'opacity-75 cursor-not-allowed' : ''}`}
                           title={!isToday ? "Only today's exercises can be toggled" : ""}
                         >
@@ -1341,7 +1341,7 @@ export default function GymDashboard() {
                       
                       setNewGoalData({ targetDate: '', bodyWeightTarget: '', tasks: [{ id: Date.now(), title: '', completed: false }] });
                     }}
-                    className="w-full md:w-auto btn-primary bg-[#ff3333] hover:bg-[#ff1111] text-white font-extrabold tracking-wide py-3 px-8 rounded-xl transition-all shadow-[0_0_15px_rgba(255,51,51,0.3)] flex items-center justify-center gap-2"
+                    className="w-full md:w-auto btn-primary bg-[#ff3333] hover:bg-[#ff1111] text-text-primary font-extrabold tracking-wide py-3 px-8 rounded-xl transition-all shadow-[0_0_15px_rgba(255,51,51,0.3)] flex items-center justify-center gap-2"
                   >
                     🚀 START TRACKING
                   </button>
@@ -1417,7 +1417,7 @@ export default function GymDashboard() {
                       setNotification({ title: 'Success', message: 'Goals submitted to history!', type: 'success' });
                       setTimeout(() => setNotification(null), 3000);
                     }}
-                    className="w-full sm:w-auto btn-primary bg-[#ff3333] hover:bg-[#ff1111] text-white font-extrabold tracking-wide py-3 px-8 rounded-xl shadow-[0_0_15px_rgba(255,51,51,0.3)] transition-all flex items-center justify-center gap-2"
+                    className="w-full sm:w-auto btn-primary bg-[#ff3333] hover:bg-[#ff1111] text-text-primary font-extrabold tracking-wide py-3 px-8 rounded-xl shadow-[0_0_15px_rgba(255,51,51,0.3)] transition-all flex items-center justify-center gap-2"
                   >
                     <FiCheck size={20} className="stroke-[3]" /> SUBMIT GOALS
                   </button>
@@ -1437,7 +1437,7 @@ export default function GymDashboard() {
               <h2 className="text-xl font-bold text-text-primary">Exercise Library Management (CRUD)</h2>
               <p className="text-xs text-text-muted">Create, edit, and manage your personal exercise library with custom video links and images.</p>
             </div>
-            <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2.5 bg-gradient-to-r from-purple to-purple-accent text-white font-bold flex items-center gap-1.5 shadow-glow-primary rounded-xl">
+            <button onClick={() => openCreateExerciseModal()} className="btn-primary text-xs px-4 py-2.5 bg-gradient-to-r from-purple to-purple-accent text-text-primary font-bold flex items-center gap-1.5 shadow-glow-primary rounded-xl">
               <FiPlus size={16} /> + Create New Exercise
             </button>
           </div>
@@ -1475,7 +1475,7 @@ export default function GymDashboard() {
                   key={cat.id}
                   onClick={() => setSelectedMuscleCategory(cat.id)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl text-xs font-bold transition-all ${
-                    selectedMuscleCategory === cat.id ? 'bg-gradient-to-r from-purple to-purple-accent text-white shadow-glow-primary' : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
+                    selectedMuscleCategory === cat.id ? 'bg-gradient-to-r from-purple to-purple-accent text-text-primary shadow-glow-primary' : 'text-text-muted hover:text-text-primary hover:bg-surface-elevated'
                   }`}
                 >
                   <span>{cat.label}</span>
@@ -1533,7 +1533,7 @@ export default function GymDashboard() {
                 </button>
               </div>
 
-              <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-slate-900 border border-border-subtle flex items-center justify-center group">
+              <div className="relative w-full h-48 rounded-2xl overflow-hidden bg-background border border-border-subtle flex items-center justify-center group">
                 {activeExerciseObj.image_url ? (
                   <img src={activeExerciseObj.image_url} alt={activeExerciseObj.name} className="w-full h-full object-cover" />
                 ) : (
@@ -1548,7 +1548,7 @@ export default function GymDashboard() {
                     href={activeExerciseObj.video_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-xl bg-purple/90 text-white text-xs font-bold flex items-center gap-1.5 shadow-glow-primary hover:bg-purple"
+                    className="absolute bottom-3 right-3 px-3.5 py-1.5 rounded-xl bg-purple/90 text-text-primary text-xs font-bold flex items-center gap-1.5 shadow-glow-primary hover:bg-purple"
                   >
                     <FiVideo size={14} /> Watch Video <FiExternalLink size={12} />
                   </a>
@@ -1692,7 +1692,7 @@ export default function GymDashboard() {
                       </button>
                     </div>
                   </div>
-                  <button onClick={() => requestGoogleDriveAccess(true)} className="px-4 py-2 bg-[#4285F4] hover:bg-[#357ae8] text-white text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
+                  <button onClick={() => requestGoogleDriveAccess(true)} className="px-4 py-2 bg-[#4285F4] hover:bg-[#357ae8] text-text-primary text-xs font-bold rounded-lg flex items-center gap-2 transition-colors">
                     <span>{googleAccessToken ? 'Reconnect Google Drive' : 'Sign in with Google'}</span>
                   </button>
                 </div>
@@ -1701,7 +1701,7 @@ export default function GymDashboard() {
               <div className="flex justify-end gap-3 pt-2">
                 <button 
                   onClick={() => localStorage.removeItem(profileStorageKey)}
-                  className="px-6 py-2 rounded-xl text-xs font-bold bg-danger/10 text-danger border border-danger/30 hover:bg-danger hover:text-white transition-colors"
+                  className="px-6 py-2 rounded-xl text-xs font-bold bg-danger/10 text-danger border border-danger/30 hover:bg-danger hover:text-text-primary transition-colors"
                 >
                   Reset Profile
                 </button>
@@ -1721,7 +1721,7 @@ export default function GymDashboard() {
                       window.location.reload();
                     }
                   }}
-                  className="w-full px-4 py-2 bg-danger/10 text-danger border border-danger/30 rounded-lg text-xs font-bold hover:bg-danger hover:text-white transition-colors text-center block"
+                  className="w-full px-4 py-2 bg-danger/10 text-danger border border-danger/30 rounded-lg text-xs font-bold hover:bg-danger hover:text-text-primary transition-colors text-center block"
                 >
                   Clear All Gym Data
                 </button>
@@ -1943,7 +1943,7 @@ export default function GymDashboard() {
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple to-purple-accent hover:bg-purple/80 text-white font-extrabold transition-all shadow-glow-primary">
+                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple to-purple-accent hover:bg-purple/80 text-text-primary font-extrabold transition-all shadow-glow-primary">
                   {editingExerciseId ? 'Save Changes' : 'Create Exercise'}
                 </button>
               </form>
@@ -2020,7 +2020,7 @@ export default function GymDashboard() {
                   </div>
                 </div>
 
-                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple to-purple-accent text-white font-extrabold shadow-glow-primary">
+                <button type="submit" className="w-full py-3 rounded-2xl bg-gradient-to-r from-purple to-purple-accent text-text-primary font-extrabold shadow-glow-primary">
                   + Add Saved Exercise to {selectedPlanDay}'s Plan
                 </button>
               </form>

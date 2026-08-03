@@ -426,7 +426,7 @@ function ImportCurriculumModal({ isOpen, onClose, challengeId, milestoneIndex, o
             value={curriculumText}
             onChange={(e) => setCurriculumText(e.target.value)}
             placeholder="Paste syllabus here...&#10;&#10;Optional: Use 'days gap[1]' at the very top to automatically schedule tasks on alternate days!&#10;&#10;📅 Day 1&#10;MERN Stack&#10;☐ React Lecture 1"
-            className="w-full h-64 p-3.5 rounded-xl bg-slate-900 border border-border-subtle text-xs text-text-primary font-mono focus:outline-none focus:border-primary resize-y leading-relaxed scrollbar-thin"
+            className="w-full h-64 p-3.5 rounded-xl bg-background border border-border-subtle text-xs text-text-primary font-mono focus:outline-none focus:border-primary resize-y leading-relaxed scrollbar-thin"
           />
         </div>
 
@@ -723,7 +723,7 @@ function TaskRow({ task, onToggle, onOpenDetail, onUpdateActualHours, isLocked }
         onClick={() => !isLocked && onToggle(task)}
         className={`w-5 h-5 rounded-[4px] border-2 flex flex-shrink-0 items-center justify-center transition-all ${isLocked ? 'cursor-default opacity-90' : 'cursor-pointer'} ${
           isCompleted 
-            ? 'bg-primary border-primary text-white' 
+            ? 'bg-primary border-primary text-background' 
             : 'bg-transparent border-border-subtle hover:border-primary/50'
         }`}
       >
@@ -1169,7 +1169,7 @@ export default function Challenges() {
               onClick={() => setActiveTab(tab.id)}
               className={`px-3.5 py-1.5 text-xs font-semibold rounded-lg transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-primary text-white shadow-glow-primary'
+                  ? 'bg-primary text-background shadow-glow-primary'
                   : 'text-text-muted hover:text-text-primary'
               }`}
             >
@@ -1253,7 +1253,7 @@ export default function Challenges() {
                   >
                     <div className="flex items-start gap-3">
                       <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-base ${
-                        isSelected ? 'bg-primary text-white' : 'bg-surface-elevated text-text-muted'
+                        isSelected ? 'bg-primary text-background' : 'bg-surface-elevated text-text-muted'
                       }`}>
                         🎯
                       </div>
@@ -1482,7 +1482,7 @@ export default function Challenges() {
                                       e.stopPropagation();
                                       if (!isMilestoneLocked) handleToggleDay(dayTasks, isAllDone);
                                   }}
-                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isMilestoneLocked ? 'cursor-default opacity-90' : 'cursor-pointer'} ${isAllDone ? 'bg-success border-success text-white' : 'border-border-subtle hover:border-primary text-transparent'}`}
+                                  className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isMilestoneLocked ? 'cursor-default opacity-90' : 'cursor-pointer'} ${isAllDone ? 'bg-success border-success text-text-primary' : 'border-border-subtle hover:border-primary text-transparent'}`}
                                   title={isMilestoneLocked ? "Historical milestones are locked" : "Check/Uncheck all tasks for this day"}
                                 >
                                   <FiCheck size={12} strokeWidth={3} />

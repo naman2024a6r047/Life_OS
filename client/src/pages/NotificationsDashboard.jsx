@@ -129,7 +129,7 @@ export default function NotificationsDashboard() {
                 {hoursLeft}h {minutesLeft}m left
             </div>
         ) : (
-            <div className="px-2 py-1 rounded text-[10px] font-bold bg-success text-white">Safe!</div>
+            <div className="px-2 py-1 rounded text-[10px] font-bold bg-success text-text-primary">Safe!</div>
         )}
       </div>
 
@@ -145,7 +145,7 @@ export default function NotificationsDashboard() {
             return (
                 <div key={t.id} className={`p-2.5 rounded-xl border flex items-center justify-between ${isDone ? 'bg-success/5 border-success/20 opacity-60' : 'bg-surface-elevated border-border-subtle'}`}>
                     <div className="flex items-center gap-2.5">
-                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isDone ? 'bg-success border-success text-white' : 'border-text-muted'}`}>
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${isDone ? 'bg-success border-success text-text-primary' : 'border-text-muted'}`}>
                             {isDone && <FiCheckCircle size={10} />}
                         </div>
                         <div>
@@ -301,7 +301,7 @@ export default function NotificationsDashboard() {
                     <p className="text-[10px] text-text-muted">{p.description}</p>
                     <button 
                         onClick={() => acknowledgePenalty(p.id)}
-                        className="w-full py-1.5 mt-2 rounded bg-danger/20 hover:bg-danger text-white text-[10px] transition-colors"
+                        className="w-full py-1.5 mt-2 rounded bg-danger/20 hover:bg-danger text-text-primary text-[10px] transition-colors"
                     >
                         Acknowledge
                     </button>
@@ -309,7 +309,7 @@ export default function NotificationsDashboard() {
               ))}
           </div>
 
-          <Link to="/challenges" className={`w-full py-2.5 rounded-xl text-white text-xs font-semibold text-center block transition-all ${activeCount > 0 ? 'bg-danger hover:bg-danger/90 shadow-glow-warning' : 'bg-success hover:bg-success/90'}`}>
+          <Link to="/challenges" className={`w-full py-2.5 rounded-xl text-text-primary text-xs font-semibold text-center block transition-all ${activeCount > 0 ? 'bg-danger hover:bg-danger/90 shadow-glow-warning' : 'bg-success hover:bg-success/90'}`}>
             View Current Goals
           </Link>
         </div>

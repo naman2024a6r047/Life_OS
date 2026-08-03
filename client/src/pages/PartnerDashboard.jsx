@@ -129,10 +129,10 @@ export default function PartnerDashboard() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#090A0F] text-slate-100 flex items-center justify-center">
+            <div className="w-full flex items-center justify-center min-h-[60vh] text-text-primary">
                 <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-400 text-sm">Loading partner telemetry...</p>
+                    <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-text-muted text-sm">Loading partner telemetry...</p>
                 </div>
             </div>
         );
@@ -140,9 +140,9 @@ export default function PartnerDashboard() {
 
     if (!data || !data.user) {
         return (
-            <div className="min-h-screen bg-[#090A0F] text-slate-100 p-8">
+            <div className="w-full p-8 text-text-primary">
                 <BackButton fallbackPath="/friends" />
-                <div className="text-center py-20 text-slate-500">Partner not found.</div>
+                <div className="text-center py-20 text-text-muted">Partner not found.</div>
             </div>
         );
     }
@@ -182,24 +182,24 @@ export default function PartnerDashboard() {
     ];
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-slate-100 p-4 md:p-8 relative overflow-hidden">
+        <div className="w-full p-4 md:p-8 relative overflow-hidden text-text-primary">
             <div className="absolute rounded-full blur-[120px] pointer-events-none top-[-10%] left-[-10%] w-[500px] h-[500px] bg-rose-600/10"></div>
-            <div className="absolute rounded-full blur-[120px] pointer-events-none bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-indigo-600/10"></div>
+            <div className="absolute rounded-full blur-[120px] pointer-events-none bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary/10"></div>
 
             <div className="max-w-6xl mx-auto space-y-6 relative z-10">
                 <BackButton fallbackPath="/friends" />
 
                 {/* Partner Profile Header */}
-                <div className="glass-panel rounded-2xl border border-indigo-500/20 p-6 md:p-8 space-y-6">
+                <div className="card rounded-2xl border border-primary/20 p-6 md:p-8 space-y-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                         <div className="flex items-center gap-5">
-                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-cyan-500/30 border-2 border-indigo-500/40 flex items-center justify-center text-3xl font-black text-indigo-300 uppercase shadow-xl shadow-indigo-500/10">
+                            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20/30 to-cyan-500/30 border-2 border-primary/40 flex items-center justify-center text-3xl font-black text-primary uppercase shadow-xl shadow-primary/30">
                                 {partner.username ? partner.username[0] : 'U'}
                             </div>
                             <div>
-                                <h1 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">{partner.username}'s Telemetry</h1>
-                                <div className="flex items-center gap-3 mt-1 text-xs font-mono text-slate-400 flex-wrap">
-                                    <span className="text-indigo-400 font-bold">Level {partner.level || 1}</span>
+                                <h1 className="text-2xl md:text-3xl font-extrabold text-text-primary tracking-tight">{partner.username}'s Telemetry</h1>
+                                <div className="flex items-center gap-3 mt-1 text-xs font-mono text-text-muted flex-wrap">
+                                    <span className="text-primary font-bold">Level {partner.level || 1}</span>
                                     <span>•</span>
                                     <span>{partner.xp || 0} XP</span>
                                     <span>•</span>
@@ -222,7 +222,7 @@ export default function PartnerDashboard() {
                                     });
                                     setShowInterventionModal(true);
                                 }}
-                                className="px-3 py-2 bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
+                                className="px-3 py-2 bg-primary/20 hover:bg-primary text-primary hover:text-background border border-primary/30 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
                             >
                                 🔥 Send Motivation
                             </button>
@@ -238,14 +238,14 @@ export default function PartnerDashboard() {
                                     });
                                     setShowInterventionModal(true);
                                 }}
-                                className="px-3 py-2 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-300 hover:text-white border border-emerald-500/30 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
+                                className="px-3 py-2 bg-success/20 hover:bg-success text-emerald-300 hover:text-text-primary border border-emerald-500/30 font-bold rounded-xl text-xs transition-all flex items-center gap-1.5"
                             >
                                 👏 Congratulate
                             </button>
 
                             <button 
                                 onClick={() => openInterventionFor('general', 'General Accountability')}
-                                className="px-4 py-2 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold rounded-xl text-xs transition-all shadow-lg shadow-rose-600/20 flex items-center gap-2"
+                                className="px-4 py-2 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-text-primary font-bold rounded-xl text-xs transition-all shadow-lg shadow-rose-600/20 flex items-center gap-2"
                             >
                                 <FiAlertOctagon /> Send Inquiry / Punishment
                             </button>
@@ -260,8 +260,8 @@ export default function PartnerDashboard() {
                                     📚
                                 </div>
                                 <div>
-                                    <h4 className="font-extrabold text-sm text-white">{partner.username} is in Exam Mode</h4>
-                                    <p className="text-slate-400 text-xs font-mono">
+                                    <h4 className="font-extrabold text-sm text-text-primary">{partner.username} is in Exam Mode</h4>
+                                    <p className="text-text-muted text-xs font-mono">
                                         Focusing on {data.exam_info?.reason || 'Exams'}. Telemetry and goals are locked to prevent distractions.
                                     </p>
                                 </div>
@@ -278,7 +278,7 @@ export default function PartnerDashboard() {
                                     });
                                     setShowInterventionModal(true);
                                 }}
-                                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1.5"
+                                className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-text-muted font-bold rounded-xl text-xs transition shrink-0 flex items-center gap-1.5"
                             >
                                 📚 Send Support
                             </button>
@@ -287,52 +287,52 @@ export default function PartnerDashboard() {
 
                     {/* Rich Telemetry Grid - Only show if NOT in exam mode */}
                     {!data.is_in_exam_mode && (
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-slate-800">
+                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 pt-4 border-t border-border-subtle">
                         {/* Task Completion Rate */}
-                        <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
-                            <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Completion Rate</div>
-                            <div className="text-lg font-black text-emerald-400">{stats.completionRate || 0}%</div>
-                            <div className="w-full bg-slate-800 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                        <div className="p-3 bg-background/90 rounded-xl border border-border-subtle">
+                            <div className="text-[10px] font-mono uppercase text-text-muted mb-1">Completion Rate</div>
+                            <div className="text-lg font-black text-success">{stats.completionRate || 0}%</div>
+                            <div className="w-full bg-surface-elevated h-1.5 rounded-full mt-1.5 overflow-hidden">
                                 <div className="bg-emerald-400 h-full rounded-full transition-all" style={{ width: `${stats.completionRate || 0}%` }}></div>
                             </div>
                         </div>
 
                         {/* Completed Today / Week */}
-                        <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
-                            <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Today / This Week</div>
+                        <div className="p-3 bg-background/90 rounded-xl border border-border-subtle">
+                            <div className="text-[10px] font-mono uppercase text-text-muted mb-1">Today / This Week</div>
                             <div className="text-lg font-black text-cyan-400">
-                                {stats.completedTodayCount || 0} <span className="text-xs font-normal text-slate-500">today</span> / {stats.completedWeekCount || 0} <span className="text-xs font-normal text-slate-500">wk</span>
+                                {stats.completedTodayCount || 0} <span className="text-xs font-normal text-text-muted">today</span> / {stats.completedWeekCount || 0} <span className="text-xs font-normal text-text-muted">wk</span>
                             </div>
                         </div>
 
                         {/* Total Completed */}
-                        <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
-                            <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Total Tasks Done</div>
-                            <div className="text-lg font-black text-white">
-                                {stats.completedTasksCount || 0} <span className="text-xs font-normal text-slate-500">/ {stats.totalTasks || 0}</span>
+                        <div className="p-3 bg-background/90 rounded-xl border border-border-subtle">
+                            <div className="text-[10px] font-mono uppercase text-text-muted mb-1">Total Tasks Done</div>
+                            <div className="text-lg font-black text-text-primary">
+                                {stats.completedTasksCount || 0} <span className="text-xs font-normal text-text-muted">/ {stats.totalTasks || 0}</span>
                             </div>
                         </div>
 
                         {/* Skipped Tasks */}
-                        <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
-                            <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Skipped Tasks</div>
-                            <div className={`text-lg font-black ${stats.skippedTasksCount > 0 ? 'text-rose-400' : 'text-slate-500'}`}>
+                        <div className="p-3 bg-background/90 rounded-xl border border-border-subtle">
+                            <div className="text-[10px] font-mono uppercase text-text-muted mb-1">Skipped Tasks</div>
+                            <div className={`text-lg font-black ${stats.skippedTasksCount > 0 ? 'text-rose-400' : 'text-text-muted'}`}>
                                 {stats.skippedTasksCount || 0}
                             </div>
                         </div>
 
                         {/* Overdue Milestones */}
-                        <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
-                            <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Overdue Milestones</div>
-                            <div className={`text-lg font-black ${stats.skippedMilestonesCount > 0 ? 'text-amber-400' : 'text-slate-500'}`}>
+                        <div className="p-3 bg-background/90 rounded-xl border border-border-subtle">
+                            <div className="text-[10px] font-mono uppercase text-text-muted mb-1">Overdue Milestones</div>
+                            <div className={`text-lg font-black ${stats.skippedMilestonesCount > 0 ? 'text-amber-400' : 'text-text-muted'}`}>
                                 {stats.skippedMilestonesCount || 0}
                             </div>
                         </div>
 
                         {/* Focus Hours */}
-                        <div className="p-3 bg-slate-900/90 rounded-xl border border-slate-800">
-                            <div className="text-[10px] font-mono uppercase text-slate-400 mb-1">Focus Study Time</div>
-                            <div className="text-lg font-black text-indigo-400">{stats.totalStudyHours || '0.0'} hrs</div>
+                        <div className="p-3 bg-background/90 rounded-xl border border-border-subtle">
+                            <div className="text-[10px] font-mono uppercase text-text-muted mb-1">Focus Study Time</div>
+                            <div className="text-lg font-black text-primary">{stats.totalStudyHours || '0.0'} hrs</div>
                         </div>
                     </div>
                     )}
@@ -343,12 +343,12 @@ export default function PartnerDashboard() {
                         {/* Time Range Filter + Tab Navigation */}
                         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     {/* Tabs */}
-                    <div className="flex gap-1.5 bg-white/5 p-1 rounded-xl border border-white/10 flex-wrap">
+                    <div className="flex gap-1.5 bg-surface/5 p-1 rounded-xl border border-white/10 flex-wrap">
                         {TABS.map(tab => (
                             <button
                                 key={tab.key}
                                 onClick={() => setActiveTab(tab.key)}
-                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === tab.key ? 'bg-indigo-600 text-white shadow' : 'text-slate-400 hover:text-white'}`}
+                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${activeTab === tab.key ? 'bg-primary text-background shadow' : 'text-text-muted hover:text-text-primary'}`}
                             >
                                 {tab.icon} {tab.label}
                             </button>
@@ -356,12 +356,12 @@ export default function PartnerDashboard() {
                     </div>
 
                     {/* Time Range Filter */}
-                    <div className="flex gap-1 bg-white/5 p-1 rounded-xl border border-white/10 flex-wrap">
+                    <div className="flex gap-1 bg-surface/5 p-1 rounded-xl border border-white/10 flex-wrap">
                         {['daily', 'weekly', 'monthly', 'yearly', 'all'].map(range => (
                             <button
                                 key={range}
                                 onClick={() => setTimeRange(range)}
-                                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${timeRange === range ? 'bg-cyan-600 text-white shadow' : 'text-slate-500 hover:text-white'}`}
+                                className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold uppercase transition-all ${timeRange === range ? 'bg-cyan-600 text-text-primary shadow' : 'text-text-muted hover:text-text-primary'}`}
                             >
                                 {range}
                             </button>
@@ -374,17 +374,17 @@ export default function PartnerDashboard() {
                     <div className="space-y-6">
                         {/* Skipped Warning Banner */}
                         {stats.skippedTasksCount > 0 && (
-                            <div className="glass-panel p-5 rounded-2xl border border-rose-500/30 bg-rose-950/20">
+                            <div className="card p-5 rounded-2xl border border-rose-500/30 bg-rose-950/20">
                                 <div className="flex items-center gap-3 mb-3">
                                     <FiAlertTriangle className="text-rose-400 text-xl" />
                                     <h3 className="text-lg font-bold text-rose-400">Accountability Alert</h3>
                                 </div>
-                                <p className="text-slate-300 text-sm mb-4">
+                                <p className="text-text-primary text-sm mb-4">
                                     {partner.username} has <span className="text-rose-400 font-bold">{stats.skippedTasksCount} skipped tasks</span> and <span className="text-rose-400 font-bold">{stats.skippedMilestonesCount} overdue milestones</span> that need attention.
                                 </p>
                                 <button 
                                     onClick={() => setActiveTab('skipped')}
-                                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition"
+                                    className="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-text-primary text-xs font-bold rounded-lg transition"
                                 >
                                     View Skipped Items →
                                 </button>
@@ -392,9 +392,9 @@ export default function PartnerDashboard() {
                         )}
 
                         {/* Detailed Tasks List */}
-                        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                                <FiCheckSquare className="text-emerald-400" /> Filtered Tasks ({allFilteredTasks.length})
+                        <div className="card p-6 rounded-2xl border border-border-subtle">
+                            <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
+                                <FiCheckSquare className="text-success" /> Filtered Tasks ({allFilteredTasks.length})
                             </h3>
                             {allFilteredTasks.length > 0 ? (
                                 <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
@@ -407,40 +407,40 @@ export default function PartnerDashboard() {
                                     ).map(([challengeTitle, tasks]) => {
                                         const isExpanded = expandedOverviewChallenges[challengeTitle];
                                         return (
-                                            <div key={challengeTitle} className="border border-slate-800 rounded-xl overflow-hidden bg-slate-900/30">
+                                            <div key={challengeTitle} className="border border-border-subtle rounded-xl overflow-hidden bg-background/30">
                                                 <button 
                                                     onClick={() => toggleOverviewChallenge(challengeTitle)}
-                                                    className="w-full bg-slate-800/40 hover:bg-slate-800/80 transition p-3 flex justify-between items-center border-b border-slate-800/50"
+                                                    className="w-full bg-surface-elevated/40 hover:bg-surface-elevated/80 transition p-3 flex justify-between items-center border-b border-border-subtle/50"
                                                 >
                                                     <div className="flex items-center gap-2">
-                                                        <span className="font-bold text-sm text-slate-200">{challengeTitle}</span>
-                                                        <span className="bg-slate-800 text-xs text-slate-400 px-2 py-0.5 rounded-full">{tasks.length} tasks</span>
+                                                        <span className="font-bold text-sm text-text-primary">{challengeTitle}</span>
+                                                        <span className="bg-surface-elevated text-xs text-text-muted px-2 py-0.5 rounded-full">{tasks.length} tasks</span>
                                                     </div>
-                                                    {isExpanded ? <FiChevronUp className="text-slate-400" /> : <FiChevronDown className="text-slate-400" />}
+                                                    {isExpanded ? <FiChevronUp className="text-text-muted" /> : <FiChevronDown className="text-text-muted" />}
                                                 </button>
                                                 
                                                 {isExpanded && (
                                                     <div className="p-3 space-y-2">
                                                         {tasks.map((task, i) => (
-                                                            <div key={i} className={`p-3 rounded-xl border flex items-start gap-3 ${task.completed ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-slate-800/80 bg-slate-900/50'}`}>
+                                                            <div key={i} className={`p-3 rounded-xl border flex items-start gap-3 ${task.completed ? 'border-emerald-500/20 bg-emerald-950/10' : 'border-border-subtle/80 bg-background/50'}`}>
                                                                 <div className="mt-0.5">
                                                                     {task.completed ? (
-                                                                        <FiCheckCircle className="text-emerald-400" size={16} />
+                                                                        <FiCheckCircle className="text-success" size={16} />
                                                                     ) : (
-                                                                        <FiCircle className="text-slate-500" size={16} />
+                                                                        <FiCircle className="text-text-muted" size={16} />
                                                                     )}
                                                                 </div>
                                                                 <div className="flex-1">
                                                                     <div className="flex justify-between items-start gap-2">
-                                                                        <h4 className={`text-sm font-bold ${task.completed ? 'text-slate-400 line-through' : 'text-slate-200'}`}>
+                                                                        <h4 className={`text-sm font-bold ${task.completed ? 'text-text-muted line-through' : 'text-text-primary'}`}>
                                                                             {task.title}
                                                                         </h4>
-                                                                        <span className="text-[10px] text-slate-500 font-mono whitespace-nowrap">
+                                                                        <span className="text-[10px] text-text-muted font-mono whitespace-nowrap">
                                                                             {dayjs(task.date).format('MMM DD')}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="text-[10px] text-slate-500 mt-1 flex items-center gap-2 flex-wrap">
-                                                                        <span className="text-indigo-400 bg-indigo-500/10 px-1.5 py-0.5 rounded">{task.milestoneTitle}</span>
+                                                                    <div className="text-[10px] text-text-muted mt-1 flex items-center gap-2 flex-wrap">
+                                                                        <span className="text-primary bg-primary/10 px-1.5 py-0.5 rounded">{task.milestoneTitle}</span>
                                                                         {task.estimated_minutes > 0 && (
                                                                             <>
                                                                                 <span>•</span>
@@ -458,31 +458,31 @@ export default function PartnerDashboard() {
                                     })}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-slate-600 text-sm">No tasks scheduled for this period.</div>
+                                <div className="text-center py-8 text-text-muted text-sm">No tasks scheduled for this period.</div>
                             )}
                         </div>
 
                         {/* Activity Log (last 30 days) */}
-                        <div className="glass-panel p-6 rounded-2xl border border-slate-800">
-                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                        <div className="card p-6 rounded-2xl border border-border-subtle">
+                            <h3 className="text-lg font-bold text-text-primary mb-4 flex items-center gap-2">
                                 <FiActivity className="text-cyan-400" /> Recent Activity Log
                             </h3>
                             {activityLogs && activityLogs.length > 0 ? (
                                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
                                     {activityLogs.filter(a => filterByTime(a.createdAt || a.date)).map((log, i) => (
-                                        <div key={i} className="flex justify-between items-center p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-xs">
+                                        <div key={i} className="flex justify-between items-center p-3 bg-background/80 rounded-xl border border-border-subtle text-xs">
                                             <div className="flex items-center gap-3">
-                                                <span className="text-slate-500 font-mono w-20">{dayjs(log.createdAt || log.date).format('MMM DD')}</span>
-                                                <span className="text-white">{log.action_type || log.action || log.type || 'Activity'}</span>
+                                                <span className="text-text-muted font-mono w-20">{dayjs(log.createdAt || log.date).format('MMM DD')}</span>
+                                                <span className="text-text-primary">{log.action_type || log.action || log.type || 'Activity'}</span>
                                             </div>
-                                            <span className={`font-bold ${(log.xp_awarded || log.xp_earned || 0) > 0 ? 'text-emerald-400' : 'text-slate-500'}`}>
+                                            <span className={`font-bold ${(log.xp_awarded || log.xp_earned || 0) > 0 ? 'text-success' : 'text-text-muted'}`}>
                                                 {(log.xp_awarded || log.xp_earned || 0) > 0 ? `+${(log.xp_awarded || log.xp_earned)} XP` : '—'}
                                             </span>
                                         </div>
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-slate-600 text-sm">No recent activity recorded.</div>
+                                <div className="text-center py-8 text-text-muted text-sm">No recent activity recorded.</div>
                             )}
                         </div>
                     </div>
@@ -509,33 +509,33 @@ export default function PartnerDashboard() {
                             const pct = completedCount.total > 0 ? ((completedCount.done / completedCount.total) * 100).toFixed(0) : 0;
 
                             return (
-                                <div key={challenge.id} className="glass-panel rounded-2xl border border-slate-800 overflow-hidden">
+                                <div key={challenge.id} className="card rounded-2xl border border-border-subtle overflow-hidden">
                                     <button 
                                         onClick={() => toggleChallenge(challenge.id)}
-                                        className="w-full p-5 flex justify-between items-center text-left hover:bg-white/5 transition"
+                                        className="w-full p-5 flex justify-between items-center text-left hover:bg-surface/5 transition"
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-xl flex items-center justify-center font-bold" style={{ backgroundColor: `${challenge.color || '#4F46E5'}20`, color: challenge.color || '#818CF8' }}>
                                                 <FiTarget size={20} />
                                             </div>
                                             <div>
-                                                <h3 className="font-bold text-white">{challenge.title}</h3>
-                                                <div className="flex items-center gap-3 text-xs text-slate-400 mt-0.5">
+                                                <h3 className="font-bold text-text-primary">{challenge.title}</h3>
+                                                <div className="flex items-center gap-3 text-xs text-text-muted mt-0.5">
                                                     <span>{challenge.milestones?.length || 0} milestones</span>
                                                     <span>•</span>
                                                     <span>{completedCount.done}/{completedCount.total} tasks done</span>
                                                     <span>•</span>
-                                                    <span className={pct >= 80 ? 'text-emerald-400' : pct >= 50 ? 'text-amber-400' : 'text-rose-400'}>
+                                                    <span className={pct >= 80 ? 'text-success' : pct >= 50 ? 'text-amber-400' : 'text-rose-400'}>
                                                         {pct}% complete
                                                     </span>
                                                 </div>
                                             </div>
                                         </div>
-                                        {isExpanded ? <FiChevronUp className="text-slate-400" /> : <FiChevronDown className="text-slate-400" />}
+                                        {isExpanded ? <FiChevronUp className="text-text-muted" /> : <FiChevronDown className="text-text-muted" />}
                                     </button>
 
                                     {isExpanded && (
-                                        <div className="border-t border-slate-800 p-5 space-y-4">
+                                        <div className="border-t border-border-subtle p-5 space-y-4">
                                             {challenge.milestones?.map(milestone => {
                                                 const filteredTasks = milestone.tasks?.filter(t => filterByTime(t.date)) || [];
                                                 if (filteredTasks.length === 0 && timeRange !== 'all') return null;
@@ -543,15 +543,15 @@ export default function PartnerDashboard() {
                                                 const isOverdue = milestone.status !== 'completed' && milestone.deadline && new Date(milestone.deadline) < new Date();
 
                                                 return (
-                                                    <div key={milestone.id} className={`p-4 rounded-xl border ${isOverdue ? 'border-rose-500/40 bg-rose-950/20' : 'border-slate-800 bg-slate-900/50'}`}>
+                                                    <div key={milestone.id} className={`p-4 rounded-xl border ${isOverdue ? 'border-rose-500/40 bg-rose-950/20' : 'border-border-subtle bg-background/50'}`}>
                                                         <div className="flex justify-between items-center mb-3">
                                                             <div className="flex items-center gap-2">
-                                                                <h4 className="font-bold text-sm text-white">{milestone.title}</h4>
+                                                                <h4 className="font-bold text-sm text-text-primary">{milestone.title}</h4>
                                                                 <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold ${
-                                                                    milestone.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
+                                                                    milestone.status === 'completed' ? 'bg-success/20 text-success' :
                                                                     isOverdue ? 'bg-rose-500/20 text-rose-400' :
                                                                     milestone.status === 'unlocked' ? 'bg-cyan-500/20 text-cyan-400' :
-                                                                    'bg-slate-700 text-slate-400'
+                                                                    'bg-surface text-text-muted'
                                                                 }`}>
                                                                     {isOverdue ? 'OVERDUE' : milestone.status}
                                                                 </span>
@@ -590,15 +590,15 @@ export default function PartnerDashboard() {
                                                             });
 
                                                             return (
-                                                                <div className="bg-slate-950/50 p-3 rounded-lg border border-slate-800/80 mb-4 mt-2">
-                                                                    <div className="text-[10px] uppercase font-bold text-slate-500 mb-2 tracking-wider flex items-center gap-1.5"><FiActivity /> Deep Analytics</div>
+                                                                <div className="bg-surface0/50 p-3 rounded-lg border border-border-subtle/80 mb-4 mt-2">
+                                                                    <div className="text-[10px] uppercase font-bold text-text-muted mb-2 tracking-wider flex items-center gap-1.5"><FiActivity /> Deep Analytics</div>
                                                                     <div className="grid grid-cols-4 gap-2">
-                                                                        <div className="bg-slate-900/80 rounded p-2 text-center border border-slate-800">
-                                                                            <div className="text-lg font-black text-white">{totalMTasks}</div>
-                                                                            <div className="text-[9px] text-slate-500 uppercase font-bold">Total</div>
+                                                                        <div className="bg-background/80 rounded p-2 text-center border border-border-subtle">
+                                                                            <div className="text-lg font-black text-text-primary">{totalMTasks}</div>
+                                                                            <div className="text-[9px] text-text-muted uppercase font-bold">Total</div>
                                                                         </div>
                                                                         <div className="bg-emerald-950/20 rounded p-2 text-center border border-emerald-900/30">
-                                                                            <div className="text-lg font-black text-emerald-400">{completedMTasks}</div>
+                                                                            <div className="text-lg font-black text-success">{completedMTasks}</div>
                                                                             <div className="text-[9px] text-emerald-500/70 uppercase font-bold">Done</div>
                                                                         </div>
                                                                         <div className="bg-rose-950/20 rounded p-2 text-center border border-rose-900/30">
@@ -630,20 +630,20 @@ export default function PartnerDashboard() {
                                                                 const isSkipped = !task.completed && isPast;
 
                                                                 return (
-                                                                    <div key={task.id} className={`flex items-center justify-between py-2 px-3 rounded-lg text-xs ${isSkipped ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-white/5'}`}>
+                                                                    <div key={task.id} className={`flex items-center justify-between py-2 px-3 rounded-lg text-xs ${isSkipped ? 'bg-rose-500/10 border border-rose-500/20' : 'bg-surface/5'}`}>
                                                                         <div className="flex items-center gap-2.5">
                                                                             {task.completed ? (
-                                                                                <FiCheckCircle className="text-emerald-400 shrink-0" />
+                                                                                <FiCheckCircle className="text-success shrink-0" />
                                                                             ) : isSkipped ? (
                                                                                 <FiXCircle className="text-rose-400 shrink-0" />
                                                                             ) : (
-                                                                                <div className="w-3.5 h-3.5 rounded border border-slate-600 shrink-0" />
+                                                                                <div className="w-3.5 h-3.5 rounded border border-border-subtle shrink-0" />
                                                                             )}
-                                                                            <span className={task.completed ? 'text-slate-400 line-through' : isSkipped ? 'text-rose-300' : 'text-white'}>
+                                                                            <span className={task.completed ? 'text-text-muted line-through' : isSkipped ? 'text-rose-300' : 'text-white'}>
                                                                                 {task.title}
                                                                             </span>
                                                                             {task.date && (
-                                                                                <span className="text-slate-600 font-mono">{dayjs(task.date).format('MMM DD')}</span>
+                                                                                <span className="text-text-muted font-mono">{dayjs(task.date).format('MMM DD')}</span>
                                                                             )}
                                                                         </div>
 
@@ -667,8 +667,8 @@ export default function PartnerDashboard() {
                                 </div>
                             );
                         }) : (
-                            <div className="text-center py-12 text-slate-500 glass-panel rounded-2xl border border-slate-800">
-                                <FiTarget className="w-10 h-10 mx-auto mb-3 text-slate-600" />
+                            <div className="text-center py-12 text-text-muted card rounded-2xl border border-border-subtle">
+                                <FiTarget className="w-10 h-10 mx-auto mb-3 text-text-muted" />
                                 <p>{partner.username} has no active goals.</p>
                             </div>
                         )}
@@ -679,19 +679,19 @@ export default function PartnerDashboard() {
                 {activeTab === 'skipped' && (
                     <div className="space-y-6">
                         {/* Skipped Tasks */}
-                        <div className="glass-panel p-6 rounded-2xl border border-rose-500/20">
+                        <div className="card p-6 rounded-2xl border border-rose-500/20">
                             <h3 className="text-lg font-bold text-rose-400 mb-4 flex items-center gap-2">
                                 <FiXCircle /> Skipped Daily Tasks ({filteredSkippedTasks.length})
                             </h3>
                             {filteredSkippedTasks.length > 0 ? (
                                 <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
                                     {filteredSkippedTasks.map((task, i) => (
-                                        <div key={i} className="flex justify-between items-center p-3.5 bg-slate-900 border border-rose-500/20 rounded-xl">
+                                        <div key={i} className="flex justify-between items-center p-3.5 bg-background border border-rose-500/20 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <FiXCircle className="text-rose-400 shrink-0" />
                                                 <div>
-                                                    <div className="text-sm font-semibold text-white">{task.title}</div>
-                                                    <div className="text-xs text-slate-400 mt-0.5">
+                                                    <div className="text-sm font-semibold text-text-primary">{task.title}</div>
+                                                    <div className="text-xs text-text-muted mt-0.5">
                                                         <span className="text-rose-400/80">{task.challengeTitle}</span> → {task.milestoneTitle} • {dayjs(task.date).format('MMM DD, YYYY')}
                                                     </div>
                                                 </div>
@@ -715,24 +715,24 @@ export default function PartnerDashboard() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-slate-500 text-sm">No skipped tasks in this time range. {partner.username} is on track! 🎯</div>
+                                <div className="text-center py-8 text-text-muted text-sm">No skipped tasks in this time range. {partner.username} is on track! 🎯</div>
                             )}
                         </div>
 
                         {/* Overdue Milestones */}
-                        <div className="glass-panel p-6 rounded-2xl border border-amber-500/20">
+                        <div className="card p-6 rounded-2xl border border-amber-500/20">
                             <h3 className="text-lg font-bold text-amber-400 mb-4 flex items-center gap-2">
                                 <FiAlertTriangle /> Overdue Milestones ({skippedMilestones.length})
                             </h3>
                             {skippedMilestones.length > 0 ? (
                                 <div className="space-y-2">
                                     {skippedMilestones.map((m, i) => (
-                                        <div key={i} className="flex justify-between items-center p-3.5 bg-slate-900 border border-amber-500/20 rounded-xl">
+                                        <div key={i} className="flex justify-between items-center p-3.5 bg-background border border-amber-500/20 rounded-xl">
                                             <div className="flex items-center gap-3">
                                                 <FiAlertTriangle className="text-amber-400 shrink-0" />
                                                 <div>
-                                                    <div className="text-sm font-semibold text-white">{m.title}</div>
-                                                    <div className="text-xs text-slate-400">{m.challengeTitle} • Deadline: {dayjs(m.deadline).format('MMM DD, YYYY')}</div>
+                                                    <div className="text-sm font-semibold text-text-primary">{m.title}</div>
+                                                    <div className="text-xs text-text-muted">{m.challengeTitle} • Deadline: {dayjs(m.deadline).format('MMM DD, YYYY')}</div>
                                                 </div>
                                             </div>
                                             <div className="flex items-center gap-2">
@@ -753,7 +753,7 @@ export default function PartnerDashboard() {
                                     ))}
                                 </div>
                             ) : (
-                                <div className="text-center py-8 text-slate-500 text-sm">No overdue milestones. {partner.username} is meeting deadlines! ✅</div>
+                                <div className="text-center py-8 text-text-muted text-sm">No overdue milestones. {partner.username} is meeting deadlines! ✅</div>
                             )}
                         </div>
                     </div>
@@ -761,14 +761,14 @@ export default function PartnerDashboard() {
 
                 {/* TAB: INTERVENTIONS HISTORY */}
                 {activeTab === 'interventions' && (
-                    <div className="glass-panel p-6 rounded-2xl border border-slate-800">
+                    <div className="card p-6 rounded-2xl border border-border-subtle">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-                                <FiMessageCircle className="text-indigo-400" /> Intervention History
+                            <h3 className="text-lg font-bold text-text-primary flex items-center gap-2">
+                                <FiMessageCircle className="text-primary" /> Intervention History
                             </h3>
                             <button 
                                 onClick={() => openInterventionFor('general', 'General Accountability')}
-                                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-lg transition flex items-center gap-1.5"
+                                className="px-3.5 py-1.5 bg-primary hover:bg-primary text-background text-xs font-bold rounded-lg transition flex items-center gap-1.5"
                             >
                                 <FiSend size={12} /> New Intervention
                             </button>
@@ -788,29 +788,29 @@ export default function PartnerDashboard() {
                                                     <span className={`text-[10px] px-2 py-0.5 rounded uppercase font-bold ${
                                                         iv.status === 'pending' ? 'bg-amber-500/20 text-amber-400' :
                                                         iv.status === 'explained' ? 'bg-cyan-500/20 text-cyan-400' :
-                                                        iv.status === 'completed' ? 'bg-emerald-500/20 text-emerald-400' :
-                                                        'bg-slate-700 text-slate-400'
+                                                        iv.status === 'completed' ? 'bg-success/20 text-success' :
+                                                        'bg-surface text-text-muted'
                                                     }`}>
                                                         {iv.status}
                                                     </span>
                                                 </div>
-                                                <span className="text-[10px] text-slate-500 font-mono">{dayjs(iv.createdAt).format('MMM DD, HH:mm')}</span>
+                                                <span className="text-[10px] text-text-muted font-mono">{dayjs(iv.createdAt).format('MMM DD, HH:mm')}</span>
                                             </div>
 
-                                            <div className="text-xs text-slate-400 mb-1">
-                                                <span className="font-bold text-white">{isSender ? 'You' : iv.sender?.username}</span> → <span className="font-bold text-white">{isSender ? iv.receiver?.username : 'You'}</span>
+                                            <div className="text-xs text-text-muted mb-1">
+                                                <span className="font-bold text-text-primary">{isSender ? 'You' : iv.sender?.username}</span> → <span className="font-bold text-text-primary">{isSender ? iv.receiver?.username : 'You'}</span>
                                                 {iv.item_title && <span> about <span className="text-cyan-400 font-semibold">{iv.item_title}</span></span>}
                                             </div>
 
-                                            {iv.message && <p className="text-sm text-slate-300 mt-2 p-2 bg-white/5 rounded-lg">"{iv.message}"</p>}
+                                            {iv.message && <p className="text-sm text-text-primary mt-2 p-2 bg-surface/5 rounded-lg">"{iv.message}"</p>}
                                             {iv.punishment && <p className="text-sm text-rose-300 mt-2 p-2 bg-rose-500/10 rounded-lg border border-rose-500/20">⚡ Punishment: {iv.punishment}</p>}
-                                            {iv.user_response && <p className="text-sm text-emerald-300 mt-2 p-2 bg-emerald-500/10 rounded-lg border border-emerald-500/20">💬 Response: {iv.user_response}</p>}
+                                            {iv.user_response && <p className="text-sm text-emerald-300 mt-2 p-2 bg-success/10 rounded-lg border border-emerald-500/20">💬 Response: {iv.user_response}</p>}
 
                                             {iv.status === 'pending' && (
-                                                <div className="mt-3 pt-2 border-t border-slate-800/80 flex gap-2">
+                                                <div className="mt-3 pt-2 border-t border-border-subtle/80 flex gap-2">
                                                     <button 
                                                         onClick={() => handleResetMilestoneFromIntervention(iv.id)}
-                                                        className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm shadow-rose-600/20"
+                                                        className="px-3.5 py-1.5 bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-text-primary font-bold rounded-lg text-xs transition flex items-center gap-1.5 shadow-sm shadow-rose-600/20"
                                                     >
                                                         <FiRefreshCw size={12} /> Start Over Task 1 (Reset Milestone to Day 1)
                                                     </button>
@@ -821,7 +821,7 @@ export default function PartnerDashboard() {
                                 })}
                             </div>
                         ) : (
-                            <div className="text-center py-12 text-slate-500 text-sm">No interventions yet between you and {partner.username}.</div>
+                            <div className="text-center py-12 text-text-muted text-sm">No interventions yet between you and {partner.username}.</div>
                         )}
                     </div>
                 )}
@@ -839,13 +839,13 @@ export default function PartnerDashboard() {
             {/* Intervention Modal */}
             {showInterventionModal && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="glass-panel max-w-lg w-full p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
-                        <button onClick={() => setShowInterventionModal(false)} className="absolute top-5 right-5 text-slate-400 hover:text-white text-xl"><FiXCircle /></button>
+                    <div className="card max-w-lg w-full p-6 rounded-3xl border border-border-subtle shadow-2xl relative">
+                        <button onClick={() => setShowInterventionModal(false)} className="absolute top-5 right-5 text-text-muted hover:text-text-primary text-xl"><FiXCircle /></button>
 
-                        <h3 className="text-xl font-bold mb-1 text-white flex items-center gap-2">
+                        <h3 className="text-xl font-bold mb-1 text-text-primary flex items-center gap-2">
                             <FiAlertOctagon className="text-rose-400" /> Partner Accountability Action
                         </h3>
-                        <p className="text-xs text-slate-400 mb-6">Send an inquiry or assign a punishment to {partner.username}.</p>
+                        <p className="text-xs text-text-muted mb-6">Send an inquiry or assign a punishment to {partner.username}.</p>
 
                         <form onSubmit={sendIntervention} className="space-y-4">
                             {/* Type Toggle */}
@@ -853,14 +853,14 @@ export default function PartnerDashboard() {
                                 <button 
                                     type="button"
                                     onClick={() => setInterventionForm({ ...interventionForm, type: 'inquiry' })}
-                                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition border ${interventionForm.type === 'inquiry' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-white/5 text-slate-400 border-slate-800'}`}
+                                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition border ${interventionForm.type === 'inquiry' ? 'bg-amber-500/20 text-amber-400 border-amber-500/40' : 'bg-surface/5 text-text-muted border-border-subtle'}`}
                                 >
                                     <FiMessageCircle /> Ask Why They Skipped
                                 </button>
                                 <button 
                                     type="button"
                                     onClick={() => setInterventionForm({ ...interventionForm, type: 'punishment' })}
-                                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition border ${interventionForm.type === 'punishment' ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' : 'bg-white/5 text-slate-400 border-slate-800'}`}
+                                    className={`flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition border ${interventionForm.type === 'punishment' ? 'bg-rose-500/20 text-rose-400 border-rose-500/40' : 'bg-surface/5 text-text-muted border-border-subtle'}`}
                                 >
                                     <FiZap /> Assign Punishment
                                 </button>
@@ -868,26 +868,26 @@ export default function PartnerDashboard() {
 
                             {/* Regarding */}
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Regarding</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Regarding</label>
                                 <input 
                                     type="text" 
                                     value={interventionForm.item_title}
                                     onChange={e => setInterventionForm({ ...interventionForm, item_title: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 text-sm"
+                                    className="w-full bg-background border border-border-subtle rounded-xl px-4 py-2.5 text-text-primary focus:outline-none focus:border-primary text-sm"
                                     placeholder="e.g. Daily Task - Day 3"
                                 />
                             </div>
 
                             {/* Message */}
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
                                     {interventionForm.type === 'inquiry' ? 'Your Question / Message' : 'Why are you punishing them?'}
                                 </label>
                                 <textarea 
                                     rows={3}
                                     value={interventionForm.message}
                                     onChange={e => setInterventionForm({ ...interventionForm, message: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 text-sm resize-none"
+                                    className="w-full bg-background border border-border-subtle rounded-xl px-4 py-2.5 text-text-primary focus:outline-none focus:border-primary text-sm resize-none"
                                     placeholder={interventionForm.type === 'inquiry' ? 'Why did you skip this task?' : 'You missed your deadline...'}
                                 />
                             </div>
@@ -913,17 +913,17 @@ export default function PartnerDashboard() {
                                         rows={2}
                                         value={interventionForm.punishment}
                                         onChange={e => setInterventionForm({ ...interventionForm, punishment: e.target.value })}
-                                        className="w-full bg-rose-950/30 border border-rose-500/30 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-rose-500 text-sm resize-none"
+                                        className="w-full bg-rose-950/30 border border-rose-500/30 rounded-xl px-4 py-2.5 text-text-primary focus:outline-none focus:border-rose-500 text-sm resize-none"
                                         placeholder="e.g. Start over from Task 1, 50 pushups before tomorrow..."
                                     />
                                 </div>
                             )}
 
                             <div className="pt-2 flex justify-end gap-3">
-                                <button type="button" onClick={() => setShowInterventionModal(false)} className="px-4 py-2.5 rounded-xl border border-slate-700 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition">
+                                <button type="button" onClick={() => setShowInterventionModal(false)} className="px-4 py-2.5 rounded-xl border border-border-subtle hover:bg-surface-elevated text-text-primary text-xs font-semibold transition">
                                     Cancel
                                 </button>
-                                <button type="submit" className={`px-5 py-2.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg ${interventionForm.type === 'punishment' ? 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-white shadow-rose-600/20' : 'bg-gradient-to-r from-amber-600 to-indigo-600 hover:from-amber-500 hover:to-indigo-500 text-white shadow-amber-600/20'}`}>
+                                <button type="submit" className={`px-5 py-2.5 font-bold rounded-xl text-xs transition flex items-center gap-1.5 shadow-lg ${interventionForm.type === 'punishment' ? 'bg-gradient-to-r from-rose-600 to-amber-600 hover:from-rose-500 hover:to-amber-500 text-text-primary shadow-rose-600/20' : 'bg-gradient-to-r from-amber-600 to-primary/5 hover:from-amber-500 hover:to-primary/5 text-white shadow-amber-600/20'}`}>
                                     <FiSend /> {interventionForm.type === 'inquiry' ? 'Send Inquiry' : 'Assign Punishment'}
                                 </button>
                             </div>

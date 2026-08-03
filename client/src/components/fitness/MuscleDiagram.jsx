@@ -446,12 +446,12 @@ export default function MuscleDiagram({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-2 right-4 z-30 p-3.5 rounded-2xl bg-surface/90 backdrop-blur-md border border-purple/40 shadow-glow-primary text-white w-56 space-y-2 pointer-events-none"
+            className="absolute top-2 right-4 z-30 p-3.5 rounded-2xl bg-surface/90 backdrop-blur-md border border-purple/40 shadow-glow-primary text-text-primary w-56 space-y-2 pointer-events-none"
           >
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-extrabold text-text-primary">{currentHoverMeta.name}</h4>
               <span className={`text-[8px] font-bold px-2 py-0.5 rounded-full ${
-                currentHoverMeta.status === 'primary' ? 'bg-purple text-white' :
+                currentHoverMeta.status === 'primary' ? 'bg-purple text-text-primary' :
                 currentHoverMeta.status === 'secondary' ? 'bg-info text-white' : 'bg-surface-elevated text-text-muted'
               }`}>
                 {currentHoverMeta.status === 'primary' ? 'Primary' : currentHoverMeta.status === 'secondary' ? 'Secondary' : 'Not Trained'}
@@ -501,7 +501,7 @@ export default function MuscleDiagram({
                 onClick={() => setViewMode(tab.id)}
                 className={`px-2 py-1 text-[9px] font-bold rounded-md transition-all duration-200 ${
                   viewMode === tab.id
-                    ? 'bg-purple text-white'
+                    ? 'bg-purple text-text-primary'
                     : 'text-text-muted hover:text-text-primary'
                 }`}
               >
@@ -527,7 +527,7 @@ export default function MuscleDiagram({
             <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none">Secondary</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-700" />
+            <span className="w-2.5 h-2.5 rounded-full bg-surface" />
             <span className="text-[10px] font-bold text-text-muted uppercase tracking-wider leading-none">Inactive</span>
           </div>
         </div>
@@ -541,7 +541,7 @@ export default function MuscleDiagram({
       {/* TOP HEADER: TITLE & CONTROLS */}
       {!minimalMode && (
         <div className="flex items-center justify-between mb-8">
-          <h3 className="text-[13px] font-bold text-white tracking-[0.15em] uppercase flex items-center gap-2">
+          <h3 className="text-[13px] font-bold text-text-primary tracking-[0.15em] uppercase flex items-center gap-2">
             Muscle Activation
           </h3>
 
@@ -557,8 +557,8 @@ export default function MuscleDiagram({
                 onClick={() => setViewMode(tab.id)}
                 className={`px-4 py-1.5 text-[10px] uppercase tracking-widest font-bold rounded-full transition-all duration-300 ${
                   viewMode === tab.id
-                    ? 'bg-[#a855f7] text-white shadow-md'
-                    : 'text-text-muted hover:text-white'
+                    ? 'bg-[#a855f7] text-text-primary shadow-md'
+                    : 'text-text-muted hover:text-text-primary'
                 }`}
               >
                 {tab.label}

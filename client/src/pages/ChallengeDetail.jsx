@@ -185,10 +185,10 @@ export default function ChallengeDetail() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#090A0F] text-slate-100 flex items-center justify-center">
+            <div className="w-full flex items-center justify-center min-h-[60vh] text-text-primary">
                 <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-indigo-500/30 border-t-indigo-500 rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-400 text-sm font-mono">Loading roadmap...</p>
+                    <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto mb-4"></div>
+                    <p className="text-text-muted text-sm font-mono">Loading roadmap...</p>
                 </div>
             </div>
         );
@@ -196,9 +196,9 @@ export default function ChallengeDetail() {
 
     if (!challenge) {
         return (
-            <div className="min-h-screen bg-[#090A0F] text-slate-100 p-8">
+            <div className="w-full p-8 text-text-primary">
                 <BackButton fallbackPath="/challenges" />
-                <div className="text-center py-20 text-slate-500">Goal not found.</div>
+                <div className="text-center py-20 text-text-muted">Goal not found.</div>
             </div>
         );
     }
@@ -217,26 +217,26 @@ export default function ChallengeDetail() {
     const overallProgress = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
     return (
-        <div className="min-h-screen bg-[#090A0F] text-slate-100 p-4 md:p-8 relative overflow-hidden font-sans">
-            <div className="ambient-glow top-[-10%] left-[-10%] w-[500px] h-[500px] bg-indigo-600/15"></div>
+        <div className="w-full p-4 md:p-8 relative overflow-hidden text-text-primary font-sans">
+            <div className="ambient-glow top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/15"></div>
             <div className="ambient-glow bottom-[-10%] right-[-10%] w-[600px] h-[600px] bg-cyan-600/10"></div>
 
             <div className="max-w-5xl mx-auto space-y-8 relative z-10">
                 <BackButton fallbackPath="/challenges" />
 
                 {/* Header Section */}
-                <header className="glass-panel p-6 md:p-8 rounded-3xl border border-indigo-500/20 space-y-6">
+                <header className="card p-6 md:p-8 rounded-3xl border border-primary/20 space-y-6">
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div className="flex items-center gap-3">
-                            <span className="text-xs px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full font-mono uppercase tracking-wider font-bold border border-indigo-500/30">
+                            <span className="text-xs px-3 py-1 bg-primary/20 text-primary rounded-full font-mono uppercase tracking-wider font-bold border border-primary/30">
                                 {challenge.difficulty || 'LEGENDARY'} Mode
                             </span>
                             <span className={`text-xs px-3 py-1 rounded-full uppercase tracking-wider font-bold font-mono ${
-                                challenge.status === 'active' ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-white/10 text-slate-400'
+                                challenge.status === 'active' ? 'bg-success/20 text-success border border-emerald-500/30' : 'bg-surface/10 text-text-muted'
                             }`}>
                                 {challenge.status}
                             </span>
-                            <span className="text-xs px-3 py-1 bg-white/5 text-slate-400 rounded-full font-mono uppercase tracking-wider">
+                            <span className="text-xs px-3 py-1 bg-surface/5 text-text-muted rounded-full font-mono uppercase tracking-wider">
                                 {challenge.category || 'General'}
                             </span>
                         </div>
@@ -251,23 +251,23 @@ export default function ChallengeDetail() {
                     </div>
 
                     <div>
-                        <h1 className="text-3xl md:text-4xl font-black text-white tracking-tight mb-2">{challenge.title}</h1>
+                        <h1 className="text-3xl md:text-4xl font-black text-text-primary tracking-tight mb-2">{challenge.title}</h1>
                         {challenge.description && (
-                            <p className="text-slate-400 text-sm max-w-3xl leading-relaxed">{challenge.description}</p>
+                            <p className="text-text-muted text-sm max-w-3xl leading-relaxed">{challenge.description}</p>
                         )}
                     </div>
 
                     {/* Overall Progress Bar */}
-                    <div className="pt-4 border-t border-slate-800/80 space-y-2">
+                    <div className="pt-4 border-t border-border-subtle/80 space-y-2">
                         <div className="flex justify-between items-center text-xs font-mono">
-                            <span className="text-slate-400 uppercase font-bold flex items-center gap-2">
-                                <FiTarget className="text-indigo-400" /> Overall Goal Progress
+                            <span className="text-text-muted uppercase font-bold flex items-center gap-2">
+                                <FiTarget className="text-primary" /> Overall Goal Progress
                             </span>
-                            <span className="text-emerald-400 font-bold">{completedTasksCount} / {totalTasksCount} Tasks ({overallProgress}%)</span>
+                            <span className="text-success font-bold">{completedTasksCount} / {totalTasksCount} Tasks ({overallProgress}%)</span>
                         </div>
-                        <div className="w-full bg-slate-900 h-2.5 rounded-full overflow-hidden border border-slate-800">
+                        <div className="w-full bg-background h-2.5 rounded-full overflow-hidden border border-border-subtle">
                             <div 
-                                className="bg-gradient-to-r from-indigo-500 via-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-500"
+                                className="bg-gradient-to-r from-primary/20 via-cyan-500 to-emerald-400 h-full rounded-full transition-all duration-500"
                                 style={{ width: `${overallProgress}%` }}
                             ></div>
                         </div>
@@ -277,10 +277,10 @@ export default function ChallengeDetail() {
                 {/* Journey Roadmap (Milestones & Daily Schedule) */}
                 <div className="space-y-6">
                     <div className="flex justify-between items-center">
-                        <h2 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
+                        <h2 className="text-xl font-extrabold text-text-primary tracking-tight flex items-center gap-2">
                             <FiCheckSquare className="text-cyan-400" /> Milestones & Daily Tasks
                         </h2>
-                        <span className="text-xs text-slate-500 font-mono">{challenge.milestones?.length || 0} Milestones</span>
+                        <span className="text-xs text-text-muted font-mono">{challenge.milestones?.length || 0} Milestones</span>
                     </div>
 
                     <div className="space-y-8">
@@ -328,22 +328,22 @@ export default function ChallengeDetail() {
                             return (
                                 <div 
                                     key={milestone.id}
-                                    className={`glass-panel p-6 md:p-8 rounded-3xl border transition-all ${
+                                    className={`card p-6 md:p-8 rounded-3xl border transition-all ${
                                         isCompleted ? 'border-emerald-500/30 bg-emerald-950/10' :
-                                        isUnlocked ? 'border-slate-700 bg-slate-900/50' : 'border-slate-800 bg-slate-950/30 opacity-80'
+                                        isUnlocked ? 'border-border-subtle bg-background/50' : 'border-border-subtle bg-surface0/30 opacity-80'
                                     }`}
                                 >
                                     {/* Milestone Header (Strict structure: No delete milestone option) */}
-                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-4 border-b border-slate-800">
+                                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-4 border-b border-border-subtle">
                                         <div className="flex items-center gap-3">
                                             <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-bold text-sm ${
-                                                isCompleted ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                                isCompleted ? 'bg-success/20 text-success border border-emerald-500/30' : 'bg-primary/20 text-primary border border-primary/30'
                                             }`}>
                                                 M{idx + 1}
                                             </div>
                                             <div>
-                                                <h3 className="font-extrabold text-xl text-white">{milestone.title}</h3>
-                                                <div className="flex items-center gap-3 text-xs text-slate-400 font-mono mt-0.5">
+                                                <h3 className="font-extrabold text-xl text-text-primary">{milestone.title}</h3>
+                                                <div className="flex items-center gap-3 text-xs text-text-muted font-mono mt-0.5">
                                                     <span>Day 1 – Day {dayCount} ({mStart.format('MMM D')} – {mEnd.format('MMM D')})</span>
                                                     <span>•</span>
                                                     <span>⏱ {Math.round(totalEstMinutes / 60 * 10) / 10} hrs total</span>
@@ -353,8 +353,8 @@ export default function ChallengeDetail() {
                                         </div>
 
                                         <span className={`text-[10px] font-mono font-bold px-3 py-1 rounded-md uppercase tracking-wider ${
-                                            isCompleted ? 'bg-emerald-500/20 text-emerald-400' :
-                                            isUnlocked ? 'bg-cyan-500/20 text-cyan-400' : 'bg-slate-800 text-slate-400'
+                                            isCompleted ? 'bg-success/20 text-success' :
+                                            isUnlocked ? 'bg-cyan-500/20 text-cyan-400' : 'bg-surface-elevated text-text-muted'
                                         }`}>
                                             {isCompleted ? 'COMPLETED' : milestone.status}
                                         </span>
@@ -363,11 +363,11 @@ export default function ChallengeDetail() {
                                     {/* Milestone Progress Bar */}
                                     <div className="mb-6 space-y-1.5">
                                         <div className="flex justify-between text-xs font-mono">
-                                            <span className="text-slate-400">Milestone Progress</span>
-                                            <span className="text-slate-300 font-bold">{completedTasks.length} / {tasks.length} tasks ({pct}%)</span>
+                                            <span className="text-text-muted">Milestone Progress</span>
+                                            <span className="text-text-primary font-bold">{completedTasks.length} / {tasks.length} tasks ({pct}%)</span>
                                         </div>
-                                        <div className="w-full bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-800">
-                                            <div className="bg-gradient-to-r from-indigo-500 to-emerald-400 h-full rounded-full transition-all duration-300" style={{ width: `${pct}%` }}></div>
+                                        <div className="w-full bg-surface h-2 rounded-full overflow-hidden border border-border-subtle">
+                                            <div className="bg-gradient-to-r from-primary/20 to-emerald-400 h-full rounded-full transition-all duration-300" style={{ width: `${pct}%` }}></div>
                                         </div>
                                     </div>
 
@@ -383,29 +383,29 @@ export default function ChallengeDetail() {
                                                 <div 
                                                     key={dayItem.dayNum}
                                                     className={`p-4 rounded-2xl border transition-all ${
-                                                        isToday ? 'bg-indigo-950/20 border-indigo-500/40 shadow-lg shadow-indigo-500/5' : 'bg-slate-950/60 border-slate-800/80'
+                                                        isToday ? 'bg-primary/20 border-primary/40 shadow-lg shadow-primary/30' : 'bg-surface0/60 border-border-subtle/80'
                                                     }`}
                                                 >
                                                     {/* Day Header with + Add Task for Day button */}
-                                                    <div className="flex justify-between items-center pb-3 mb-3 border-b border-slate-800/60">
+                                                    <div className="flex justify-between items-center pb-3 mb-3 border-b border-border-subtle/60">
                                                         <div className="flex items-center gap-2">
-                                                            <span className={`w-2.5 h-2.5 rounded-full ${isToday ? 'bg-indigo-400 animate-pulse' : 'bg-slate-600'}`}></span>
-                                                            <h4 className="font-extrabold text-sm text-white font-mono flex items-center gap-2">
+                                                            <span className={`w-2.5 h-2.5 rounded-full ${isToday ? 'bg-primary animate-pulse' : 'bg-surface'}`}></span>
+                                                            <h4 className="font-extrabold text-sm text-text-primary font-mono flex items-center gap-2">
                                                                 Day {dayItem.dayNum} 
-                                                                <span className="text-slate-400 font-normal text-xs">({dayItem.dateObj.format('MMM DD, YYYY')})</span>
-                                                                {isToday && <span className="text-[10px] bg-indigo-500/20 text-indigo-300 font-bold px-2 py-0.5 rounded font-sans">TODAY</span>}
+                                                                <span className="text-text-muted font-normal text-xs">({dayItem.dateObj.format('MMM DD, YYYY')})</span>
+                                                                {isToday && <span className="text-[10px] bg-primary/20 text-primary font-bold px-2 py-0.5 rounded font-sans">TODAY</span>}
                                                             </h4>
                                                         </div>
 
                                                         <div className="flex items-center gap-3">
-                                                            <span className="text-[11px] font-mono text-slate-500">
+                                                            <span className="text-[11px] font-mono text-text-muted">
                                                                 {dayCompletedCount} / {dayItem.tasks.length} done
                                                             </span>
 
                                                             {/* Explicit Add Task for Day button */}
                                                             <button 
                                                                 onClick={() => openAddTaskForDay(milestone.id, dayItem.dayNum, dayItem.dateStr)}
-                                                                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-indigo-600/20"
+                                                                className="px-3 py-1.5 bg-primary hover:bg-primary text-background rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-primary/30"
                                                             >
                                                                 <FiPlus size={13} /> Add Task to Day {dayItem.dayNum}
                                                             </button>
@@ -420,13 +420,13 @@ export default function ChallengeDetail() {
                                                                 animate={{ opacity: 1, height: 'auto' }}
                                                                 exit={{ opacity: 0, height: 0 }}
                                                                 onSubmit={handleCreateTask}
-                                                                className="p-4 bg-slate-900/90 rounded-2xl border border-indigo-500/40 mb-3 space-y-3"
+                                                                className="p-4 bg-background/90 rounded-2xl border border-primary/40 mb-3 space-y-3"
                                                             >
                                                                 <div className="flex justify-between items-center">
-                                                                    <h5 className="text-xs font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+                                                                    <h5 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                                                                         <FiPlus /> New Task for Day {dayItem.dayNum} ({dayItem.dateObj.format('MMM DD')})
                                                                     </h5>
-                                                                    <button type="button" onClick={() => setAddTaskTarget(null)} className="text-slate-500 hover:text-white">
+                                                                    <button type="button" onClick={() => setAddTaskTarget(null)} className="text-text-muted hover:text-text-primary">
                                                                         <FiX size={14} />
                                                                     </button>
                                                                 </div>
@@ -437,16 +437,16 @@ export default function ChallengeDetail() {
                                                                     value={newTaskForm.title}
                                                                     onChange={e => setNewTaskForm({ ...newTaskForm, title: e.target.value })}
                                                                     placeholder="e.g. Go for a run, Do 5 LeetCode problems, Watch Tokio lecture..."
-                                                                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3.5 py-2 text-white text-xs focus:outline-none focus:border-indigo-500"
+                                                                    className="w-full bg-surface border border-border-subtle rounded-xl px-3.5 py-2 text-text-primary text-xs focus:outline-none focus:border-primary"
                                                                 />
 
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
                                                                     <div>
-                                                                        <label className="block text-[10px] text-slate-400 mb-1">Priority</label>
+                                                                        <label className="block text-[10px] text-text-muted mb-1">Priority</label>
                                                                         <select 
                                                                             value={newTaskForm.priority}
                                                                             onChange={e => setNewTaskForm({ ...newTaskForm, priority: e.target.value })}
-                                                                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                                                                            className="w-full bg-surface border border-border-subtle rounded-lg px-2.5 py-1.5 text-text-primary"
                                                                         >
                                                                             <option value="P1">🔴 P1 (Critical - 30 XP)</option>
                                                                             <option value="P2">🟡 P2 (Medium - 20 XP)</option>
@@ -455,11 +455,11 @@ export default function ChallengeDetail() {
                                                                     </div>
 
                                                                     <div>
-                                                                        <label className="block text-[10px] text-slate-400 mb-1">Energy Required</label>
+                                                                        <label className="block text-[10px] text-text-muted mb-1">Energy Required</label>
                                                                         <select 
                                                                             value={newTaskForm.energy_level}
                                                                             onChange={e => setNewTaskForm({ ...newTaskForm, energy_level: e.target.value })}
-                                                                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                                                                            className="w-full bg-surface border border-border-subtle rounded-lg px-2.5 py-1.5 text-text-primary"
                                                                         >
                                                                             <option value="high">⚡ High Focus</option>
                                                                             <option value="medium">💡 Medium Focus</option>
@@ -468,19 +468,19 @@ export default function ChallengeDetail() {
                                                                     </div>
 
                                                                     <div>
-                                                                        <label className="block text-[10px] text-slate-400 mb-1">Est. Minutes</label>
+                                                                        <label className="block text-[10px] text-text-muted mb-1">Est. Minutes</label>
                                                                         <input 
                                                                             type="number"
                                                                             min="5"
                                                                             max="480"
                                                                             value={newTaskForm.estimated_minutes}
                                                                             onChange={e => setNewTaskForm({ ...newTaskForm, estimated_minutes: Number(e.target.value) })}
-                                                                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                                                                            className="w-full bg-surface border border-border-subtle rounded-lg px-2.5 py-1.5 text-text-primary"
                                                                         />
                                                                     </div>
 
                                                                     <div>
-                                                                        <label className="block text-[10px] text-slate-400 mb-1">Hours</label>
+                                                                        <label className="block text-[10px] text-text-muted mb-1">Hours</label>
                                                                         <input 
                                                                             type="number"
                                                                             min="0"
@@ -488,16 +488,16 @@ export default function ChallengeDetail() {
                                                                             step="0.5"
                                                                             value={newTaskForm.hours}
                                                                             onChange={e => setNewTaskForm({ ...newTaskForm, hours: Number(e.target.value) })}
-                                                                            className="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-white"
+                                                                            className="w-full bg-surface border border-border-subtle rounded-lg px-2.5 py-1.5 text-text-primary"
                                                                         />
                                                                     </div>
                                                                 </div>
 
                                                                 <div className="flex justify-end gap-2 pt-1">
-                                                                    <button type="button" onClick={() => setAddTaskTarget(null)} className="px-3 py-1.5 rounded-lg border border-slate-700 text-slate-400 text-xs font-semibold hover:bg-slate-800">
+                                                                    <button type="button" onClick={() => setAddTaskTarget(null)} className="px-3 py-1.5 rounded-lg border border-border-subtle text-text-muted text-xs font-semibold hover:bg-surface-elevated">
                                                                         Cancel
                                                                     </button>
-                                                                    <button type="submit" className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition">
+                                                                    <button type="submit" className="px-4 py-1.5 rounded-lg bg-primary hover:bg-primary text-background text-xs font-bold transition">
                                                                         Save Task to Day {dayItem.dayNum}
                                                                     </button>
                                                                 </div>
@@ -507,7 +507,7 @@ export default function ChallengeDetail() {
 
                                                     {/* Day Tasks List */}
                                                     {dayItem.tasks.length === 0 ? (
-                                                        <div className="text-center py-4 text-slate-600 text-xs font-mono">
+                                                        <div className="text-center py-4 text-text-muted text-xs font-mono">
                                                             No tasks set for Day {dayItem.dayNum}. Click "+ Add Task to Day {dayItem.dayNum}" above to add items.
                                                         </div>
                                                     ) : (
@@ -520,25 +520,25 @@ export default function ChallengeDetail() {
                                                                         key={task.id}
                                                                         onClick={() => !isLockedForEdits && handleToggleTask(task.id)}
                                                                         className={`p-3 rounded-xl border transition-all flex items-center justify-between group ${
-                                                                            isDone ? 'bg-emerald-950/20 border-emerald-500/20 opacity-70' : 'bg-slate-900/90 border-slate-800 hover:border-indigo-500/40'
+                                                                            isDone ? 'bg-emerald-950/20 border-emerald-500/20 opacity-70' : 'bg-background/90 border-border-subtle hover:border-primary/40'
                                                                         } ${isLockedForEdits ? 'cursor-default opacity-90' : 'cursor-pointer'}`}
                                                                         title={isLockedForEdits ? `Milestone is ${milestone.status.replace('_', ' ')}` : ""}
                                                                     >
                                                                         <div className="flex items-center gap-3">
                                                                             <div className={`w-5 h-5 rounded-md border flex items-center justify-center transition ${
-                                                                                isDone ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-slate-600 group-hover:border-indigo-400'
+                                                                                isDone ? 'bg-success border-emerald-500 text-text-primary' : 'border-border-subtle group-hover:border-primary'
                                                                             }`}>
                                                                                 {isDone && <FiCheckCircle size={14} />}
                                                                             </div>
 
                                                                             <div>
-                                                                                <div className={`text-xs font-bold ${isDone ? 'line-through text-slate-500' : 'text-white'}`}>
+                                                                                <div className={`text-xs font-bold ${isDone ? 'line-through text-text-muted' : 'text-text-primary'}`}>
                                                                                     {task.title}
                                                                                 </div>
-                                                                                <div className="flex items-center gap-2 mt-0.5 font-mono text-[10px] text-slate-400">
+                                                                                <div className="flex items-center gap-2 mt-0.5 font-mono text-[10px] text-text-muted">
                                                                                     <span className={`px-1.5 py-0.2 rounded font-bold ${
                                                                                         task.priority === 'P1' ? 'bg-rose-500/20 text-rose-400' :
-                                                                                        task.priority === 'P2' ? 'bg-amber-500/20 text-amber-400' : 'bg-indigo-500/20 text-indigo-400'
+                                                                                        task.priority === 'P2' ? 'bg-amber-500/20 text-amber-400' : 'bg-primary/20 text-primary'
                                                                                     }`}>
                                                                                         {task.priority || 'P1'}
                                                                                     </span>
@@ -559,7 +559,7 @@ export default function ChallengeDetail() {
                                                                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition">
                                                                                 <button 
                                                                                     onClick={(e) => openEditTaskModal(task, e)}
-                                                                                    className="p-1.5 hover:bg-indigo-500/20 text-indigo-400 rounded-lg transition"
+                                                                                    className="p-1.5 hover:bg-primary/20 text-primary rounded-lg transition"
                                                                                     title="Edit Task"
                                                                                 >
                                                                                     <FiEdit2 size={13} />
@@ -586,7 +586,7 @@ export default function ChallengeDetail() {
 
                                     {/* Submit Milestone Proof for Peer Review */}
                                     {isUnlocked && tasks.length > 0 && (
-                                        <div className="mt-6 pt-4 border-t border-slate-800">
+                                        <div className="mt-6 pt-4 border-t border-border-subtle">
                                             {milestone.status === 'pending_review' ? (
                                                 <div className="p-4 bg-warning/10 border border-warning/30 rounded-xl flex items-center justify-center gap-2 text-warning">
                                                     <span className="text-xl">⏳</span>
@@ -604,8 +604,8 @@ export default function ChallengeDetail() {
                                                     </div>
                                                 </div>
                                             ) : !tasks.every(t => t.is_completed || t.completed) ? (
-                                                <div className="p-3 bg-slate-800/50 rounded-xl text-center">
-                                                    <p className="text-[11px] text-slate-400">Complete all tasks above to submit this milestone for peer review.</p>
+                                                <div className="p-3 bg-surface-elevated/50 rounded-xl text-center">
+                                                    <p className="text-[11px] text-text-muted">Complete all tasks above to submit this milestone for peer review.</p>
                                                 </div>
                                             ) : (
                                                 <>
@@ -619,13 +619,13 @@ export default function ChallengeDetail() {
                                                         </div>
                                                     )}
                                                     <div className="flex justify-between items-center mb-3">
-                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-indigo-400 flex items-center gap-1.5">
+                                                        <h4 className="text-xs font-bold uppercase tracking-wider text-primary flex items-center gap-1.5">
                                                             <FiUserCheck /> {milestone.status === 'rejected' ? 'Resubmit Milestone Proof' : 'Submit Milestone Proof to Partner'}
                                                         </h4>
                                                         <button 
                                                             type="button" 
                                                             onClick={() => setManualIdMode(!manualIdMode)} 
-                                                            className="text-[11px] text-slate-400 hover:text-white underline font-mono"
+                                                            className="text-[11px] text-text-muted hover:text-text-primary underline font-mono"
                                                         >
                                                             {manualIdMode ? 'Select from Friends list' : 'Paste User ID manually'}
                                                         </button>
@@ -657,14 +657,14 @@ export default function ChallengeDetail() {
                                                                 name="reviewer_id" 
                                                                 type="text" 
                                                                 placeholder="Partner User ID (Paste here)" 
-                                                                className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none" 
+                                                                className="w-full px-3 py-2 bg-background border border-border-subtle rounded-xl text-xs text-text-primary focus:border-primary focus:outline-none" 
                                                             />
                                                         ) : (
                                                             <div>
                                                                 <select 
                                                                     required 
                                                                     name="reviewer_id" 
-                                                                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none cursor-pointer"
+                                                                    className="w-full px-3 py-2 bg-background border border-border-subtle rounded-xl text-xs text-text-primary focus:border-primary focus:outline-none cursor-pointer"
                                                                 >
                                                                     <option value="">Select Accountability Partner / Friend...</option>
                                                                     {friends.map(friend => (
@@ -681,19 +681,19 @@ export default function ChallengeDetail() {
                                                             name="evidence_url" 
                                                             type="url" 
                                                             placeholder="Proof / Evidence URL (GitHub commit, Notion link, screenshot)" 
-                                                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs text-white focus:border-indigo-500 focus:outline-none" 
+                                                            className="w-full px-3 py-2 bg-background border border-border-subtle rounded-xl text-xs text-text-primary focus:border-primary focus:outline-none" 
                                                         />
 
                                                         <textarea 
                                                             required 
                                                             name="reflection" 
                                                             placeholder="Short reflection on what you learned or built during this milestone..." 
-                                                            className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs h-16 resize-none text-white focus:border-indigo-500 focus:outline-none" 
+                                                            className="w-full px-3 py-2 bg-background border border-border-subtle rounded-xl text-xs h-16 resize-none text-text-primary focus:border-primary focus:outline-none" 
                                                         />
 
                                                         <button 
                                                             type="submit" 
-                                                            className="w-full bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 transition-all py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                                                            className="w-full bg-primary/20 hover:bg-primary text-primary hover:text-background border border-primary/30 transition-all py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-2"
                                                         >
                                                             <FiUserCheck /> Send Proof to Partner for Review
                                                         </button>
@@ -712,35 +712,35 @@ export default function ChallengeDetail() {
             {/* Edit Task Modal */}
             {editTaskModal && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="glass-panel max-w-lg w-full p-6 rounded-3xl border border-slate-700 shadow-2xl relative">
-                        <button onClick={() => setEditTaskModal(null)} className="absolute top-5 right-5 text-slate-400 hover:text-white text-xl">
+                    <div className="card max-w-lg w-full p-6 rounded-3xl border border-border-subtle shadow-2xl relative">
+                        <button onClick={() => setEditTaskModal(null)} className="absolute top-5 right-5 text-text-muted hover:text-text-primary text-xl">
                             <FiX />
                         </button>
 
-                        <h3 className="text-xl font-bold mb-1 text-white flex items-center gap-2">
-                            <FiEdit2 className="text-indigo-400" /> Edit Task
+                        <h3 className="text-xl font-bold mb-1 text-text-primary flex items-center gap-2">
+                            <FiEdit2 className="text-primary" /> Edit Task
                         </h3>
-                        <p className="text-xs text-slate-400 mb-6">Modify task title, priority, energy, or target date.</p>
+                        <p className="text-xs text-text-muted mb-6">Modify task title, priority, energy, or target date.</p>
 
                         <form onSubmit={handleUpdateTask} className="space-y-4">
                             <div>
-                                <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Task Title</label>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Task Title</label>
                                 <input 
                                     type="text" 
                                     required
                                     value={editTaskForm.title}
                                     onChange={e => setEditTaskForm({ ...editTaskForm, title: e.target.value })}
-                                    className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500 text-sm"
+                                    className="w-full bg-background border border-border-subtle rounded-xl px-4 py-2.5 text-text-primary focus:outline-none focus:border-primary text-sm"
                                 />
                             </div>
 
                             <div className="grid grid-cols-2 gap-3 text-xs">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Priority</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Priority</label>
                                     <select 
                                         value={editTaskForm.priority}
                                         onChange={e => setEditTaskForm({ ...editTaskForm, priority: e.target.value })}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-3 py-2 text-text-primary text-xs focus:border-primary focus:outline-none"
                                     >
                                         <option value="P1">🔴 P1 (Critical - 30 XP)</option>
                                         <option value="P2">🟡 P2 (Medium - 20 XP)</option>
@@ -749,11 +749,11 @@ export default function ChallengeDetail() {
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Energy Level</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Energy Level</label>
                                     <select 
                                         value={editTaskForm.energy_level}
                                         onChange={e => setEditTaskForm({ ...editTaskForm, energy_level: e.target.value })}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-3 py-2 text-text-primary text-xs focus:border-primary focus:outline-none"
                                     >
                                         <option value="high">⚡ High Focus</option>
                                         <option value="medium">💡 Medium Focus</option>
@@ -764,19 +764,19 @@ export default function ChallengeDetail() {
 
                             <div className="grid grid-cols-2 gap-3 text-xs">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Est. Minutes</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Est. Minutes</label>
                                     <input 
                                         type="number"
                                         min="5"
                                         max="480"
                                         value={editTaskForm.estimated_minutes}
                                         onChange={e => setEditTaskForm({ ...editTaskForm, estimated_minutes: Number(e.target.value) })}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-3 py-2 text-text-primary text-xs focus:border-primary focus:outline-none"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Hours</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Hours</label>
                                     <input 
                                         type="number"
                                         min="0"
@@ -784,26 +784,26 @@ export default function ChallengeDetail() {
                                         step="0.5"
                                         value={editTaskForm.hours}
                                         onChange={e => setEditTaskForm({ ...editTaskForm, hours: Number(e.target.value) })}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-3 py-2 text-text-primary text-xs focus:border-primary focus:outline-none"
                                     />
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Target Date</label>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">Target Date</label>
                                     <input 
                                         type="date"
                                         value={editTaskForm.date}
                                         onChange={e => setEditTaskForm({ ...editTaskForm, date: e.target.value })}
-                                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-xs focus:border-indigo-500 focus:outline-none"
+                                        className="w-full bg-background border border-border-subtle rounded-xl px-3 py-2 text-text-primary text-xs focus:border-primary focus:outline-none"
                                     />
                                 </div>
                             </div>
 
                             <div className="flex justify-end gap-3 pt-2">
-                                <button type="button" onClick={() => setEditTaskModal(null)} className="px-4 py-2 rounded-xl border border-slate-700 text-slate-400 text-xs font-semibold hover:bg-slate-800">
+                                <button type="button" onClick={() => setEditTaskModal(null)} className="px-4 py-2 rounded-xl border border-border-subtle text-text-muted text-xs font-semibold hover:bg-surface-elevated">
                                     Cancel
                                 </button>
-                                <button type="submit" className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs transition">
+                                <button type="submit" className="px-5 py-2.5 bg-primary hover:bg-primary text-background font-bold rounded-xl text-xs transition">
                                     Update Task
                                 </button>
                             </div>

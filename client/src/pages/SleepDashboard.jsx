@@ -571,7 +571,7 @@ export default function SleepDashboard() {
         <div>
           <h1 className="text-2xl font-extrabold text-text-primary flex items-center gap-2">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple to-primary flex items-center justify-center">
-              <FiMoon className="text-white" size={20} />
+              <FiMoon className="text-text-primary" size={20} />
             </div>
             Sleep Tracker
           </h1>
@@ -597,7 +597,7 @@ export default function SleepDashboard() {
             onClick={() => setActiveTab(tab.id)}
             className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${
               activeTab === tab.id
-                ? 'bg-purple text-white'
+                ? 'bg-purple text-text-primary'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'
             }`}
           >

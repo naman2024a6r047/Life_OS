@@ -17,31 +17,46 @@
 @layer components {
   /* Card system */
   .card {
-    @apply bg-surface rounded-xl border border-border-subtle;
+    @apply bg-surface border border-border-subtle relative overflow-hidden;
+    /* Optional: sci-fi corner clip-path for that military look */
+    border-radius: 8px; 
+    /* clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px); */
   }
   
-  .card-hover {
-    @apply card transition-all duration-200;
+  .card::before {
+    content: '';
+    @apply absolute inset-0 border border-primary/0 pointer-events-none transition-colors duration-300;
+    border-radius: inherit;
   }
+
+  .card-hover {
+    @apply card transition-all duration-300;
+  }
+  
   .card-hover:hover {
-    @apply border-border-hover shadow-card-hover;
+    @apply border-primary/30 shadow-card-hover;
+  }
+  
+  .card-hover:hover::before {
+    @apply border-primary/20;
   }
 
   /* Stat card (compact metric display) */
   .stat-card {
-    @apply card px-4 py-3 flex items-center gap-3;
+    @apply card px-4 py-3 flex flex-col justify-center gap-1;
   }
 
   /* Sidebar navigation item */
   .sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-text-secondary transition-all duration-150 cursor-pointer;
+    @apply flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium text-text-secondary transition-all duration-200 cursor-pointer border-l-2 border-transparent;
   }
   .sidebar-item:hover {
-    @apply bg-surface-elevated text-text-primary;
+    @apply text-text-primary bg-surface-elevated/50 border-border-subtle;
   }
   .sidebar-item.active {
-    @apply bg-primary text-white font-semibold;
+    @apply bg-surface-elevated text-primary border-primary;
   }
+
 
   /* Badge pill */
   .badge {
@@ -73,7 +88,7 @@
 
   /* Button styles */
   .btn-primary {
-    @apply px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-white text-sm font-semibold transition-all duration-150;
+    @apply px-4 py-2 rounded-lg bg-primary hover:bg-primary-dark text-background text-sm font-semibold transition-all duration-150;
   }
   .btn-outline {
     @apply px-4 py-2 rounded-lg border border-border-subtle text-text-secondary hover:text-text-primary hover:border-border-hover text-sm font-medium transition-all duration-150;
@@ -116,6 +131,21 @@
   .gradient-text {
     @apply bg-clip-text text-transparent;
   }
+
+  /* Legacy glass class - alias to card for backward compat */
+  .glass {
+    @apply bg-surface/80 border border-border-subtle backdrop-blur-md;
+    border-radius: 16px;
+  }
+
+  /* No-scrollbar utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
 }
 
 /* Custom Scrollbar */
@@ -131,10 +161,21 @@
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(99, 102, 241, 0.3);
+  background: rgba(146, 241, 59, 0.3);
 }
 
 /* Scrollbar for sidebar */
 .sidebar-scroll::-webkit-scrollbar {
   width: 3px;
 }
+
+/* iOS safe area padding for bottom nav */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+.pb-safe {
+  padding-bottom: max(8px, env(safe-area-inset-bottom, 8px));
+}
+

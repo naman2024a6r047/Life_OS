@@ -67,49 +67,49 @@ export default function ExamAnalytics({ examData }) {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div>
                 <h2 className="text-3xl font-bold mb-2">Exam Telemetry & Analytics</h2>
-                <p className="text-slate-400">Deep telemetry metrics tracking your revision velocity, subject focus, and study time distribution.</p>
+                <p className="text-text-muted">Deep telemetry metrics tracking your revision velocity, subject focus, and study time distribution.</p>
             </div>
 
             {/* Metric KPI Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="glass-card p-6 rounded-2xl border border-slate-800">
-                    <div className="flex items-center gap-3 text-slate-400 mb-3">
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle">
+                    <div className="flex items-center gap-3 text-text-muted mb-3">
                         <FiClock className="text-cyan-400 text-xl" />
                         <span className="text-xs font-bold uppercase tracking-wider">Total Time</span>
                     </div>
-                    <div className="text-3xl font-black text-white">{totalHours} <span className="text-sm text-slate-500 font-medium">hrs</span></div>
+                    <div className="text-3xl font-black text-text-primary">{totalHours} <span className="text-sm text-text-muted font-medium">hrs</span></div>
                 </div>
 
-                <div className="glass-card p-6 rounded-2xl border border-slate-800">
-                    <div className="flex items-center gap-3 text-slate-400 mb-3">
-                        <FiCheckCircle className="text-emerald-400 text-xl" />
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle">
+                    <div className="flex items-center gap-3 text-text-muted mb-3">
+                        <FiCheckCircle className="text-success text-xl" />
                         <span className="text-xs font-bold uppercase tracking-wider">Completed Subjects</span>
                     </div>
-                    <div className="text-3xl font-black text-white">{completedSubjects} <span className="text-sm text-slate-500 font-medium">/ {subjects.length}</span></div>
+                    <div className="text-3xl font-black text-text-primary">{completedSubjects} <span className="text-sm text-text-muted font-medium">/ {subjects.length}</span></div>
                 </div>
 
-                <div className="glass-card p-6 rounded-2xl border border-slate-800">
-                    <div className="flex items-center gap-3 text-slate-400 mb-3">
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle">
+                    <div className="flex items-center gap-3 text-text-muted mb-3">
                         <FiActivity className="text-blue-400 text-xl" />
                         <span className="text-xs font-bold uppercase tracking-wider">Avg Session</span>
                     </div>
-                    <div className="text-3xl font-black text-white">{avgSessionMins} <span className="text-sm text-slate-500 font-medium">mins</span></div>
+                    <div className="text-3xl font-black text-text-primary">{avgSessionMins} <span className="text-sm text-text-muted font-medium">mins</span></div>
                 </div>
 
-                <div className="glass-card p-6 rounded-2xl border border-slate-800">
-                    <div className="flex items-center gap-3 text-slate-400 mb-3">
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle">
+                    <div className="flex items-center gap-3 text-text-muted mb-3">
                         <FiBookOpen className="text-amber-400 text-xl" />
                         <span className="text-xs font-bold uppercase tracking-wider">Total Sessions</span>
                     </div>
-                    <div className="text-3xl font-black text-white">{studyLogs.length} <span className="text-sm text-slate-500 font-medium">logged</span></div>
+                    <div className="text-3xl font-black text-text-primary">{studyLogs.length} <span className="text-sm text-text-muted font-medium">logged</span></div>
                 </div>
             </div>
 
             {/* Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Daily Study Velocity Chart */}
-                <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
-                    <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle space-y-4">
+                    <h3 className="text-xl font-bold text-text-muted flex items-center gap-2">
                         <FiActivity className="text-cyan-400" /> Daily Study Hours Velocity
                     </h3>
                     <div className="h-64 w-full pt-4">
@@ -135,9 +135,9 @@ export default function ExamAnalytics({ examData }) {
                 </div>
 
                 {/* Subject Progress Chart */}
-                <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
-                    <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
-                        <FiCheckCircle className="text-emerald-400" /> Subject Completion Progress (%)
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle space-y-4">
+                    <h3 className="text-xl font-bold text-text-muted flex items-center gap-2">
+                        <FiCheckCircle className="text-success" /> Subject Completion Progress (%)
                     </h3>
                     <div className="h-64 w-full pt-4">
                         <ResponsiveContainer width="100%" height="100%">
@@ -158,8 +158,8 @@ export default function ExamAnalytics({ examData }) {
 
             {/* Study Time Allocation Breakdown */}
             {timePerSubjectData.length > 0 && (
-                <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
-                    <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+                <div className="glass-card p-6 rounded-2xl border border-border-subtle space-y-4">
+                    <h3 className="text-xl font-bold text-text-muted flex items-center gap-2">
                         <FiClock className="text-blue-400" /> Hours Logged Per Subject
                     </h3>
                     <div className="h-64 w-full pt-4">
@@ -184,14 +184,14 @@ export default function ExamAnalytics({ examData }) {
             )}
 
             {/* Log History Breakdown Table */}
-            <div className="glass-card p-6 rounded-2xl border border-slate-800 space-y-4">
-                <h3 className="text-xl font-bold text-slate-100 flex items-center gap-2">
+            <div className="glass-card p-6 rounded-2xl border border-border-subtle space-y-4">
+                <h3 className="text-xl font-bold text-text-muted flex items-center gap-2">
                     <FiFileText className="text-amber-400" /> Recent Study Session Logs
                 </h3>
                 {studyLogs.length > 0 ? (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left text-sm text-slate-300">
-                            <thead className="bg-slate-900/60 text-slate-400 text-xs font-bold uppercase border-b border-slate-800">
+                        <table className="w-full text-left text-sm text-text-primary">
+                            <thead className="bg-background/60 text-text-muted text-xs font-bold uppercase border-b border-border-subtle">
                                 <tr>
                                     <th className="py-3 px-4">Date</th>
                                     <th className="py-3 px-4">Duration</th>
@@ -201,17 +201,17 @@ export default function ExamAnalytics({ examData }) {
                             </thead>
                             <tbody className="divide-y divide-slate-800/60">
                                 {studyLogs.map(log => (
-                                    <tr key={log.id} className="hover:bg-slate-900/40 transition">
-                                        <td className="py-3 px-4 font-mono text-slate-400">
+                                    <tr key={log.id} className="hover:bg-background/40 transition">
+                                        <td className="py-3 px-4 font-mono text-text-muted">
                                             {dayjs(log.createdAt).format('MMM DD, YYYY · HH:mm')}
                                         </td>
                                         <td className="py-3 px-4 font-bold text-cyan-400">
                                             {log.duration_minutes} mins
                                         </td>
-                                        <td className="py-3 px-4 font-medium text-slate-200">
+                                        <td className="py-3 px-4 font-medium text-text-primary">
                                             {log.chapters_covered || 'Standard Study Session'}
                                         </td>
-                                        <td className="py-3 px-4 text-slate-400 italic">
+                                        <td className="py-3 px-4 text-text-muted italic">
                                             {log.notes || '—'}
                                         </td>
                                     </tr>
@@ -220,7 +220,7 @@ export default function ExamAnalytics({ examData }) {
                         </table>
                     </div>
                 ) : (
-                    <p className="text-slate-500 italic text-sm py-4">No study sessions logged yet. Use Focus Mode to start logging study time!</p>
+                    <p className="text-text-muted italic text-sm py-4">No study sessions logged yet. Use Focus Mode to start logging study time!</p>
                 )}
             </div>
         </div>

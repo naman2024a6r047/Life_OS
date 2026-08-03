@@ -266,7 +266,7 @@ const getGoogleToken = async (req, res) => {
 
 const updateProfile = async (req, res) => {
     try {
-        const { google_drive_folder_link, resource_drive_folder_link } = req.body;
+        const { google_drive_folder_link, resource_drive_folder_link, avatar_url, bio } = req.body;
         const user = await User.findByPk(req.user.id);
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
@@ -280,8 +280,19 @@ const updateProfile = async (req, res) => {
             user.resource_drive_folder_link = resource_drive_folder_link;
         }
 
+        if (avatar_url !== undefined) {
+            user.avatar_url = avatar_url;
+        }
+
+        if (bio !== undefined) {
+            user.bio = bio;
+        }
+
         await user.save();
-        res.status(200).json({ message: 'Profile updated', user });
+        const userObj = user.toJSON();
+        delete userObj.password_hash;
+        delete userObj.google_refresh_token;
+        res.status(200).json({ message: 'Profile updated', user: userObj });
     } catch (error) {
         console.error('updateProfile error:', error);
         res.status(500).json({ message: 'Server Error' });

@@ -39,13 +39,13 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="w-full max-w-xl glass-panel p-8 rounded-3xl border border-indigo-500/30 relative overflow-hidden"
+                    className="w-full max-w-xl card p-8 rounded-3xl border border-primary/30 relative overflow-hidden"
                 >
                     {/* Header Indicator */}
                     <div className="flex justify-between items-center mb-6 border-b border-white/10 pb-4">
                         <div>
-                            <span className="text-xs font-bold text-indigo-400 font-mono">ONBOARDING PROTOCOL • STEP {step} OF 5</span>
-                            <h2 className="text-2xl font-extrabold text-white mt-1">
+                            <span className="text-xs font-bold text-primary font-mono">ONBOARDING PROTOCOL • STEP {step} OF 5</span>
+                            <h2 className="text-2xl font-extrabold text-text-primary mt-1">
                                 {step === 1 && "Choose Your Initial Growth Tracks"}
                                 {step === 2 && "Connect Accountability Partner"}
                                 {step === 3 && "Select Interface Theme"}
@@ -53,7 +53,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
                                 {step === 5 && "Profile Setup Complete"}
                             </h2>
                         </div>
-                        <button onClick={onClose} className="text-slate-500 hover:text-white p-1">
+                        <button onClick={onClose} className="text-text-muted hover:text-text-primary p-1">
                             <FiX size={20} />
                         </button>
                     </div>
@@ -61,7 +61,7 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     {/* Step 1: Goals */}
                     {step === 1 && (
                         <div className="space-y-3 mb-8">
-                            <p className="text-xs text-slate-400">Select the discipline areas you are committing to improve:</p>
+                            <p className="text-xs text-text-muted">Select the discipline areas you are committing to improve:</p>
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 {goalOptions.map((g) => {
                                     const selected = selectedGoals.includes(g.id);
@@ -69,12 +69,12 @@ export default function OnboardingModal({ isOpen, onClose }) {
                                         <button
                                             key={g.id}
                                             onClick={() => toggleGoal(g.id)}
-                                            className={`p-3.5 rounded-xl border text-left flex items-center justify-between transition-all ${selected ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-white/5 border-white/10 text-slate-400 hover:border-white/20'}`}
+                                            className={`p-3.5 rounded-xl border text-left flex items-center justify-between transition-all ${selected ? 'bg-primary/20 border-primary text-background' : 'bg-surface/5 border-white/10 text-text-muted hover:border-white/20'}`}
                                         >
                                             <span className="text-sm font-semibold flex items-center gap-2">
                                                 <span>{g.icon}</span> {g.label}
                                             </span>
-                                            {selected && <FiCheck className="text-indigo-400" />}
+                                            {selected && <FiCheck className="text-primary" />}
                                         </button>
                                     );
                                 })}
@@ -85,15 +85,15 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     {/* Step 2: Partner */}
                     {step === 2 && (
                         <div className="space-y-4 mb-8">
-                            <p className="text-xs text-slate-400">Search for a trusted friend to review your 10-day milestone proofs:</p>
+                            <p className="text-xs text-text-muted">Search for a trusted friend to review your 10-day milestone proofs:</p>
                             <div className="space-y-2">
-                                <label className="text-xs font-semibold text-slate-300">Partner Username</label>
+                                <label className="text-xs font-semibold text-text-primary">Partner Username</label>
                                 <input 
                                     type="text" 
                                     value={partner}
                                     onChange={(e) => setPartner(e.target.value)}
                                     placeholder="Enter @username (or leave blank to skip)..."
-                                    className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 text-sm"
+                                    className="w-full px-4 py-3 bg-background border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-primary text-sm"
                                 />
                             </div>
                         </div>
@@ -102,13 +102,13 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     {/* Step 3: Theme */}
                     {step === 3 && (
                         <div className="space-y-3 mb-8">
-                            <p className="text-xs text-slate-400">LifeOS is engineered for high-contrast dark-mode focus:</p>
+                            <p className="text-xs text-text-muted">LifeOS is engineered for high-contrast dark-mode focus:</p>
                             <div className="grid grid-cols-3 gap-3">
                                 {['dark', 'light', 'system'].map((t) => (
                                     <button
                                         key={t}
                                         onClick={() => setTheme(t)}
-                                        className={`p-4 rounded-xl border text-center capitalize text-sm font-semibold transition-all ${theme === t ? 'bg-indigo-600/20 border-indigo-500 text-white' : 'bg-white/5 border-white/10 text-slate-400'}`}
+                                        className={`p-4 rounded-xl border text-center capitalize text-sm font-semibold transition-all ${theme === t ? 'bg-primary/20 border-primary text-background' : 'bg-surface/5 border-white/10 text-text-muted'}`}
                                     >
                                         <FiMoon className="mx-auto mb-2" />
                                         {t}
@@ -121,12 +121,12 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     {/* Step 4: Reminder */}
                     {step === 4 && (
                         <div className="space-y-4 mb-8">
-                            <p className="text-xs text-slate-400">Select when you want your daily discipline check-in alert:</p>
+                            <p className="text-xs text-text-muted">Select when you want your daily discipline check-in alert:</p>
                             <input 
                                 type="time"
                                 value={reminderTime}
                                 onChange={(e) => setReminderTime(e.target.value)}
-                                className="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl text-white focus:outline-none focus:border-indigo-500 text-lg font-mono text-center"
+                                className="w-full px-4 py-3 bg-background border border-border-subtle rounded-xl text-text-primary focus:outline-none focus:border-primary text-lg font-mono text-center"
                             />
                         </div>
                     )}
@@ -134,11 +134,11 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     {/* Step 5: Complete */}
                     {step === 5 && (
                         <div className="text-center py-6 space-y-3 mb-6">
-                            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto text-2xl">
+                            <div className="w-16 h-16 rounded-full bg-success/20 text-success border border-emerald-500/30 flex items-center justify-center mx-auto text-2xl">
                                 ✓
                             </div>
-                            <h3 className="text-xl font-bold text-white">System Ready for Launch</h3>
-                            <p className="text-xs text-slate-400 max-w-sm mx-auto">Your growth tracks, partner preferences, and discipline schedules have been configured.</p>
+                            <h3 className="text-xl font-bold text-text-primary">System Ready for Launch</h3>
+                            <p className="text-xs text-text-muted max-w-sm mx-auto">Your growth tracks, partner preferences, and discipline schedules have been configured.</p>
                         </div>
                     )}
 
@@ -146,12 +146,12 @@ export default function OnboardingModal({ isOpen, onClose }) {
                     <div className="flex justify-between items-center pt-4 border-t border-white/10">
                         <div className="flex gap-1.5">
                             {[1, 2, 3, 4, 5].map((i) => (
-                                <div key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-indigo-500' : 'w-1.5 bg-white/10'}`}></div>
+                                <div key={i} className={`h-1.5 rounded-full transition-all ${i === step ? 'w-6 bg-primary' : 'w-1.5 bg-surface/10'}`}></div>
                             ))}
                         </div>
                         <button
                             onClick={handleNext}
-                            className="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-lg shadow-indigo-500/20 transition-all"
+                            className="bg-primary hover:bg-primary text-background font-semibold px-6 py-2.5 rounded-xl flex items-center gap-2 text-sm shadow-lg shadow-primary/30 transition-all"
                         >
                             {step === 5 ? "Launch Dashboard" : "Next Step"} <FiArrowRight />
                         </button>

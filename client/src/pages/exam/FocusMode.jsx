@@ -90,43 +90,43 @@ export default function FocusMode({ examId, subjects, onSessionComplete }) {
             <h2 className="text-3xl font-bold mb-8">Deep Focus Mode & Study Logger</h2>
 
             {/* Stopwatch Timer Display */}
-            <div className="glass-panel p-12 rounded-full border-[8px] border-slate-800/50 w-80 h-80 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(6,182,212,0.15)] relative mb-12">
+            <div className="card p-12 rounded-full border-[8px] border-border-subtle/50 w-80 h-80 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(6,182,212,0.15)] relative mb-12">
                 {isRunning && (
                     <div className="absolute inset-0 rounded-full border-4 border-cyan-400 border-t-transparent animate-spin opacity-50"></div>
                 )}
-                <span className="text-5xl font-mono font-bold text-white tracking-widest z-10">{formatTime(timeElapsed)}</span>
-                <span className="text-slate-400 mt-2 z-10 uppercase tracking-widest text-xs font-bold">Stopwatch Elapsed</span>
+                <span className="text-5xl font-mono font-bold text-text-primary tracking-widest z-10">{formatTime(timeElapsed)}</span>
+                <span className="text-text-muted mt-2 z-10 uppercase tracking-widest text-xs font-bold">Stopwatch Elapsed</span>
             </div>
 
             <div className="flex gap-6 mb-12">
                 <button 
                     onClick={() => setIsRunning(!isRunning)} 
-                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isRunning ? 'bg-amber-500 hover:bg-amber-400 text-white shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-cyan-500 hover:bg-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]'}`}
+                    className={`w-16 h-16 rounded-full flex items-center justify-center transition-all ${isRunning ? 'bg-amber-500 hover:bg-amber-400 text-text-primary shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-cyan-500 hover:bg-cyan-400 text-white shadow-[0_0_20px_rgba(6,182,212,0.4)]'}`}
                 >
                     {isRunning ? <FiPause size={24} /> : <FiPlay size={24} className="ml-1" />}
                 </button>
                 <button 
                     onClick={() => { setIsRunning(false); setTimeElapsed(0); }} 
-                    className="w-16 h-16 rounded-full flex items-center justify-center bg-slate-800 hover:bg-slate-700 text-slate-300 transition-all"
+                    className="w-16 h-16 rounded-full flex items-center justify-center bg-surface-elevated hover:bg-surface text-text-primary transition-all"
                 >
                     <FiSquare size={20} />
                 </button>
             </div>
 
             {/* Log Form */}
-            <form onSubmit={handleSaveSession} className="glass-card p-6 rounded-2xl w-full max-w-lg space-y-4 border border-slate-800">
-                <h3 className="font-bold text-lg mb-2 text-slate-100 flex items-center gap-2">
+            <form onSubmit={handleSaveSession} className="glass-card p-6 rounded-2xl w-full max-w-lg space-y-4 border border-border-subtle">
+                <h3 className="font-bold text-lg mb-2 text-text-muted flex items-center gap-2">
                     <FiClock className="text-cyan-400" /> Log Study Session
                 </h3>
 
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
                         Subject
                     </label>
                     <select 
                         value={selectedSubject} 
                         onChange={(e) => setSelectedSubject(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:border-cyan-500 focus:outline-none"
                         required
                     >
                         <option value="">Select Subject...</option>
@@ -135,7 +135,7 @@ export default function FocusMode({ examId, subjects, onSessionComplete }) {
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
                         Duration (Minutes)
                     </label>
                     <input 
@@ -144,27 +144,27 @@ export default function FocusMode({ examId, subjects, onSessionComplete }) {
                         placeholder="e.g. 30" 
                         value={manualDuration}
                         onChange={(e) => setManualDuration(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none"
+                        className="w-full bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:border-cyan-500 focus:outline-none"
                         required
                     />
                 </div>
 
                 <div>
-                    <label className="block text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">
+                    <label className="block text-xs font-bold uppercase tracking-wider text-text-muted mb-1">
                         Chapters / Notes / Topics Covered
                     </label>
                     <textarea 
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         placeholder="Session notes, chapters covered (e.g. Basics of Process Scheduling)..."
-                        className="w-full h-24 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-cyan-500 focus:outline-none resize-none text-sm"
+                        className="w-full h-24 bg-background border border-border-subtle rounded-xl px-4 py-3 text-text-primary focus:border-cyan-500 focus:outline-none resize-none text-sm"
                     ></textarea>
                 </div>
 
                 <button 
                     type="submit"
                     disabled={saving || !selectedSubject}
-                    className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 disabled:opacity-40 text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-indigo-600/20"
+                    className="w-full py-3.5 bg-gradient-to-r from-primary/20 to-cyan-600 hover:from-primary/20 hover:to-cyan-500 disabled:opacity-40 text-text-primary font-bold rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-primary/30"
                 >
                     <FiSave /> {saving ? 'Saving Log...' : 'Save Study Log'}
                 </button>

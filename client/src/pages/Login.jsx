@@ -42,9 +42,12 @@ export default function Login() {
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="glass p-10 rounded-2xl w-full max-w-md z-10"
+                className="card p-10 rounded-2xl w-full max-w-md z-10 bg-surface border border-border-subtle"
             >
                 <div className="text-center mb-8">
+                    <div className="flex justify-center mb-6">
+                        <img src="/logo.png" alt="LifeOS Logo" className="h-20 w-20 object-contain" />
+                    </div>
                     <h1 className="text-3xl font-bold mb-2">Welcome Back</h1>
                     <p className="text-textSecondary">Sign in to continue building discipline.</p>
                 </div>
@@ -58,7 +61,7 @@ export default function Login() {
                     onClick={handleGoogleLogin}
                     disabled={isGoogleLoading}
                     type="button" 
-                    className="w-full bg-white/10 hover:bg-white/15 text-white font-medium py-3 rounded-xl transition-colors border border-white/20 flex items-center justify-center gap-3 mb-6"
+                    className="w-full bg-surface/10 hover:bg-surface/15 text-text-primary font-medium py-3 rounded-xl transition-colors border border-white/20 flex items-center justify-center gap-3 mb-6"
                 >
                     <svg className="w-5 h-5" viewBox="0 0 24 24">
                         <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -87,7 +90,7 @@ export default function Login() {
                                 required
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-white placeholder-white/30"
+                                className="w-full pl-10 pr-4 py-3 bg-surface/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-text-primary placeholder-white/30"
                                 placeholder="you@example.com"
                             />
                         </div>
@@ -104,7 +107,7 @@ export default function Login() {
                                 required
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
-                                className="w-full pl-10 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-white placeholder-white/30"
+                                className="w-full pl-10 pr-4 py-3 bg-surface/5 border border-white/10 rounded-xl focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors text-text-primary placeholder-white/30"
                                 placeholder="••••••••"
                             />
                         </div>
@@ -114,7 +117,7 @@ export default function Login() {
                         whileHover={{ scale: 1.02 }}
                         whileTap={{ scale: 0.98 }}
                         type="submit" 
-                        className="w-full bg-primary hover:bg-indigo-400 text-white font-medium py-3 rounded-xl transition-colors shadow-lg shadow-primary/25"
+                        className="w-full bg-primary hover:bg-primary-dark text-background font-bold py-3 rounded-xl transition-colors shadow-lg shadow-primary/25"
                     >
                         Sign In
                     </motion.button>
@@ -125,7 +128,7 @@ export default function Login() {
                 </div>
 
                 <p className="mt-6 text-center text-sm text-textSecondary">
-                    Don't have an account? <Link to="/register" className="text-primary hover:text-indigo-400 font-medium">Create one</Link>
+                    Don't have an account? <Link to="/register" className="text-primary hover:text-primary-light font-medium">Create one</Link>
                 </p>
             </motion.div>
         </div>

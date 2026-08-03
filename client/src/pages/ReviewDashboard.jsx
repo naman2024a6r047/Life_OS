@@ -199,7 +199,7 @@ export default function ReviewDashboard() {
           >
             {tab.label}
             {tab.badge && (
-              <span className="w-5 h-5 rounded-full bg-danger text-white text-[10px] font-bold flex items-center justify-center">
+              <span className="w-5 h-5 rounded-full bg-danger text-text-primary text-[10px] font-bold flex items-center justify-center">
                 {tab.badge}
               </span>
             )}
@@ -327,14 +327,14 @@ export default function ReviewDashboard() {
         <div className="lg:col-span-6 space-y-4">
           {/* Active Review Detail */}
           {/* Active Review Detail */}
-          <div className="card border-0 bg-slate-900/40 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+          <div className="card border-0 bg-background/40 backdrop-blur-xl shadow-2xl relative overflow-hidden">
             {/* Ambient Background Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-[80px] pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-[80px] pointer-events-none"></div>
 
             <div className="p-6 relative z-10 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 text-white shrink-0">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20 text-text-primary shrink-0">
                     <FiCheckCircle size={24} />
                   </div>
                   <div>
@@ -342,9 +342,9 @@ export default function ReviewDashboard() {
                       <span className="px-2 py-0.5 rounded-md bg-purple/10 text-purple text-[10px] font-bold uppercase tracking-wide border border-purple/20">Milestone Review</span>
                       <span className="px-2 py-0.5 rounded-md bg-amber-400/10 text-amber-400 text-[10px] font-bold uppercase tracking-wide border border-amber-400/20">Pending Action</span>
                     </div>
-                    <h2 className="text-xl font-bold text-white mb-1">{selectedReview?.Milestone?.title || 'No review selected'}</h2>
-                    <p className="text-xs text-slate-400 flex items-center gap-1.5">
-                      Submitted by <span className="px-2 py-0.5 rounded-full bg-slate-800 text-slate-200 font-bold">{selectedReview?.requester?.username || '-'}</span>
+                    <h2 className="text-xl font-bold text-text-primary mb-1">{selectedReview?.Milestone?.title || 'No review selected'}</h2>
+                    <p className="text-xs text-text-muted flex items-center gap-1.5">
+                      Submitted by <span className="px-2 py-0.5 rounded-full bg-surface-elevated text-text-primary font-bold">{selectedReview?.requester?.username || '-'}</span>
                     </p>
                   </div>
                 </div>
@@ -352,20 +352,20 @@ export default function ReviewDashboard() {
 
               {/* Description & Notes Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/50">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-2 flex items-center gap-1.5">
+                <div className="p-4 rounded-2xl bg-surface-elevated/40 border border-border-subtle/50">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-2 flex items-center gap-1.5">
                     <FiInfo size={12} /> Milestone Description
                   </h4>
-                  <p className="text-sm text-slate-300 leading-relaxed">
+                  <p className="text-sm text-text-primary leading-relaxed">
                     {selectedReview?.Milestone?.description || 'No description provided.'}
                   </p>
                 </div>
                 
-                <div className="p-4 rounded-2xl bg-indigo-500/10 border border-indigo-500/20">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-indigo-400 mb-2 flex items-center gap-1.5">
+                <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-primary mb-2 flex items-center gap-1.5">
                     <FiMessageSquare size={12} /> {selectedReview?.requester?.username || 'Peer'}'s Reflection
                   </h4>
-                  <p className="text-sm text-indigo-200/90 leading-relaxed italic">
+                  <p className="text-sm text-primary/90 leading-relaxed italic">
                     "{selectedReview?.reflection || 'No reflection provided.'}"
                   </p>
                 </div>
@@ -374,16 +374,16 @@ export default function ReviewDashboard() {
               {/* Tasks List */}
               {selectedReview?.Milestone?.tasks && selectedReview.Milestone.tasks.length > 0 && (
                 <div>
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-3 flex items-center gap-1.5 pl-1">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-3 flex items-center gap-1.5 pl-1">
                     <FiCheckSquare size={12} /> Completed Tasks
                   </h4>
                   <div className="grid gap-2">
                     {selectedReview.Milestone.tasks.map(task => (
-                      <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-slate-800/30 border border-slate-700/50 transition-colors hover:bg-slate-800/50">
-                        <div className="w-6 h-6 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                      <div key={task.id} className="flex items-center gap-3 p-3 rounded-xl bg-surface-elevated/30 border border-border-subtle/50 transition-colors hover:bg-surface-elevated/50">
+                        <div className="w-6 h-6 rounded-lg bg-success/20 text-success flex items-center justify-center shrink-0">
                           <FiCheck size={14} />
                         </div>
-                        <span className="text-sm font-medium text-slate-200 line-through opacity-70">{task.description}</span>
+                        <span className="text-sm font-medium text-text-primary line-through opacity-70">{task.description}</span>
                       </div>
                     ))}
                   </div>
@@ -392,14 +392,14 @@ export default function ReviewDashboard() {
 
               {/* Submitted Work Link */}
               {selectedReview?.evidence_url && (
-                <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="p-4 rounded-2xl bg-background/60 border border-border-subtle/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="min-w-0">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1">Submitted Evidence</p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-text-muted mb-1">Submitted Evidence</p>
                     <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="text-sm text-blue-400 hover:text-blue-300 font-mono flex items-center gap-2 truncate transition-colors">
                       <FiExternalLink size={14} className="shrink-0" /> {selectedReview?.evidence_url}
                     </a>
                   </div>
-                  <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="shrink-0 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-white text-xs font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
+                  <a href={selectedReview?.evidence_url} target="_blank" rel="noreferrer" className="shrink-0 px-4 py-2 rounded-xl bg-blue-500 hover:bg-blue-600 text-text-primary text-xs font-bold transition-all shadow-lg shadow-blue-500/20 flex items-center gap-2">
                     Open Link <FiChevronRight size={14} />
                   </a>
                 </div>
@@ -407,8 +407,8 @@ export default function ReviewDashboard() {
 
               {/* Reviewer Feedback (If completed) */}
               {selectedReview?.Review && (
-                <div className="p-5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
-                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-3 flex items-center gap-1.5">
+                <div className="p-5 rounded-2xl bg-success/10 border border-emerald-500/20">
+                  <h4 className="text-[10px] font-bold uppercase tracking-widest text-success mb-3 flex items-center gap-1.5">
                     <FiStar size={12} /> Evaluation Complete
                   </h4>
                   <div className="mb-4">
@@ -417,9 +417,9 @@ export default function ReviewDashboard() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <span className="px-2.5 py-1 rounded-lg bg-slate-900/50 text-emerald-400 text-[10px] font-bold border border-emerald-500/10">Quality: {selectedReview?.Review.rating_quality}/5</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-slate-900/50 text-emerald-400 text-[10px] font-bold border border-emerald-500/10">Consistency: {selectedReview?.Review.rating_consistency}/5</span>
-                    <span className="px-2.5 py-1 rounded-lg bg-slate-900/50 text-emerald-400 text-[10px] font-bold border border-emerald-500/10">Overall: {selectedReview?.Review.rating_overall}/5</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-background/50 text-success text-[10px] font-bold border border-emerald-500/10">Quality: {selectedReview?.Review.rating_quality}/5</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-background/50 text-success text-[10px] font-bold border border-emerald-500/10">Consistency: {selectedReview?.Review.rating_consistency}/5</span>
+                    <span className="px-2.5 py-1 rounded-lg bg-background/50 text-success text-[10px] font-bold border border-emerald-500/10">Overall: {selectedReview?.Review.rating_overall}/5</span>
                   </div>
                 </div>
               )}
@@ -476,7 +476,7 @@ export default function ReviewDashboard() {
                 <button 
                   onClick={() => handleEvaluate(true)}
                   disabled={submitting || !selectedReview}
-                  className="py-2 rounded-xl bg-success hover:bg-success/90 text-white text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-glow-success disabled:opacity-50"
+                  className="py-2 rounded-xl bg-success hover:bg-success/90 text-text-primary text-xs font-semibold transition-all flex items-center justify-center gap-1 shadow-glow-success disabled:opacity-50"
                 >
                   <FiCheck size={14} /> {submitting ? '...' : 'Approve Milestone'}
                 </button>

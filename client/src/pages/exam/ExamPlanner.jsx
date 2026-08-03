@@ -107,22 +107,22 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
             <div className="flex justify-between items-end">
                 <div>
                     <h2 className="text-3xl font-bold mb-2">Exam Planner & Date Sheet</h2>
-                    <p className="text-slate-400">Map out your subjects and create granular topic checklists.</p>
+                    <p className="text-text-muted">Map out your subjects and create granular topic checklists.</p>
                 </div>
             </div>
 
             {/* Add Subject */}
-            <div className="glass-panel p-6 rounded-2xl">
+            <div className="card p-6 rounded-2xl">
                 <form onSubmit={handleAddSubject} className="flex flex-col md:flex-row gap-4">
                     <input 
                         type="text" 
                         placeholder="Add a new subject (e.g., Operating Systems)" 
-                        className="flex-1 bg-slate-900/50 border border-slate-700 rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 text-white"
+                        className="flex-1 bg-background/50 border border-border-subtle rounded-xl px-4 py-3 focus:outline-none focus:border-cyan-500 text-text-primary"
                         value={newSubject}
                         onChange={(e) => setNewSubject(e.target.value)}
                         disabled={loading}
                     />
-                    <button type="submit" disabled={loading} className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50">
+                    <button type="submit" disabled={loading} className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-text-primary font-bold rounded-xl transition-colors flex items-center gap-2 disabled:opacity-50">
                         <FiPlus /> Add Subject
                     </button>
                 </form>
@@ -131,13 +131,13 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
             {/* Subject List */}
             <div className="grid grid-cols-1 gap-6">
                 {subjects.map(subject => (
-                    <div key={subject.id} className={`glass-card p-6 rounded-2xl border transition-all ${subject.is_completed ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800'} space-y-6`}>
+                    <div key={subject.id} className={`glass-card p-6 rounded-2xl border transition-all ${subject.is_completed ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-border-subtle'} space-y-6`}>
                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                             <div>
-                                <h3 className="text-2xl font-bold text-slate-100 flex items-center gap-2">
+                                <h3 className="text-2xl font-bold text-text-muted flex items-center gap-2">
                                     {subject.name}
                                     {subject.is_completed && (
-                                        <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                                        <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-success/20 text-success border border-emerald-500/30">
                                             FINISHED ✓
                                         </span>
                                     )}
@@ -152,8 +152,8 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
                                     onClick={() => handleCompleteSubject(subject.id)}
                                     className={`px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 ${
                                         subject.is_completed 
-                                            ? 'bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-600/50'
-                                            : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/20'
+                                            ? 'bg-success/30 text-emerald-300 border border-emerald-500/40 hover:bg-success/50'
+                                            : 'bg-success hover:bg-success/80 text-text-primary shadow-lg shadow-emerald-600/20'
                                     }`}
                                 >
                                     <FiCheckCircle />
@@ -169,20 +169,20 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
                                     <div 
                                         key={topic.id} 
                                         onClick={() => handleToggleTopic(topic.id, subject.id)}
-                                        className="flex items-center gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-800/80 cursor-pointer hover:border-cyan-500/40 transition"
+                                        className="flex items-center gap-3 p-3 rounded-xl bg-background/40 border border-border-subtle/80 cursor-pointer hover:border-cyan-500/40 transition"
                                     >
                                         {topic.is_completed ? (
-                                            <FiCheckCircle className="text-emerald-400 text-lg" />
+                                            <FiCheckCircle className="text-success text-lg" />
                                         ) : (
-                                            <FiCircle className="text-slate-500 text-lg" />
+                                            <FiCircle className="text-text-muted text-lg" />
                                         )}
-                                        <span className={`text-sm ${topic.is_completed ? 'line-through text-slate-500' : 'text-slate-200 font-medium'}`}>
+                                        <span className={`text-sm ${topic.is_completed ? 'line-through text-text-muted' : 'text-text-primary font-medium'}`}>
                                             {topic.name}
                                         </span>
                                     </div>
                                 ))
                             ) : (
-                                <p className="text-sm text-slate-500 italic">No topics added yet. Add your first topic below.</p>
+                                <p className="text-sm text-text-muted italic">No topics added yet. Add your first topic below.</p>
                             )}
                         </div>
 
@@ -191,11 +191,11 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
                             <input 
                                 type="text" 
                                 placeholder="Add a topic (e.g., Process Scheduling)"
-                                className="flex-1 bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-cyan-500"
+                                className="flex-1 bg-background/60 border border-border-subtle rounded-xl px-4 py-2 text-sm text-text-primary focus:outline-none focus:border-cyan-500"
                                 value={topicInputs[subject.id] || ''}
                                 onChange={(e) => setTopicInputs({ ...topicInputs, [subject.id]: e.target.value })}
                             />
-                            <button type="submit" className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-xl text-sm transition flex items-center gap-1 border border-slate-700">
+                            <button type="submit" className="px-4 py-2 bg-surface-elevated hover:bg-surface text-cyan-400 font-semibold rounded-xl text-sm transition flex items-center gap-1 border border-border-subtle">
                                 <FiPlus /> Add Topic
                             </button>
                         </form>
@@ -203,7 +203,7 @@ export default function ExamPlanner({ examId, initialSubjects, onUpdate }) {
                 ))}
                 
                 {subjects.length === 0 && (
-                    <div className="text-center py-12 text-slate-500 border border-dashed border-slate-800 rounded-2xl">
+                    <div className="text-center py-12 text-text-muted border border-dashed border-border-subtle rounded-2xl">
                         Add your first subject above to start planning.
                     </div>
                 )}

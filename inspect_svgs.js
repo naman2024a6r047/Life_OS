@@ -1,3 +1,4 @@
+
 const fs = require('fs');
 
 // Read the original anatomy SVG (UTF-16 LE encoded)

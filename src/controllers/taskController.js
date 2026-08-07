@@ -1,4 +1,4 @@
-const { MilestoneTask, ActivityLog, User } = require('../models');
+const { MilestoneTask, ActivityLog, User, Milestone, Challenge } = require('../models');
 const { Op } = require('sequelize');
 
 exports.toggleTask = async (req, res) => {
@@ -152,5 +152,30 @@ exports.deleteTask = async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Error deleting task' });
+    }
+};
+
+exports.getTodaysTasks = async (req, res) => {
+    try {
+        const today = new Date().toISOString().split('T')[0];
+        
+        const tasks = await MilestoneTask.findAll({
+            where: { date: today },
+            include: [{
+                model: Milestone,
+                required: true,
+                include: [{
+                    model: Challenge,
+                    where: { user_id: req.user.id },
+                    required: true,
+                    attributes: ['id', 'title', 'color']
+                }]
+            }]
+        });
+
+        res.status(200).json(tasks);
+    } catch (error) {
+        console.error('Error fetching todays tasks:', error);
+        res.status(500).json({ message: 'Error fetching todays tasks' });
     }
 };
